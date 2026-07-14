@@ -309,6 +309,48 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 /* Trap list */
 .traps li::marker { color: var(--tea-deep); font-weight: 700; }
 
+/* Figures: network & computation graphs */
+.fig {
+  margin: 16px 0;
+  padding: 14px 12px 10px;
+  background: var(--boxed-bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  overflow-x: auto;
+}
+.fig svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.fig figcaption {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.fig-legend {
+  display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+  margin-top: 6px; font-size: 12.5px; color: var(--ink-soft);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.fig-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.fig-legend i { width: 13px; height: 13px; border-radius: 4px; display: inline-block; }
+
+/* SVG element styling */
+.nn-edge { stroke: #cdb896; stroke-width: 1.1; opacity: .7; }
+.nn-input  { fill: #efe3d0; stroke: #c9a87c; stroke-width: 1.6; }
+.nn-hidden { fill: #f6e7cd; stroke: #c9a87c; stroke-width: 1.6; }
+.nn-hidden2{ fill: #e9dcc4; stroke: #b08d5b; stroke-width: 1.6; }
+.nn-output { fill: #dbc39a; stroke: #b08d5b; stroke-width: 1.8; }
+.nn-label  { fill: #5a4a38; font: 12px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; }
+.nn-node-t { fill: #4a3d2e; font: 600 12px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
+.cg-box    { fill: #fbf4e6; stroke: #c9a87c; stroke-width: 1.6; }
+.cg-box-e  { fill: #efe3d0; stroke: #b08d5b; stroke-width: 1.6; }
+.cg-t      { fill: #4a3d2e; font: 600 13px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
+.cg-fwd    { stroke: #b08d5b; stroke-width: 2; fill: none; marker-end: url(#arrF); }
+.cg-bwd    { stroke: #b5744f; stroke-width: 2; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrB); }
+.cg-flab   { fill: #6f5842; font: 11px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; }
+.cg-blab   { fill: #a05a3a; font: 600 11px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; }
+
 /* Back to top */
 .to-top {
   position: fixed;

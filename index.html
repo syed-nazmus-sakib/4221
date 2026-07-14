@@ -838,6 +838,377 @@ Output:       y = ReLU(z)</div>
       </ul>
     </section>
 
+    <!-- ============================================================ -->
+    <!-- ============ PART 3: Backpropagation Practice ============== -->
+    <!-- ============================================================ -->
+    <div class="part">
+      <h1>Part III — Backpropagation Practice Set</h1>
+      <div class="part-sub">Three fully worked three-layer networks: forward pass, loss, and backward pass with δ signals.</div>
+    </div>
+
+    <section class="card" id="bp-notation">
+      <h2>Notation Used in All Problems</h2>
+      <p>The same symbols are used throughout. All vectors are <strong>column vectors</strong>.</p>
+      <ul>
+        <li>\((W_1,b_1)\) — first layer &nbsp;·&nbsp; \((W_2,b_2)\) — second layer &nbsp;·&nbsp; \((W_3,b_3)\) — output layer</li>
+        <li>\((z_1,a_1)\) — weighted sum &amp; activation of the first layer</li>
+        <li>\((z_2,a_2)\) — weighted sum &amp; activation of the second layer</li>
+        <li>\((z_3,\hat y)\) — output weighted sum &amp; prediction</li>
+        <li>\((\delta_3,\delta_2,\delta_1)\) — error signals during backpropagation</li>
+      </ul>
+      <div class="callout">The forward pass moves \(x\rightarrow a_1\rightarrow a_2\rightarrow\hat y\); the backward pass always runs in reverse \(\delta_3\rightarrow\delta_2\rightarrow\delta_1\).</div>
+    </section>
+
+    <!-- ==================== PROBLEM 1 ==================== -->
+    <section class="card" id="bp-1">
+      <h2>Problem 1 · \(2\rightarrow2\rightarrow2\rightarrow1\)</h2>
+      <p class="note">ReLU hidden layers + Sigmoid / BCE output.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 560 250" role="img" aria-label="Network 2-2-2-1">
+          <!-- edges input->h1 -->
+          <line class="nn-edge" x1="70" y1="95" x2="210" y2="95"/>
+          <line class="nn-edge" x1="70" y1="95" x2="210" y2="175"/>
+          <line class="nn-edge" x1="70" y1="175" x2="210" y2="95"/>
+          <line class="nn-edge" x1="70" y1="175" x2="210" y2="175"/>
+          <!-- edges h1->h2 -->
+          <line class="nn-edge" x1="210" y1="95" x2="350" y2="95"/>
+          <line class="nn-edge" x1="210" y1="95" x2="350" y2="175"/>
+          <line class="nn-edge" x1="210" y1="175" x2="350" y2="95"/>
+          <line class="nn-edge" x1="210" y1="175" x2="350" y2="175"/>
+          <!-- edges h2->out -->
+          <line class="nn-edge" x1="350" y1="95" x2="490" y2="135"/>
+          <line class="nn-edge" x1="350" y1="175" x2="490" y2="135"/>
+          <!-- nodes -->
+          <circle class="nn-input"  cx="70"  cy="95"  r="20"/><text class="nn-node-t" x="70"  y="95">x₁</text>
+          <circle class="nn-input"  cx="70"  cy="175" r="20"/><text class="nn-node-t" x="70"  y="175">x₂</text>
+          <circle class="nn-hidden" cx="210" cy="95"  r="20"/><text class="nn-node-t" x="210" y="95">a¹₁</text>
+          <circle class="nn-hidden" cx="210" cy="175" r="20"/><text class="nn-node-t" x="210" y="175">a¹₂</text>
+          <circle class="nn-hidden2" cx="350" cy="95"  r="20"/><text class="nn-node-t" x="350" y="95">a²₁</text>
+          <circle class="nn-hidden2" cx="350" cy="175" r="20"/><text class="nn-node-t" x="350" y="175">a²₂</text>
+          <circle class="nn-output" cx="490" cy="135" r="20"/><text class="nn-node-t" x="490" y="135">ŷ</text>
+          <!-- layer labels -->
+          <text class="nn-label" x="70"  y="228">Input x (2)</text>
+          <text class="nn-label" x="210" y="228">Hidden 1 · ReLU</text>
+          <text class="nn-label" x="350" y="228">Hidden 2 · ReLU</text>
+          <text class="nn-label" x="490" y="228">Output · σ</text>
+        </svg>
+        <figcaption>Network topology: two inputs, two ReLU hidden layers of width 2, one sigmoid output.</figcaption>
+      </figure>
+
+      <figure class="fig">
+        <svg viewBox="0 0 820 210" role="img" aria-label="Computation graph problem 1">
+          <defs>
+            <marker id="arrF1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b08d5b"/></marker>
+            <marker id="arrB1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b5744f"/></marker>
+          </defs>
+          <!-- forward arcs -->
+          <path class="cg-fwd" style="marker-end:url(#arrF1)" d="M60,68 Q140,26 220,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF1)" d="M220,68 Q310,26 400,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF1)" d="M400,68 Q490,26 580,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF1)" d="M580,68 Q662,26 745,68"/>
+          <text class="cg-flab" x="140" y="22">W₁,b₁ · ReLU</text>
+          <text class="cg-flab" x="310" y="22">W₂,b₂ · ReLU</text>
+          <text class="cg-flab" x="490" y="22">W₃,b₃ · σ</text>
+          <text class="cg-flab" x="662" y="22">BCE loss</text>
+          <!-- boxes -->
+          <rect class="cg-box"   x="20"  y="68" width="80"  height="54" rx="12"/><text class="cg-t" x="60"  y="95">x</text>
+          <rect class="cg-box"   x="170" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="220" y="95">z₁ → a₁</text>
+          <rect class="cg-box"   x="350" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="400" y="95">z₂ → a₂</text>
+          <rect class="cg-box"   x="530" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="580" y="95">z₃ → ŷ</text>
+          <rect class="cg-box-e" x="705" y="68" width="80"  height="54" rx="12"/><text class="cg-t" x="745" y="95">L</text>
+          <!-- backward arcs -->
+          <path class="cg-bwd" style="marker-end:url(#arrB1)" d="M745,122 Q662,178 580,122"/>
+          <path class="cg-bwd" style="marker-end:url(#arrB1)" d="M580,122 Q490,178 400,122"/>
+          <path class="cg-bwd" style="marker-end:url(#arrB1)" d="M400,122 Q310,178 220,122"/>
+          <text class="cg-blab" x="662" y="196">δ₃ = ŷ − y</text>
+          <text class="cg-blab" x="490" y="196">δ₂</text>
+          <text class="cg-blab" x="310" y="196">δ₁</text>
+        </svg>
+        <div class="fig-legend">
+          <span><i style="background:#b08d5b"></i>forward pass</span>
+          <span><i style="background:#b5744f"></i>backward pass (gradients)</span>
+        </div>
+        <figcaption>Computation graph — solid = forward, dashed = backprop error signals.</figcaption>
+      </figure>
+
+      <h3>Given</h3>
+      <div class="boxed">\[x=\begin{bmatrix}1\\-1\end{bmatrix},\qquad y=1\]
+      \[W_1=\begin{bmatrix}0.5&0.2\\-0.3&0.4\end{bmatrix},\quad b_1=\begin{bmatrix}0.1\\-0.2\end{bmatrix}\]
+      \[W_2=\begin{bmatrix}0.6&-0.5\\0.2&0.3\end{bmatrix},\quad b_2=\begin{bmatrix}0.1\\-0.1\end{bmatrix}\]
+      \[W_3=\begin{bmatrix}0.7&-0.4\end{bmatrix},\quad b_3=0.05\]</div>
+      <p>Both hidden layers use ReLU; the output uses sigmoid with BCE loss.</p>
+
+      <h3>Forward propagation</h3>
+      <h4>1. First hidden layer</h4>
+      <div class="boxed">\[z_1=W_1x+b_1,\qquad a_1=\operatorname{ReLU}(z_1)\]</div>
+      <p>Write the ReLU derivative immediately — \(\operatorname{ReLU}'(z_1)\) is a vector of only \(0\) or \(1\).</p>
+      <h4>2. Second hidden layer</h4>
+      <div class="boxed">\[z_2=W_2a_1+b_2,\qquad a_2=\operatorname{ReLU}(z_2)\]</div>
+      <p>Also write \(\operatorname{ReLU}'(z_2)\).</p>
+      <h4>3. Output layer</h4>
+      <div class="boxed">\[z_3=W_3a_2+b_3,\qquad \hat y=\sigma(z_3),\qquad \sigma(z)=\frac{1}{1+e^{-z}}\]</div>
+      <h4>4. Loss</h4>
+      <div class="boxed">\[L=-\big[y\ln\hat y+(1-y)\ln(1-\hat y)\big]\]</div>
+      <p>Since \(y=1\), this simplifies to \(L=-\ln\hat y\).</p>
+
+      <h3>Backpropagation</h3>
+      <h4>5. Output error</h4>
+      <p>Because this is sigmoid with BCE:</p>
+      <div class="boxed">\[\boxed{\delta_3=\hat y-y}\]</div>
+      <h4>6. Output-layer gradients</h4>
+      <div class="boxed">\[dW_3=\delta_3\,a_2^{T},\qquad db_3=\delta_3\]</div>
+      <p>Dimension \((1\times1)(1\times2)=1\times2\), matching the shape of \(W_3\).</p>
+      <h4>7. Error at the second hidden layer</h4>
+      <p>Carry the output error backward through \(W_3\), then apply the local ReLU derivative:</p>
+      <div class="boxed">\[\boxed{\delta_2=(W_3^{T}\delta_3)\odot\operatorname{ReLU}'(z_2)}\]</div>
+      <h4>8. Second-layer gradients</h4>
+      <div class="boxed">\[dW_2=\delta_2\,a_1^{T},\qquad db_2=\delta_2\]</div>
+      <p>Dimension \((2\times1)(1\times2)=2\times2\).</p>
+      <h4>9. Error at the first hidden layer</h4>
+      <div class="boxed">\[\boxed{\delta_1=(W_2^{T}\delta_2)\odot\operatorname{ReLU}'(z_1)}\]</div>
+      <h4>10. First-layer gradients</h4>
+      <div class="boxed">\[dW_1=\delta_1 x^{T},\qquad db_1=\delta_1\]</div>
+      <p>Dimension \((2\times1)(1\times2)=2\times2\).</p>
+    </section>
+
+    <!-- ==================== PROBLEM 2 ==================== -->
+    <section class="card" id="bp-2">
+      <h2>Problem 2 · \(2\rightarrow2\rightarrow1\rightarrow1\)</h2>
+      <p class="note">Sigmoid first hidden layer + ReLU second hidden layer + Sigmoid / MSE output. Mixes scalar and vector backprop.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 560 250" role="img" aria-label="Network 2-2-1-1">
+          <line class="nn-edge" x1="70" y1="95" x2="210" y2="95"/>
+          <line class="nn-edge" x1="70" y1="95" x2="210" y2="175"/>
+          <line class="nn-edge" x1="70" y1="175" x2="210" y2="95"/>
+          <line class="nn-edge" x1="70" y1="175" x2="210" y2="175"/>
+          <line class="nn-edge" x1="210" y1="95" x2="350" y2="135"/>
+          <line class="nn-edge" x1="210" y1="175" x2="350" y2="135"/>
+          <line class="nn-edge" x1="350" y1="135" x2="490" y2="135"/>
+          <circle class="nn-input"  cx="70"  cy="95"  r="20"/><text class="nn-node-t" x="70"  y="95">x₁</text>
+          <circle class="nn-input"  cx="70"  cy="175" r="20"/><text class="nn-node-t" x="70"  y="175">x₂</text>
+          <circle class="nn-hidden" cx="210" cy="95"  r="20"/><text class="nn-node-t" x="210" y="95">a¹₁</text>
+          <circle class="nn-hidden" cx="210" cy="175" r="20"/><text class="nn-node-t" x="210" y="175">a¹₂</text>
+          <circle class="nn-hidden2" cx="350" cy="135" r="20"/><text class="nn-node-t" x="350" y="135">a²</text>
+          <circle class="nn-output" cx="490" cy="135" r="20"/><text class="nn-node-t" x="490" y="135">ŷ</text>
+          <text class="nn-label" x="70"  y="228">Input x (2)</text>
+          <text class="nn-label" x="210" y="228">Hidden 1 · σ</text>
+          <text class="nn-label" x="350" y="228">Hidden 2 · ReLU</text>
+          <text class="nn-label" x="490" y="228">Output · σ</text>
+        </svg>
+        <figcaption>The second hidden layer has a single neuron, so \(z_2,a_2,\delta_2\) are scalars.</figcaption>
+      </figure>
+
+      <figure class="fig">
+        <svg viewBox="0 0 820 210" role="img" aria-label="Computation graph problem 2">
+          <defs>
+            <marker id="arrF2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b08d5b"/></marker>
+            <marker id="arrB2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b5744f"/></marker>
+          </defs>
+          <path class="cg-fwd" style="marker-end:url(#arrF2)" d="M60,68 Q140,26 220,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF2)" d="M220,68 Q310,26 400,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF2)" d="M400,68 Q490,26 580,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF2)" d="M580,68 Q662,26 745,68"/>
+          <text class="cg-flab" x="140" y="22">W₁,b₁ · σ</text>
+          <text class="cg-flab" x="310" y="22">W₂,b₂ · ReLU</text>
+          <text class="cg-flab" x="490" y="22">W₃,b₃ · σ</text>
+          <text class="cg-flab" x="662" y="22">MSE loss</text>
+          <rect class="cg-box"   x="20"  y="68" width="80"  height="54" rx="12"/><text class="cg-t" x="60"  y="95">x</text>
+          <rect class="cg-box"   x="170" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="220" y="95">z₁ → a₁</text>
+          <rect class="cg-box"   x="350" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="400" y="95">z₂ → a₂</text>
+          <rect class="cg-box"   x="530" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="580" y="95">z₃ → ŷ</text>
+          <rect class="cg-box-e" x="705" y="68" width="80"  height="54" rx="12"/><text class="cg-t" x="745" y="95">L</text>
+          <path class="cg-bwd" style="marker-end:url(#arrB2)" d="M745,122 Q662,178 580,122"/>
+          <path class="cg-bwd" style="marker-end:url(#arrB2)" d="M580,122 Q490,178 400,122"/>
+          <path class="cg-bwd" style="marker-end:url(#arrB2)" d="M400,122 Q310,178 220,122"/>
+          <text class="cg-blab" x="662" y="196">δ₃ = (ŷ−y)ŷ(1−ŷ)</text>
+          <text class="cg-blab" x="490" y="196">δ₂ (scalar)</text>
+          <text class="cg-blab" x="310" y="196">δ₁</text>
+        </svg>
+        <div class="fig-legend">
+          <span><i style="background:#b08d5b"></i>forward pass</span>
+          <span><i style="background:#b5744f"></i>backward pass (gradients)</span>
+        </div>
+        <figcaption>Note δ₃ carries the sigmoid derivative because the loss is MSE, not BCE.</figcaption>
+      </figure>
+
+      <h3>Given</h3>
+      <div class="boxed">\[x=\begin{bmatrix}1\\2\end{bmatrix},\qquad y=0\]
+      \[W_1=\begin{bmatrix}0.4&-0.2\\-0.1&0.3\end{bmatrix},\quad b_1=\begin{bmatrix}0.1\\-0.2\end{bmatrix}\]
+      \[W_2=\begin{bmatrix}0.6&-0.4\end{bmatrix},\quad b_2=0.1\]
+      \[W_3=0.8,\quad b_3=-0.1\]</div>
+      <p>First hidden layer: sigmoid. Second hidden layer: ReLU. Output: sigmoid. Loss: MSE, \(L=\tfrac12(\hat y-y)^2\).</p>
+
+      <h3>Forward propagation</h3>
+      <h4>1. First hidden layer</h4>
+      <div class="boxed">\[z_1=W_1x+b_1,\qquad a_1=\sigma(z_1)\]</div>
+      <p>Apply sigmoid to each value separately.</p>
+      <h4>2. Second hidden layer (single neuron → scalar)</h4>
+      <div class="boxed">\[z_2=W_2a_1+b_2,\qquad a_2=\operatorname{ReLU}(z_2)\]</div>
+      <p>Write \(\operatorname{ReLU}'(z_2)\) — either \(0\) or \(1\).</p>
+      <h4>3. Output layer</h4>
+      <div class="boxed">\[z_3=W_3a_2+b_3,\qquad \hat y=\sigma(z_3)\]</div>
+      <h4>4. Loss</h4>
+      <div class="boxed">\[L=\tfrac12(\hat y-y)^2\]</div>
+      <p>Since \(y=0\), \(L=\tfrac12\hat y^2\).</p>
+
+      <h3>Backpropagation</h3>
+      <h4>5. Output error</h4>
+      <p>The shortcut \(\delta_3=\hat y-y\) <em>cannot</em> be used alone because the loss is MSE, not BCE. The correct output error is:</p>
+      <div class="boxed">\[\boxed{\delta_3=(\hat y-y)\,\hat y(1-\hat y)}\]</div>
+      <h4>6. Output gradients (all scalars)</h4>
+      <div class="boxed">\[dW_3=\delta_3 a_2,\qquad db_3=\delta_3\]</div>
+      <h4>7. Error at the second hidden layer (scalar)</h4>
+      <div class="boxed">\[\boxed{\delta_2=W_3\,\delta_3\,\operatorname{ReLU}'(z_2)}\]</div>
+      <h4>8. Second-layer gradients</h4>
+      <p>Although \(\delta_2\) is a scalar, \(W_2\) has two weights:</p>
+      <div class="boxed">\[dW_2=\delta_2 a_1^{T},\qquad db_2=\delta_2\]</div>
+      <p>Dimension \((1\times1)(1\times2)=1\times2\).</p>
+      <h4>9. Error at the first hidden layer</h4>
+      <p>Carry the scalar error backward through \(W_2^{T}\) (giving a \(2\times1\) vector), then apply the sigmoid derivative \(\sigma'(z_1)=a_1\odot(1-a_1)\):</p>
+      <div class="boxed">\[\boxed{\delta_1=(W_2^{T}\delta_2)\odot a_1\odot(1-a_1)}\]</div>
+      <h4>10. First-layer gradients</h4>
+      <div class="boxed">\[dW_1=\delta_1 x^{T},\qquad db_1=\delta_1\]</div>
+    </section>
+
+    <!-- ==================== PROBLEM 3 ==================== -->
+    <section class="card" id="bp-3">
+      <h2>Problem 3 · \(2\rightarrow2\rightarrow2\rightarrow2\)</h2>
+      <p class="note">ReLU first hidden layer + Sigmoid second hidden layer + Softmax output. Two-class classification.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 560 250" role="img" aria-label="Network 2-2-2-2">
+          <line class="nn-edge" x1="70" y1="95" x2="210" y2="95"/>
+          <line class="nn-edge" x1="70" y1="95" x2="210" y2="175"/>
+          <line class="nn-edge" x1="70" y1="175" x2="210" y2="95"/>
+          <line class="nn-edge" x1="70" y1="175" x2="210" y2="175"/>
+          <line class="nn-edge" x1="210" y1="95" x2="350" y2="95"/>
+          <line class="nn-edge" x1="210" y1="95" x2="350" y2="175"/>
+          <line class="nn-edge" x1="210" y1="175" x2="350" y2="95"/>
+          <line class="nn-edge" x1="210" y1="175" x2="350" y2="175"/>
+          <line class="nn-edge" x1="350" y1="95" x2="490" y2="95"/>
+          <line class="nn-edge" x1="350" y1="95" x2="490" y2="175"/>
+          <line class="nn-edge" x1="350" y1="175" x2="490" y2="95"/>
+          <line class="nn-edge" x1="350" y1="175" x2="490" y2="175"/>
+          <circle class="nn-input"  cx="70"  cy="95"  r="20"/><text class="nn-node-t" x="70"  y="95">x₁</text>
+          <circle class="nn-input"  cx="70"  cy="175" r="20"/><text class="nn-node-t" x="70"  y="175">x₂</text>
+          <circle class="nn-hidden" cx="210" cy="95"  r="20"/><text class="nn-node-t" x="210" y="95">a¹₁</text>
+          <circle class="nn-hidden" cx="210" cy="175" r="20"/><text class="nn-node-t" x="210" y="175">a¹₂</text>
+          <circle class="nn-hidden2" cx="350" cy="95"  r="20"/><text class="nn-node-t" x="350" y="95">a²₁</text>
+          <circle class="nn-hidden2" cx="350" cy="175" r="20"/><text class="nn-node-t" x="350" y="175">a²₂</text>
+          <circle class="nn-output" cx="490" cy="95"  r="20"/><text class="nn-node-t" x="490" y="95">ŷ₁</text>
+          <circle class="nn-output" cx="490" cy="175" r="20"/><text class="nn-node-t" x="490" y="175">ŷ₂</text>
+          <text class="nn-label" x="70"  y="228">Input x (2)</text>
+          <text class="nn-label" x="210" y="228">Hidden 1 · ReLU</text>
+          <text class="nn-label" x="350" y="228">Hidden 2 · σ</text>
+          <text class="nn-label" x="490" y="228">Output · softmax</text>
+        </svg>
+        <figcaption>Two softmax outputs summing to 1 — a two-class classifier.</figcaption>
+      </figure>
+
+      <figure class="fig">
+        <svg viewBox="0 0 820 210" role="img" aria-label="Computation graph problem 3">
+          <defs>
+            <marker id="arrF3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b08d5b"/></marker>
+            <marker id="arrB3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b5744f"/></marker>
+          </defs>
+          <path class="cg-fwd" style="marker-end:url(#arrF3)" d="M60,68 Q140,26 220,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF3)" d="M220,68 Q310,26 400,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF3)" d="M400,68 Q490,26 580,68"/>
+          <path class="cg-fwd" style="marker-end:url(#arrF3)" d="M580,68 Q662,26 745,68"/>
+          <text class="cg-flab" x="140" y="22">W₁,b₁ · ReLU</text>
+          <text class="cg-flab" x="310" y="22">W₂,b₂ · σ</text>
+          <text class="cg-flab" x="490" y="22">W₃,b₃ · softmax</text>
+          <text class="cg-flab" x="662" y="22">cross-entropy</text>
+          <rect class="cg-box"   x="20"  y="68" width="80"  height="54" rx="12"/><text class="cg-t" x="60"  y="95">x</text>
+          <rect class="cg-box"   x="170" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="220" y="95">z₁ → a₁</text>
+          <rect class="cg-box"   x="350" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="400" y="95">z₂ → a₂</text>
+          <rect class="cg-box"   x="530" y="68" width="100" height="54" rx="12"/><text class="cg-t" x="580" y="95">z₃ → ŷ</text>
+          <rect class="cg-box-e" x="705" y="68" width="80"  height="54" rx="12"/><text class="cg-t" x="745" y="95">L</text>
+          <path class="cg-bwd" style="marker-end:url(#arrB3)" d="M745,122 Q662,178 580,122"/>
+          <path class="cg-bwd" style="marker-end:url(#arrB3)" d="M580,122 Q490,178 400,122"/>
+          <path class="cg-bwd" style="marker-end:url(#arrB3)" d="M400,122 Q310,178 220,122"/>
+          <text class="cg-blab" x="662" y="196">δ₃ = ŷ − y</text>
+          <text class="cg-blab" x="490" y="196">δ₂</text>
+          <text class="cg-blab" x="310" y="196">δ₁</text>
+        </svg>
+        <div class="fig-legend">
+          <span><i style="background:#b08d5b"></i>forward pass</span>
+          <span><i style="background:#b5744f"></i>backward pass (gradients)</span>
+        </div>
+        <figcaption>Softmax + cross-entropy again gives the clean output error δ₃ = ŷ − y.</figcaption>
+      </figure>
+
+      <h3>Given</h3>
+      <div class="boxed">\[x=\begin{bmatrix}2\\-1\end{bmatrix},\qquad y=\begin{bmatrix}0\\1\end{bmatrix}\]
+      \[W_1=\begin{bmatrix}0.3&0.2\\-0.4&0.5\end{bmatrix},\quad b_1=\begin{bmatrix}0.1\\0.2\end{bmatrix}\]
+      \[W_2=\begin{bmatrix}0.6&-0.3\\0.2&0.4\end{bmatrix},\quad b_2=\begin{bmatrix}0\\0.1\end{bmatrix}\]
+      \[W_3=\begin{bmatrix}0.7&-0.2\\-0.3&0.6\end{bmatrix},\quad b_3=\begin{bmatrix}0.05\\-0.05\end{bmatrix}\]</div>
+      <p>First hidden layer: ReLU. Second hidden layer: sigmoid. Output: softmax. Loss: categorical cross-entropy.</p>
+
+      <h3>Forward propagation</h3>
+      <h4>1. First hidden layer</h4>
+      <div class="boxed">\[z_1=W_1x+b_1,\qquad a_1=\operatorname{ReLU}(z_1)\]</div>
+      <p>Write \(\operatorname{ReLU}'(z_1)\).</p>
+      <h4>2. Second hidden layer</h4>
+      <div class="boxed">\[z_2=W_2a_1+b_2,\qquad a_2=\sigma(z_2),\qquad \sigma'(z_2)=a_2\odot(1-a_2)\]</div>
+      <h4>3. Output logits</h4>
+      <div class="boxed">\[z_3=W_3a_2+b_3=\begin{bmatrix}z_{3,1}\\z_{3,2}\end{bmatrix}\]</div>
+      <h4>4. Softmax probabilities</h4>
+      <div class="boxed">\[\hat y_1=\frac{e^{z_{3,1}}}{e^{z_{3,1}}+e^{z_{3,2}}},\qquad \hat y_2=\frac{e^{z_{3,2}}}{e^{z_{3,1}}+e^{z_{3,2}}}\]</div>
+      <p>Check: \(\hat y_1+\hat y_2=1\).</p>
+      <h4>5. Loss</h4>
+      <p>Target \(y=[0,1]^{T}\), so the second class is correct and categorical cross-entropy becomes:</p>
+      <div class="boxed">\[\boxed{L=-\ln\hat y_2}\]</div>
+
+      <h3>Backpropagation</h3>
+      <h4>6. Output error</h4>
+      <p>For softmax with categorical cross-entropy:</p>
+      <div class="boxed">\[\boxed{\delta_3=\hat y-y}=\begin{bmatrix}\hat y_1-0\\\hat y_2-1\end{bmatrix}\]</div>
+      <h4>7. Output-layer gradients</h4>
+      <div class="boxed">\[dW_3=\delta_3 a_2^{T}\ (2\times2),\qquad db_3=\delta_3\]</div>
+      <h4>8. Error at the second hidden layer</h4>
+      <div class="boxed">\[\boxed{\delta_2=(W_3^{T}\delta_3)\odot a_2\odot(1-a_2)}\]</div>
+      <h4>9. Second-layer gradients</h4>
+      <div class="boxed">\[dW_2=\delta_2 a_1^{T},\qquad db_2=\delta_2\]</div>
+      <h4>10. Error at the first hidden layer</h4>
+      <div class="boxed">\[\boxed{\delta_1=(W_2^{T}\delta_2)\odot\operatorname{ReLU}'(z_1)}\]</div>
+      <h4>11. First-layer gradients</h4>
+      <div class="boxed">\[dW_1=\delta_1 x^{T},\qquad db_1=\delta_1\]</div>
+    </section>
+
+    <!-- ==================== PATTERN ==================== -->
+    <section class="card" id="bp-pattern">
+      <h2>The General Backprop Pattern</h2>
+      <p>For a three-layer network \(x\rightarrow a_1\rightarrow a_2\rightarrow\hat y\), the backward pass always runs in reverse \(\delta_3\rightarrow\delta_2\rightarrow\delta_1\). At every layer:</p>
+      <h4>Move the error backward</h4>
+      <div class="boxed">\[\boxed{\text{previous error}=W^{T}(\text{next error})\odot\text{local activation derivative}}\]</div>
+      <h4>Weight gradients</h4>
+      <div class="boxed">\[\boxed{dW=(\text{current }\delta)\times(\text{previous activation})^{T}}\]</div>
+      <h4>Bias gradients</h4>
+      <div class="boxed">\[\boxed{db=\text{current }\delta}\]</div>
+      <div class="callout">The one exception to “\(\delta_3=\hat y-y\)” is <strong>Problem 2</strong>: with MSE + sigmoid you must include the sigmoid derivative, \(\delta_3=(\hat y-y)\hat y(1-\hat y)\). Softmax+CE and sigmoid+BCE both collapse to the clean \(\hat y-y\).</div>
+    </section>
+
+    <section class="card" id="bp-inputs">
+      <h2>Which Input Each Weight Gradient Uses</h2>
+      <p>The easiest way to avoid confusion — each \(dW\) uses the activation that <em>enters</em> that layer:</p>
+      <div class="boxed">\[\boxed{dW_3=\delta_3 a_2^{T}}\qquad\text{because }a_2\text{ enters the output layer}\]</div>
+      <div class="boxed">\[\boxed{dW_2=\delta_2 a_1^{T}}\qquad\text{because }a_1\text{ enters the second layer}\]</div>
+      <div class="boxed">\[\boxed{dW_1=\delta_1 x^{T}}\qquad\text{because }x\text{ enters the first layer}\]</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Problem</th><th>Layer activations</th><th>Output error δ₃</th></tr></thead>
+          <tbody>
+            <tr><td>1 · 2→2→2→1</td><td>ReLU, ReLU, σ</td><td>\(\hat y-y\) (sigmoid + BCE)</td></tr>
+            <tr><td>2 · 2→2→1→1</td><td>σ, ReLU, σ</td><td>\((\hat y-y)\hat y(1-\hat y)\) (sigmoid + MSE)</td></tr>
+            <tr><td>3 · 2→2→2→2</td><td>ReLU, σ, softmax</td><td>\(\hat y-y\) (softmax + CE)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 </div>
 
