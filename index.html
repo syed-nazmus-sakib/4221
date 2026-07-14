@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4221 Exam Prep — CNN Architectures (VGG & ResNet)</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['\\[', '\\]']],
+      processEscapes: true
+    },
+    svg: { fontCache: 'global' },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar">
+  <span class="brand"><span class="dot"></span>4221 Exam Prep</span>
+  <span class="sub">CNN Architectures — VGG &amp; ResNet</span>
+  <button class="menu-btn" id="menu-btn" aria-label="Toggle contents">☰ Contents</button>
+</header>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="layout">
+
+  <!-- ===================== SIDEBAR TOC ===================== -->
+  <nav class="sidebar" id="sidebar">
+    <h2>Table of Contents</h2>
+    <input type="text" class="toc-search" id="toc-search" placeholder="Filter sections…">
+    <div id="toc-root"></div>
+  </nav>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main class="content" id="content">
+
+    <div class="hero">
+      <h1>CNN Architectures — Complete Exam Notes</h1>
+      <p>Everything for the midterm: <strong>VGG-16</strong> and <strong>ResNet</strong> — architecture, dimension flow, parameter counts, and exam-style problems. Use the sidebar to jump to any section; equations render live.</p>
+      <div class="chips">
+        <span class="chip">VGG-16 · 138.4M params</span>
+        <span class="chip">ResNet · Residual learning</span>
+        <span class="chip">Worked numericals</span>
+        <span class="chip">Exam traps &amp; Q&amp;A</span>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ======================== PART 1: VGG ======================= -->
+    <!-- ============================================================ -->
+    <div class="part">
+      <h1>Part I — VGG Architecture</h1>
+      <div class="part-sub">Focus: VGG-16 — the standard model for architecture, output-size, and parameter-count questions.</div>
+    </div>
+
+    <section class="card" id="vgg-overview">
+      <h2>Overview: VGG-16 Pipeline</h2>
+      <p>Your lecture presents VGG-16 as:</p>
+      <div class="flow">224×224×3
+  → [Conv 64]×2  → Pool
+  → [Conv 128]×2 → Pool
+  → [Conv 256]×3 → Pool
+  → [Conv 512]×3 → Pool
+  → [Conv 512]×3 → Pool
+  → FC 4096 → FC 4096 → Softmax 1000</div>
+      <p>Every convolution uses a \(3\times3\) filter, stride \(1\), and same padding. Every pooling layer uses \(2\times2\) max pooling with stride \(2\).</p>
+    </section>
+
+    <section class="card" id="vgg-1">
+      <h2>1. Why Was VGG Introduced?</h2>
+      <p>Before VGG, architectures such as AlexNet used different convolution sizes: \(11\times11\), \(5\times5\), \(3\times3\). VGG introduced a much simpler principle:</p>
+      <div class="callout">Build a deep network almost entirely by repeatedly stacking small \(3\times3\) convolutions.</div>
+      <p>The architecture is therefore deep, uniform, easy to understand, easy to implement, and structurally predictable. The central idea is not a special block like ResNet or Inception. The important idea is:</p>
+      <div class="boxed">\[\text{Depth through repeated small convolutions}\]</div>
+    </section>
+
+    <section class="card" id="vgg-2">
+      <h2>2. Why Use \(3\times3\) Convolutions?</h2>
+      <p>A \(3\times3\) convolution is the smallest filter that captures spatial relationships in all directions: left/right, above/below, and diagonals. VGG stacks several \(3\times3\) layers instead of using one large convolution.</p>
+
+      <h3>Two \(3\times3\) convolutions versus one \(5\times5\)</h3>
+      <p>Two consecutive \(3\times3\) convolutions have an effective receptive field of \(5\times5\). Ignoring biases, suppose input and output both have \(C\) channels.</p>
+      <p>One \(5\times5\) convolution requires \(25C^2\) parameters. Two \(3\times3\) convolutions require:</p>
+      <div class="boxed">\[2(9C^2)=18C^2 \quad<\quad 25C^2\]</div>
+      <p>The two \(3\times3\) layers use \(\dfrac{18}{25}=0.72\) of the parameters of one \(5\times5\) layer — about <strong>28% fewer parameters</strong>. They also introduce two nonlinear activation stages instead of one:</p>
+      <div class="flow">Conv → ReLU → Conv → ReLU</div>
+      <p>This gives the network greater representational power.</p>
+
+      <h3>Three \(3\times3\) convolutions versus one \(7\times7\)</h3>
+      <p>Three \(3\times3\) layers provide an effective \(7\times7\) receptive field.</p>
+      <ul>
+        <li>One \(7\times7\) layer: \(49C^2\) parameters.</li>
+        <li>Three \(3\times3\) layers: \(3(9C^2)=27C^2\) parameters.</li>
+      </ul>
+      <p>Thus stacked \(3\times3\) layers give fewer parameters, more nonlinearities, and deeper feature extraction.</p>
+    </section>
+
+    <section class="card" id="vgg-3">
+      <h2>3. Meaning of “VGG-16”</h2>
+      <p>VGG-16 has <strong>16 trainable weight layers</strong>:</p>
+      <ul>
+        <li>13 convolution layers,</li>
+        <li>3 fully connected layers.</li>
+      </ul>
+      <div class="boxed">\[13+3=16\]</div>
+      <p>Pooling layers and ReLU activations are not counted because they have no trainable weights. This is a common exam question.</p>
+    </section>
+
+    <section class="card" id="vgg-4">
+      <h2>4. VGG-16 Block Structure</h2>
+      <p>VGG-16 consists of five convolution blocks.</p>
+
+      <h3>Block 1</h3>
+      <p>Input \(224\times224\times3\). Two convolutions \(\text{Conv}3\times3,\ 64\), then \(\text{MaxPool}2\times2,\ s=2\).</p>
+      <div class="boxed">Output: \(112\times112\times64\)</div>
+
+      <h3>Block 2</h3>
+      <p>Input \(112\times112\times64\). Two convolutions \(\text{Conv}3\times3,\ 128\), then pool.</p>
+      <div class="boxed">Output: \(56\times56\times128\)</div>
+
+      <h3>Block 3</h3>
+      <p>Input \(56\times56\times128\). Three convolutions \(\text{Conv}3\times3,\ 256\), then pool.</p>
+      <div class="boxed">Output: \(28\times28\times256\)</div>
+
+      <h3>Block 4</h3>
+      <p>Input \(28\times28\times256\). Three convolutions \(\text{Conv}3\times3,\ 512\), then pool.</p>
+      <div class="boxed">Output: \(14\times14\times512\)</div>
+
+      <h3>Block 5</h3>
+      <p>Input \(14\times14\times512\). Three convolutions \(\text{Conv}3\times3,\ 512\), then pool.</p>
+      <div class="boxed">Output: \(7\times7\times512\)</div>
+    </section>
+
+    <section class="card" id="vgg-5">
+      <h2>5. Complete Dimension Flow</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>Operation</th><th>Output dimension</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Input</td><td>—</td><td>\(224\times224\times3\)</td></tr>
+            <tr><td>Conv1-1</td><td>\(3\times3,\ 64\)</td><td>\(224\times224\times64\)</td></tr>
+            <tr><td>Conv1-2</td><td>\(3\times3,\ 64\)</td><td>\(224\times224\times64\)</td></tr>
+            <tr><td>Pool1</td><td>\(2\times2,\ s=2\)</td><td>\(112\times112\times64\)</td></tr>
+            <tr><td>Conv2-1</td><td>\(3\times3,\ 128\)</td><td>\(112\times112\times128\)</td></tr>
+            <tr><td>Conv2-2</td><td>\(3\times3,\ 128\)</td><td>\(112\times112\times128\)</td></tr>
+            <tr><td>Pool2</td><td>\(2\times2,\ s=2\)</td><td>\(56\times56\times128\)</td></tr>
+            <tr><td>Conv3-1</td><td>\(3\times3,\ 256\)</td><td>\(56\times56\times256\)</td></tr>
+            <tr><td>Conv3-2</td><td>\(3\times3,\ 256\)</td><td>\(56\times56\times256\)</td></tr>
+            <tr><td>Conv3-3</td><td>\(3\times3,\ 256\)</td><td>\(56\times56\times256\)</td></tr>
+            <tr><td>Pool3</td><td>\(2\times2,\ s=2\)</td><td>\(28\times28\times256\)</td></tr>
+            <tr><td>Conv4-1</td><td>\(3\times3,\ 512\)</td><td>\(28\times28\times512\)</td></tr>
+            <tr><td>Conv4-2</td><td>\(3\times3,\ 512\)</td><td>\(28\times28\times512\)</td></tr>
+            <tr><td>Conv4-3</td><td>\(3\times3,\ 512\)</td><td>\(28\times28\times512\)</td></tr>
+            <tr><td>Pool4</td><td>\(2\times2,\ s=2\)</td><td>\(14\times14\times512\)</td></tr>
+            <tr><td>Conv5-1</td><td>\(3\times3,\ 512\)</td><td>\(14\times14\times512\)</td></tr>
+            <tr><td>Conv5-2</td><td>\(3\times3,\ 512\)</td><td>\(14\times14\times512\)</td></tr>
+            <tr><td>Conv5-3</td><td>\(3\times3,\ 512\)</td><td>\(14\times14\times512\)</td></tr>
+            <tr><td>Pool5</td><td>\(2\times2,\ s=2\)</td><td>\(7\times7\times512\)</td></tr>
+            <tr><td>Flatten</td><td>—</td><td>\(25{,}088\)</td></tr>
+            <tr><td>FC1</td><td>—</td><td>\(4096\)</td></tr>
+            <tr><td>FC2</td><td>—</td><td>\(4096\)</td></tr>
+            <tr><td>FC3</td><td>—</td><td>\(1000\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The flatten size is \(7\times7\times512=25{,}088\).</p>
+    </section>
+
+    <section class="card" id="vgg-6">
+      <h2>6. Why Spatial Size Stays Constant Inside a Block</h2>
+      <p>Every convolution uses \(f=3,\ s=1,\ p=1\). The output-size formula is:</p>
+      <div class="boxed">\[n_{\text{out}}=\left\lfloor\frac{n+2p-f}{s}\right\rfloor+1\]</div>
+      <p>Substituting:</p>
+      <div class="boxed">\[n_{\text{out}}=\frac{n+2(1)-3}{1}+1=n\]</div>
+      <p>Therefore a \(3\times3\) convolution with stride \(1\) and padding \(1\) preserves height and width. This is called <strong>same padding</strong>.</p>
+    </section>
+
+    <section class="card" id="vgg-7">
+      <h2>7. Why Pooling Halves the Spatial Dimensions</h2>
+      <p>VGG uses \(2\times2\) max pooling, \(s=2\). For an input size \(n\):</p>
+      <div class="boxed">\[n_{\text{out}}=\frac{n-2}{2}+1\]</div>
+      <p>For even \(n\), this becomes \(n_{\text{out}}=\dfrac{n}{2}\). Therefore:</p>
+      <div class="boxed">\[224\rightarrow112\rightarrow56\rightarrow28\rightarrow14\rightarrow7\]</div>
+      <p>After each pooling stage: height is halved, width is halved, and channel depth usually increases.</p>
+    </section>
+
+    <section class="card" id="vgg-8">
+      <h2>8. Parameter-Count Formula</h2>
+      <p>For a convolution layer:</p>
+      <div class="boxed">\[P=(f_H f_W C_{\text{in}}+1)\,C_{\text{out}}\]</div>
+      <p>The \(+1\) is one bias for each filter. For VGG:</p>
+      <div class="boxed">\[P=(3\times3\times C_{\text{in}}+1)\,C_{\text{out}}\]</div>
+      <p class="note">A convolution layer's parameters depend on filter dimensions and number of filters — <em>not</em> on the spatial output size.</p>
+    </section>
+
+    <section class="card" id="vgg-9">
+      <h2>9. Parameter Count of Every Convolution Layer</h2>
+
+      <h3>Block 1</h3>
+      <p><strong>Conv1-1</strong> (\(C_{\text{in}}=3,\ C_{\text{out}}=64\)):</p>
+      <div class="boxed">\[P=(3\times3\times3+1)\times64=(27+1)\times64=1{,}792\]</div>
+      <p><strong>Conv1-2</strong>:</p>
+      <div class="boxed">\[P=(3\times3\times64+1)\times64=(576+1)\times64=36{,}928\]</div>
+      <p>Block 1 total: \(1{,}792+36{,}928=\mathbf{38{,}720}\).</p>
+
+      <h3>Block 2</h3>
+      <p><strong>Conv2-1</strong>: \(P=(3\times3\times64+1)\times128=577\times128=73{,}856\).</p>
+      <p><strong>Conv2-2</strong>: \(P=(3\times3\times128+1)\times128=1{,}153\times128=147{,}584\).</p>
+      <p>Block 2 total: \(73{,}856+147{,}584=\mathbf{221{,}440}\).</p>
+
+      <h3>Block 3</h3>
+      <p><strong>Conv3-1</strong>: \(P=(3\times3\times128+1)\times256=1{,}153\times256=295{,}168\).</p>
+      <p><strong>Conv3-2</strong>: \(P=(3\times3\times256+1)\times256=2{,}305\times256=590{,}080\).</p>
+      <p><strong>Conv3-3</strong> (same): \(590{,}080\).</p>
+      <p>Block 3 total: \(295{,}168+590{,}080+590{,}080=\mathbf{1{,}475{,}328}\).</p>
+
+      <h3>Block 4</h3>
+      <p><strong>Conv4-1</strong>: \(P=(3\times3\times256+1)\times512=2{,}305\times512=1{,}180{,}160\).</p>
+      <p><strong>Conv4-2</strong>: \(P=(3\times3\times512+1)\times512=4{,}609\times512=2{,}359{,}808\).</p>
+      <p><strong>Conv4-3</strong>: \(2{,}359{,}808\).</p>
+      <p>Block 4 total: \(1{,}180{,}160+2{,}359{,}808+2{,}359{,}808=\mathbf{5{,}899{,}776}\).</p>
+
+      <h3>Block 5</h3>
+      <p>All three layers have \(C_{\text{in}}=512,\ C_{\text{out}}=512\), each \(P=(3\times3\times512+1)\times512=2{,}359{,}808\).</p>
+      <p>Block 5 total: \(3\times2{,}359{,}808=\mathbf{7{,}079{,}424}\).</p>
+    </section>
+
+    <section class="card" id="vgg-10">
+      <h2>10. Total Convolution Parameters</h2>
+      <div class="boxed">\[P_{\text{conv}}=38{,}720+221{,}440+1{,}475{,}328+5{,}899{,}776+7{,}079{,}424\]</div>
+      <div class="boxed">\[\boxed{P_{\text{conv}}=14{,}714{,}688}\]</div>
+      <p>So all 13 convolution layers contain approximately <strong>14.7 million parameters</strong>.</p>
+    </section>
+
+    <section class="card" id="vgg-11">
+      <h2>11. Fully Connected Parameter Count</h2>
+      <p>After the last pooling layer: \(7\times7\times512=25{,}088\).</p>
+      <h3>FC1: \(25{,}088\rightarrow4096\)</h3>
+      <div class="boxed">\[P=(25{,}088+1)\times4096=\boxed{102{,}764{,}544}\]</div>
+      <h3>FC2: \(4096\rightarrow4096\)</h3>
+      <div class="boxed">\[P=(4096+1)\times4096=\boxed{16{,}781{,}312}\]</div>
+      <h3>FC3: \(4096\rightarrow1000\)</h3>
+      <div class="boxed">\[P=(4096+1)\times1000=\boxed{4{,}097{,}000}\]</div>
+    </section>
+
+    <section class="card" id="vgg-12">
+      <h2>12. Total VGG-16 Parameters</h2>
+      <div class="boxed">\[P_{\text{total}}=14{,}714{,}688+102{,}764{,}544+16{,}781{,}312+4{,}097{,}000\]</div>
+      <div class="boxed">\[\boxed{P_{\text{total}}=138{,}357{,}544}\]</div>
+      <p>Standard VGG-16 has approximately <strong>138.4 million trainable parameters</strong>.</p>
+    </section>
+
+    <section class="card" id="vgg-13">
+      <h2>13. Which Part Contains Most of the Parameters?</h2>
+      <p>The first fully connected layer alone contains \(102{,}764{,}544\) parameters. Its fraction of the entire network is:</p>
+      <div class="boxed">\[\frac{102{,}764{,}544}{138{,}357{,}544}\times100\approx74.27\%\]</div>
+      <div class="callout">FC1 alone contains about 74% of all VGG-16 parameters.</div>
+      <p>All three FC layers together contain \(123{,}642{,}856\) parameters — approximately \(89.36\%\) of the complete network. This explains why VGG-16 is extremely large despite using small \(3\times3\) filters.</p>
+    </section>
+
+    <section class="card" id="vgg-14">
+      <h2>14. Important Design Pattern</h2>
+      <div class="boxed">\[\text{Spatial dimensions decrease while channel depth increases}\]</div>
+      <p>Specifically:</p>
+      <div class="boxed">\[224\rightarrow112\rightarrow56\rightarrow28\rightarrow14\rightarrow7\]</div>
+      <p>while channels change as:</p>
+      <div class="boxed">\[3\rightarrow64\rightarrow128\rightarrow256\rightarrow512\rightarrow512\]</div>
+      <p>As spatial resolution decreases, the network learns more abstract and numerous feature maps:</p>
+      <ul>
+        <li><strong>Early layers</strong> detect edges, color transitions, simple textures.</li>
+        <li><strong>Middle layers</strong> detect corners, patterns, object parts.</li>
+        <li><strong>Deep layers</strong> detect complex shapes, semantic object structures.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="vgg-15">
+      <h2>15. Receptive Field in VGG</h2>
+      <p>The receptive field is the region of the original image that influences one activation. Stacking \(3\times3\) convolutions gradually increases it. With stride \(1\):</p>
+      <ul>
+        <li>one \(3\times3\) convolution → \(3\times3\) receptive field,</li>
+        <li>two stacked → \(5\times5\),</li>
+        <li>three stacked → \(7\times7\).</li>
+      </ul>
+      <p>The general relation for \(L\) stacked \(3\times3\), stride-1 convolutions is:</p>
+      <div class="boxed">\[R=1+2L\]</div>
+      <p>So \(L=1\Rightarrow R=3\), \(L=2\Rightarrow R=5\), \(L=3\Rightarrow R=7\). Pooling increases the receptive field even more because it introduces stride.</p>
+    </section>
+
+    <section class="card" id="vgg-16">
+      <h2>16. Main Technical Concepts of VGG</h2>
+      <ol>
+        <li><strong>Uniform architecture</strong> — nearly all conv layers use \(3\times3,\ s=1,\ p=1\).</li>
+        <li><strong>Increased depth</strong> — depth substantially improves image representation.</li>
+        <li><strong>Small convolution filters</strong> — large filters replaced by stacks of small ones.</li>
+        <li><strong>Progressive channel expansion</strong> — \(64\rightarrow128\rightarrow256\rightarrow512\).</li>
+        <li><strong>Periodic spatial downsampling</strong> — max pooling progressively reduces image size.</li>
+        <li><strong>ReLU activation</strong> — \(\text{ReLU}(z)=\max(0,z)\) after each conv and hidden FC.</li>
+        <li><strong>Large FC classifier</strong> — \(4096\rightarrow4096\rightarrow1000\), most of the parameters.</li>
+        <li><strong>Softmax output</strong> — probabilities over 1000 ImageNet classes.</li>
+      </ol>
+    </section>
+
+    <section class="card" id="vgg-17">
+      <h2>17. Advantages of VGG</h2>
+      <ul>
+        <li><strong>Simple and regular design</strong> — same small conv repeated throughout.</li>
+        <li><strong>Strong feature extractor</strong> — pretrained VGG features useful for classification, detection, segmentation, transfer learning, perceptual loss.</li>
+        <li><strong>Greater nonlinearity</strong> — more ReLU stages than one large conv.</li>
+        <li><strong>Effective hierarchical feature learning</strong> — low-level to complex semantic features.</li>
+        <li><strong>Easy to analyze</strong> — simpler to draw/compute than Inception or ResNet.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="vgg-18">
+      <h2>18. Limitations of VGG</h2>
+      <ul>
+        <li><strong>Very high parameter count</strong> — approximately \(138.4\) million.</li>
+        <li><strong>Large model size</strong> — with 32-bit floats: \(138.4\text{M}\times4\text{ bytes}\approx553.4\) MB (parameters only).</li>
+        <li><strong>High computational cost</strong> — many convolutions at large spatial resolutions.</li>
+        <li><strong>Large FC layers</strong> — parameter-inefficient classifier.</li>
+        <li><strong>No skip connections</strong> — unlike ResNet, no shortcut path for gradients.</li>
+        <li><strong>Hard to train deeper</strong> — plain deep stacks suffer vanishing gradients, degradation, slow optimization.</li>
+        <li><strong>Not for low-resource devices</strong> — MobileNet, ShuffleNet, EfficientNet are far more deployment-efficient.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="vgg-19">
+      <h2>19. VGG-16 versus VGG-19</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>VGG-16</th><th>VGG-19</th></tr></thead>
+          <tbody>
+            <tr><td>Convolution layers</td><td>13</td><td>16</td></tr>
+            <tr><td>FC layers</td><td>3</td><td>3</td></tr>
+            <tr><td>Trainable layers</td><td>16</td><td>19</td></tr>
+            <tr><td>Block conv counts</td><td>\(2,2,3,3,3\)</td><td>\(2,2,4,4,4\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>VGG-19 adds one extra convolution in each of Blocks 3, 4, and 5. The main concept remains the same.</p>
+    </section>
+
+    <section class="card" id="vgg-20">
+      <h2>20. Common Exam Questions</h2>
+
+      <div class="qa">
+        <p class="q">Q1. Why is VGG-16 called VGG-16?</p>
+        <p>VGG-16 contains 16 trainable weight layers: 13 convolutional and 3 fully connected. Pooling and activation layers are not counted because they contain no trainable weights.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q2. What is the main idea of VGG?</p>
+        <p>Build a deep CNN using repeated small \(3\times3\) convolutions with stride 1 and same padding, combined with periodic \(2\times2\) max pooling. Stacking small filters produces large effective receptive fields with fewer parameters and more nonlinear activation stages than one large filter.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q3. Why does VGG use two \(3\times3\) filters instead of one \(5\times5\)?</p>
+        <p>Two stacked \(3\times3\) filters give an effective \(5\times5\) receptive field. They require \(18C^2\) weights vs \(25C^2\) for one \(5\times5\), and introduce two nonlinear activation stages rather than one.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q4. Why is VGG computationally expensive?</p>
+        <p>VGG has many convolution layers on large feature maps, and its classifier contains two 4096-unit FC layers accounting for most of its ~138 million parameters.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q5. What are the output dimensions after the five pooling layers?</p>
+        <p>Starting from \(224\times224\times3\): \(112\times112\times64\), \(56\times56\times128\), \(28\times28\times256\), \(14\times14\times512\), \(7\times7\times512\).</p>
+      </div>
+    </section>
+
+    <section class="card" id="vgg-21">
+      <h2>21. Exam-Style Parameter Problem</h2>
+      <h4>Problem</h4>
+      <p>An input \(224\times224\times3\) passes through the first VGG block: (1) \(3\times3\), 64-filter conv with same padding; (2) another \(3\times3\), 64-filter conv; (3) \(2\times2\) max pooling stride 2. Find each output dimension, parameters in each convolution, and total trainable parameters.</p>
+      <h4>Solution</h4>
+      <p><strong>First convolution output</strong> (same padding, stride 1): \(224\times224\times64\).</p>
+      <div class="boxed">\[(3\times3\times3+1)\times64=28\times64=1{,}792\]</div>
+      <p><strong>Second convolution output</strong>: \(224\times224\times64\).</p>
+      <div class="boxed">\[(3\times3\times64+1)\times64=577\times64=36{,}928\]</div>
+      <p><strong>Pooling output</strong>: \(112\times112\times64\), pooling parameters \(0\).</p>
+      <div class="boxed">\[1{,}792+36{,}928=\boxed{38{,}720}\]</div>
+    </section>
+
+    <section class="card" id="vgg-22">
+      <h2>22. One-Minute Revision Note</h2>
+      <p><strong>Core idea:</strong> deep network built from repeated small \(3\times3\) convolutions.</p>
+      <ul>
+        <li><strong>Input:</strong> \(224\times224\times3\)</li>
+        <li><strong>Blocks:</strong> \(64\times2\rightarrow128\times2\rightarrow256\times3\rightarrow512\times3\rightarrow512\times3\)</li>
+        <li><strong>Convolution:</strong> \(3\times3,\ s=1,\ p=1\)</li>
+        <li><strong>Pooling:</strong> \(2\times2,\ s=2\)</li>
+        <li><strong>Spatial flow:</strong> \(224\rightarrow112\rightarrow56\rightarrow28\rightarrow14\rightarrow7\)</li>
+        <li><strong>Classifier:</strong> \(25{,}088\rightarrow4096\rightarrow4096\rightarrow1000\)</li>
+        <li><strong>Trainable layers:</strong> \(13\ \text{Conv}+3\ \text{FC}=16\)</li>
+        <li><strong>Parameters:</strong> \(\approx138.4\) million</li>
+      </ul>
+      <p><strong>Advantages:</strong> simple, deep, strong feature extractor. <strong>Limitations:</strong> large, slow, computationally expensive, no residual connections.</p>
+      <div class="callout">Most important explanation: stacked \(3\times3\) filters replace larger filters with fewer parameters and more nonlinearities.</div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- ====================== PART 2: ResNet ====================== -->
+    <!-- ============================================================ -->
+    <div class="part">
+      <h1>Part II — ResNet Architecture</h1>
+      <div class="part-sub">Residual Network — the skip connection, and how it enables very deep CNNs to train.</div>
+    </div>
+
+    <section class="card" id="res-overview">
+      <h2>Overview: Residual Learning</h2>
+      <p>ResNet stands for <strong>Residual Network</strong>. Its key innovation is the <strong>skip connection</strong> (shortcut / identity connection). The main idea:</p>
+      <div class="boxed">\[\text{Instead of learning }H(x),\text{ learn the residual }F(x)=H(x)-x\]</div>
+      <p>so that:</p>
+      <div class="boxed">\[H(x)=F(x)+x\]</div>
+      <p>This simple addition allows very deep CNNs to train effectively. The lecture shows the shortcut carrying the input directly to a later layer, where it is added to the transformed output.</p>
+    </section>
+
+    <section class="card" id="res-1">
+      <h2>1. Why Was ResNet Needed?</h2>
+      <p>Before ResNet, adding more layers did not always improve a CNN. Compare a 20-layer plain network to a 56-layer plain network. The deeper network should theoretically represent everything the shallower one can (extra layers could learn identity mappings). Yet in practice the deeper plain network could have higher training error, harder optimization, and degraded accuracy. This is the <strong>degradation problem</strong>.</p>
+      <h3>Overfitting</h3>
+      <p>Training error is low, but validation error is high.</p>
+      <h3>Degradation problem</h3>
+      <p>Even the <em>training</em> error becomes worse when more layers are added. ResNet was designed to make deep networks easier to optimize.</p>
+    </section>
+
+    <section class="card" id="res-2">
+      <h2>2. Main Idea of Residual Learning</h2>
+      <p>Consider a normal block that should learn \(H(x)\). In a residual block, the stacked layers learn \(F(x)=H(x)-x\). Then the output becomes \(y=F(x)+x\), where \(x\) is the shortcut input, \(F(x)\) the residual transformation, and \(F(x)+x\) the combined output. Usually an activation follows the addition:</p>
+      <div class="boxed">\[y=\operatorname{ReLU}(F(x)+x)\]</div>
+      <p>The input bypasses two transformations and is added before the final activation.</p>
+    </section>
+
+    <section class="card" id="res-3">
+      <h2>3. Why Is Learning a Residual Easier?</h2>
+      <p>Suppose the optimal mapping is close to identity: \(H(x)\approx x\). A plain network must learn \(H(x)=x\). A residual network only needs \(F(x)=H(x)-x\approx0\). Learning a function close to zero is often easier than forcing several nonlinear layers to reproduce the identity exactly.</p>
+      <p>If the residual layers learn \(F(x)=0\), then \(y=F(x)+x=x\). Therefore extra residual blocks can behave like identity mappings instead of harming the network.</p>
+    </section>
+
+    <section class="card" id="res-4">
+      <h2>4. Basic Residual Block</h2>
+      <p>A simple residual block contains two \(3\times3\) convolution layers.</p>
+      <div class="flow">Main branch:  x → Conv → BN → ReLU → Conv → BN
+Shortcut:     x → x
+Add:          z = F(x) + x
+Output:       y = ReLU(z)</div>
+      <p>A common mathematical representation:</p>
+      <div class="boxed">\[z^{[l+1]}=W^{[l+1]}a^{[l]}+b^{[l+1]}\]
+      \[a^{[l+1]}=g\!\left(z^{[l+1]}\right)\]
+      \[z^{[l+2]}=W^{[l+2]}a^{[l+1]}+b^{[l+2]}\]
+      \[a^{[l+2]}=g\!\left(z^{[l+2]}+a^{[l]}\right)\]</div>
+      <p>The shortcut skips from \(a^{[l]}\) directly to the addition at layer \(l+2\).</p>
+    </section>
+
+    <section class="card" id="res-5">
+      <h2>5. Identity Shortcut</h2>
+      <p>The simplest shortcut is \(y=F(x)+x\). It is called an <strong>identity shortcut</strong> because it performs no transformation. It introduces:</p>
+      <div class="boxed">\[0\text{ extra parameters}\]</div>
+      <p>and almost no extra computational cost. However, addition is only possible when the two tensors have the same dimensions. If \(F(x)\in\mathbb{R}^{H\times W\times C}\), then \(x\) must also have shape \(H\times W\times C\).</p>
+    </section>
+
+    <section class="card" id="res-6">
+      <h2>6. What Happens When Dimensions Differ?</h2>
+      <p>Suppose the residual branch changes spatial dimensions, channel count, or both. Then \(F(x)+x\) cannot be computed directly. For example \(x:56\times56\times64\) but \(F(x):28\times28\times128\). A <strong>projection shortcut</strong> is used:</p>
+      <div class="boxed">\[y=F(x)+W_s x\]</div>
+      <p>Here \(W_s\) is usually a \(1\times1\) convolution. It can change the channel count, reduce spatial dimensions via stride, and make the shortcut compatible with the residual output. For example \(1\times1\) Conv, stride \(2\), 128 filters converts \(56\times56\times64\) into \(28\times28\times128\). Then addition becomes valid.</p>
+    </section>
+
+    <section class="card" id="res-7">
+      <h2>7. Identity Block vs Convolutional Block</h2>
+      <h3>Identity block</h3>
+      <p>Input and output dimensions identical: \(y=F(x)+x\). Shortcut unchanged, no extra shortcut parameters, usually stride \(1\), same number of input and output channels.</p>
+      <h3>Convolutional / projection block</h3>
+      <p>Input and output dimensions differ: \(y=F(x)+W_s x\). Shortcut uses a \(1\times1\) convolution, may use stride \(2\), changes spatial resolution or channel count, and contains trainable parameters.</p>
+    </section>
+
+    <section class="card" id="res-8">
+      <h2>8. Basic Block</h2>
+      <p>The <strong>basic block</strong> is mainly used in ResNet-18 and ResNet-34. Its structure is \(3\times3,\ C\rightarrow3\times3,\ C\). The residual mapping is \(F(x)=W_2\,g(W_1 x)\), then \(y=g(F(x)+x)\).</p>
+      <div class="flow">x → [3×3 Conv] → ReLU → [3×3 Conv] → + → ReLU
+     └──────────── shortcut ──────────┘</div>
+    </section>
+
+    <section class="card" id="res-9">
+      <h2>9. Bottleneck Block</h2>
+      <p>The <strong>bottleneck block</strong> is used in deeper networks: ResNet-50, ResNet-101, ResNet-152. Its structure is \(1\times1\rightarrow3\times3\rightarrow1\times1\):</p>
+      <ol>
+        <li>\(1\times1\) convolution reduces channels.</li>
+        <li>\(3\times3\) convolution processes spatial information.</li>
+        <li>\(1\times1\) convolution restores or expands channels.</li>
+      </ol>
+      <p>For example \(256\rightarrow64\rightarrow64\rightarrow256\). The block can be written:</p>
+      <div class="boxed">\[F(x)=W_3\,g\!\left(W_2\,g(W_1 x)\right),\qquad y=g(F(x)+x)\]</div>
+    </section>
+
+    <section class="card" id="res-10">
+      <h2>10. Why Is It Called a Bottleneck?</h2>
+      <p>The central representation is narrower than the block input and output: \(256\rightarrow64\rightarrow64\rightarrow256\). The \(1\times1\) convolution first reduces the number of channels, so the expensive \(3\times3\) convolution operates on only 64 channels instead of 256. This reduces computational cost substantially.</p>
+    </section>
+
+    <section class="card" id="res-11">
+      <h2>11. Bottleneck Parameter Comparison</h2>
+      <p>Suppose input and output both have 256 channels.</p>
+      <h3>Without bottleneck</h3>
+      <p>Two \(3\times3\) convolutions, \(3\times3\times256\times256\) per convolution:</p>
+      <div class="boxed">\[2(9\times256^2)=1{,}179{,}648\]</div>
+      <h3>With bottleneck</h3>
+      <p>Assume \(256\rightarrow64\rightarrow64\rightarrow256\):</p>
+      <ul>
+        <li>First \(1\times1\): \(1\times1\times256\times64=16{,}384\)</li>
+        <li>Middle \(3\times3\): \(3\times3\times64\times64=36{,}864\)</li>
+        <li>Final \(1\times1\): \(1\times1\times64\times256=16{,}384\)</li>
+      </ul>
+      <div class="boxed">\[16{,}384+36{,}864+16{,}384=\boxed{69{,}632}\]</div>
+      <p>This is dramatically smaller than \(1{,}179{,}648\). Bottleneck blocks make very deep ResNets computationally feasible.</p>
+    </section>
+
+    <section class="card" id="res-12">
+      <h2>12. ResNet Variants</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Architecture</th><th>Block type</th><th class="num">Approx. layers</th></tr></thead>
+          <tbody>
+            <tr><td>ResNet-18</td><td>Basic block</td><td class="num">18</td></tr>
+            <tr><td>ResNet-34</td><td>Basic block</td><td class="num">34</td></tr>
+            <tr><td>ResNet-50</td><td>Bottleneck block</td><td class="num">50</td></tr>
+            <tr><td>ResNet-101</td><td>Bottleneck block</td><td class="num">101</td></tr>
+            <tr><td>ResNet-152</td><td>Bottleneck block</td><td class="num">152</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The number refers primarily to convolutional and fully connected trainable layers.</p>
+    </section>
+
+    <section class="card" id="res-13">
+      <h2>13. ResNet-18 Structure</h2>
+      <div class="flow">7×7 Conv → MaxPool → [BasicBlock]×2 → [BasicBlock]×2
+         → [BasicBlock]×2 → [BasicBlock]×2 → GAP → FC</div>
+      <p>Its stages use channel counts \(64,\ 128,\ 256,\ 512\). A standard dimension flow:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Step</th><th>Output</th></tr></thead>
+          <tbody>
+            <tr><td>Input</td><td>\(224\times224\times3\)</td></tr>
+            <tr><td>\(7\times7,\ s=2\)</td><td>\(112\times112\times64\)</td></tr>
+            <tr><td>MaxPool</td><td>\(56\times56\times64\)</td></tr>
+            <tr><td>Stage 1</td><td>\(56\times56\times64\)</td></tr>
+            <tr><td>Stage 2</td><td>\(28\times28\times128\)</td></tr>
+            <tr><td>Stage 3</td><td>\(14\times14\times256\)</td></tr>
+            <tr><td>Stage 4</td><td>\(7\times7\times512\)</td></tr>
+            <tr><td>Global Avg Pool</td><td>\(1\times1\times512\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Then the classifier produces the class scores.</p>
+    </section>
+
+    <section class="card" id="res-14">
+      <h2>14. How ResNet-18 Gets 18 Layers</h2>
+      <p>ResNet-18 has 1 initial convolution, 8 basic blocks, 2 convolutions per block, and 1 fully connected layer:</p>
+      <div class="boxed">\[1+8(2)+1=1+16+1=\boxed{18}\]</div>
+      <p>Batch normalization, ReLU, pooling, and shortcut additions are not counted as weight layers.</p>
+    </section>
+
+    <section class="card" id="res-15">
+      <h2>15. ResNet-34</h2>
+      <p>Uses the basic block with stage repetitions \([3,4,6,3]\). Total basic blocks \(3+4+6+3=16\), each with two convolutions \(16\times2=32\). Including the initial convolution and final FC layer:</p>
+      <div class="boxed">\[1+32+1=34\]</div>
+    </section>
+
+    <section class="card" id="res-16">
+      <h2>16. ResNet-50</h2>
+      <p>Uses bottleneck blocks with stage repetitions \([3,4,6,3]\). Total bottleneck blocks \(3+4+6+3=16\), each with three main-path convolutions \(16\times3=48\). Including initial conv and final FC:</p>
+      <div class="boxed">\[1+48+1=\boxed{50}\]</div>
+      <p>Projection shortcuts are traditionally not included in this naming count.</p>
+    </section>
+
+    <section class="card" id="res-17">
+      <h2>17. ResNet-101</h2>
+      <p>Bottleneck repetition \([3,4,23,3]\). Total blocks \(3+4+23+3=33\), block convolutions \(33\times3=99\). Including initial conv and final FC:</p>
+      <div class="boxed">\[1+99+1=101\]</div>
+    </section>
+
+    <section class="card" id="res-18">
+      <h2>18. ResNet-152</h2>
+      <p>Uses \([3,8,36,3]\). Total blocks \(3+8+36+3=50\), block convolutions \(50\times3=150\). Then:</p>
+      <div class="boxed">\[1+150+1=152\]</div>
+    </section>
+
+    <section class="card" id="res-19">
+      <h2>19. Why Skip Connections Improve Backpropagation</h2>
+      <p>Consider \(y=F(x)+x\). During backpropagation:</p>
+      <div class="boxed">\[\frac{\partial L}{\partial x}=\frac{\partial L}{\partial y}\frac{\partial y}{\partial x}\]</div>
+      <p>Since:</p>
+      <div class="boxed">\[\frac{\partial y}{\partial x}=\frac{\partial F(x)}{\partial x}+1\]</div>
+      <p>we obtain:</p>
+      <div class="boxed">\[\frac{\partial L}{\partial x}=\frac{\partial L}{\partial y}\left(\frac{\partial F(x)}{\partial x}+1\right)\]</div>
+      <p>The \(+1\) term creates a direct gradient path. Even if \(\dfrac{\partial F(x)}{\partial x}\) becomes very small, the gradient can still pass through the identity shortcut. This helps reduce the vanishing-gradient problem.</p>
+    </section>
+
+    <section class="card" id="res-20">
+      <h2>20. Important Clarification</h2>
+      <p>ResNet does not completely eliminate vanishing gradients under all conditions. Instead, it provides shorter gradient routes, improves information flow, makes optimization of deep networks easier, and reduces degradation.</p>
+      <div class="callout">Best exam wording: Residual connections alleviate the vanishing-gradient and degradation problems by providing direct identity paths for activations and gradients.</div>
+    </section>
+
+    <section class="card" id="res-21">
+      <h2>21. Addition vs Concatenation</h2>
+      <p>ResNet uses element-wise addition \(y=F(x)+x\). If both tensors have shape \(H\times W\times C\), the output also has shape \(H\times W\times C\) — channel count does not increase.</p>
+      <p>This differs from DenseNet, which uses concatenation \(y=[x,F(x)]\), increasing the channel dimension. Example: \(x:H\times W\times64\), \(F(x):H\times W\times32\) gives DenseNet output \(H\times W\times96\). ResNet addition would require equal channels and keep the output channel count the same.</p>
+    </section>
+
+    <section class="card" id="res-22">
+      <h2>22. Shape Rules for Residual Addition</h2>
+      <p>To add two tensors, they must have the same height, width, and channel count. If \(x\in\mathbb{R}^{H\times W\times C}\), then \(F(x)\in\mathbb{R}^{H\times W\times C}\). If not, use \(W_s x\). This is one of the most important technical rules in ResNet.</p>
+    </section>
+
+    <section class="card" id="res-23">
+      <h2>23. Parameter Count of a Basic Residual Block</h2>
+      <p>Input \(H\times W\times64\), block has two \(3\times3\), 64-filter convolutions. Ignoring BN parameters:</p>
+      <p><strong>First convolution:</strong> \(P_1=(3\times3\times64+1)\times64=36{,}928\).</p>
+      <p><strong>Second convolution:</strong> \(P_2=(3\times3\times64+1)\times64=36{,}928\).</p>
+      <p><strong>Identity shortcut:</strong> \(P_{\text{shortcut}}=0\).</p>
+      <div class="boxed">\[P=36{,}928+36{,}928=\boxed{73{,}856}\]</div>
+      <p>Without biases (common when conv is followed by BN):</p>
+      <div class="boxed">\[P=2(3\times3\times64\times64)=73{,}728\]</div>
+      <p class="note">Always state whether biases and batch-normalization parameters are included.</p>
+    </section>
+
+    <section class="card" id="res-24">
+      <h2>24. Projection Shortcut Parameter Count</h2>
+      <p>Shortcut transforms \(56\times56\times64\) to \(28\times28\times128\) using \(1\times1\), stride \(2\), 128-filter convolution.</p>
+      <p><strong>With bias:</strong></p>
+      <div class="boxed">\[P=(1\times1\times64+1)\times128=65\times128=\boxed{8{,}320}\]</div>
+      <p><strong>Without bias:</strong></p>
+      <div class="boxed">\[P=1\times1\times64\times128=\boxed{8{,}192}\]</div>
+    </section>
+
+    <section class="card" id="res-25">
+      <h2>25. Example: Downsampling Residual Block</h2>
+      <p>Input \(56\times56\times64\). Main branch: (1) \(3\times3\), 128 filters, stride 2, padding 1; (2) \(3\times3\), 128 filters, stride 1, padding 1. Shortcut: \(1\times1\), 128 filters, stride 2.</p>
+      <h4>Main-path first output</h4>
+      <div class="boxed">\[H_{\text{out}}=\left\lfloor\frac{56+2(1)-3}{2}\right\rfloor+1=\left\lfloor\frac{55}{2}\right\rfloor+1=27+1=28\]</div>
+      <p>Therefore \(28\times28\times128\). The second convolution preserves this shape, and the shortcut also produces \(28\times28\times128\). Therefore addition is valid.</p>
+    </section>
+
+    <section class="card" id="res-26">
+      <h2>26. Batch Normalization in ResNet</h2>
+      <p>A typical ResNet convolution is followed by batch normalization, which helps stabilize activations, permit larger learning rates, improve convergence, and reduce sensitivity to initialization. Conv bias is often disabled because BN already includes a learnable shift.</p>
+      <p>When counting parameters, questions may use either \(f^2 C_{\text{in}} C_{\text{out}}\) or \((f^2 C_{\text{in}}+1)C_{\text{out}}\). Use the convention stated; if none is stated, mention the assumption clearly.</p>
+    </section>
+
+    <section class="card" id="res-27">
+      <h2>27. Original vs Pre-activation ResNet</h2>
+      <h3>Original post-activation block</h3>
+      <div class="flow">Conv → BN → ReLU → Conv → BN → Add → ReLU</div>
+      <p>The activation occurs after shortcut addition.</p>
+      <h3>Pre-activation block</h3>
+      <div class="flow">BN → ReLU → Conv → BN → ReLU → Conv → Add</div>
+      <p>Normalization and activation occur before convolutions. Advantages: cleaner identity path, improved gradient flow, easier training of extremely deep networks.</p>
+      <p class="note">For your midterm, the original block is more likely unless pre-activation is specifically mentioned.</p>
+    </section>
+
+    <section class="card" id="res-28">
+      <h2>28. Global Average Pooling</h2>
+      <p>Modern ResNet normally uses global average pooling instead of the large FC head used by VGG. If the final feature map is \(7\times7\times2048\), GAP computes one average per channel:</p>
+      <div class="boxed">\[7\times7\times2048\rightarrow1\times1\times2048\]</div>
+      <p>This produces a vector of length 2048. Advantages: no trainable pooling parameters, fewer classifier parameters, less overfitting, compact spatial handling. This is one reason ResNet is much more parameter-efficient than VGG.</p>
+    </section>
+
+    <section class="card" id="res-29">
+      <h2>29. ResNet vs VGG</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feature</th><th>VGG</th><th>ResNet</th></tr></thead>
+          <tbody>
+            <tr><td>Main idea</td><td>Repeated \(3\times3\) convolutions</td><td>Residual learning</td></tr>
+            <tr><td>Connection</td><td>Sequential</td><td>Skip connections</td></tr>
+            <tr><td>Block output</td><td>\(F(x)\)</td><td>\(F(x)+x\)</td></tr>
+            <tr><td>Gradient flow</td><td>Long sequential path</td><td>Direct shortcut paths</td></tr>
+            <tr><td>Very deep training</td><td>Difficult</td><td>Much easier</td></tr>
+            <tr><td>Classifier</td><td>Large FC layers</td><td>Usually global average pooling</td></tr>
+            <tr><td>Parameter efficiency</td><td>Low</td><td>Better</td></tr>
+            <tr><td>Degradation problem</td><td>More severe</td><td>Alleviated</td></tr>
+            <tr><td>Structure</td><td>Simple plain stack</td><td>Residual blocks</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">VGG learns a direct mapping through a plain sequential network, whereas ResNet learns residual mappings using identity shortcuts. These shortcuts improve gradient propagation and allow substantially deeper networks to be optimized.</div>
+    </section>
+
+    <section class="card" id="res-30">
+      <h2>30. ResNet vs DenseNet</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feature</th><th>ResNet</th><th>DenseNet</th></tr></thead>
+          <tbody>
+            <tr><td>Connection operation</td><td>Addition</td><td>Concatenation</td></tr>
+            <tr><td>Mathematical form</td><td>\(F(x)+x\)</td><td>\([x_0,x_1,\ldots]\)</td></tr>
+            <tr><td>Channel growth</td><td>Usually unchanged within a block</td><td>Increases after each layer</td></tr>
+            <tr><td>Feature reuse</td><td>Implicit</td><td>Explicit</td></tr>
+            <tr><td>Memory demand</td><td>Usually lower</td><td>Usually higher</td></tr>
+            <tr><td>Shortcut dimensions</td><td>Must match for addition</td><td>Spatial dimensions must match</td></tr>
+            <tr><td>Main idea</td><td>Residual learning</td><td>Dense feature reuse</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="res-31">
+      <h2>31. ResNet vs Highway Network</h2>
+      <p>Highway networks use learned gates:</p>
+      <div class="boxed">\[y=H(x)\,T(x)+x\,C(x)\]</div>
+      <p>ResNet uses ungated addition \(y=F(x)+x\). Thus ResNet shortcuts are simpler and usually parameter-free when dimensions match. This distinction is less likely in your exam but useful conceptually.</p>
+    </section>
+
+    <section class="card" id="res-32">
+      <h2>32. Advantages of ResNet</h2>
+      <ul>
+        <li><strong>Enables very deep networks</strong> — 50, 101, 152 layers become practical.</li>
+        <li><strong>Better gradient flow</strong> — identity shortcuts provide direct gradient paths.</li>
+        <li><strong>Reduces degradation</strong> — adding layers is less likely to increase training error.</li>
+        <li><strong>Efficient feature learning</strong> — residual blocks learn corrections to existing features.</li>
+        <li><strong>Flexible design</strong> — combines with bottleneck blocks, grouped convolutions, attention, depthwise convolutions.</li>
+        <li><strong>Strong transfer-learning backbone</strong> — classification, detection, segmentation, medical imaging, scene understanding.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="res-33">
+      <h2>33. Limitations of ResNet</h2>
+      <ul>
+        <li><strong>Addition requires matched dimensions</strong> — projection shortcuts may be necessary.</li>
+        <li><strong>Deep variants remain expensive</strong> — ResNet-101/152 still require substantial computation.</li>
+        <li><strong>Feature reuse less explicit than DenseNet</strong> — addition merges rather than preserves maps.</li>
+        <li><strong>Information can be compressed during addition</strong> — two signals combined into one tensor.</li>
+        <li><strong>Still relies heavily on convolution</strong> — newer attention/hybrid models may do better on some tasks.</li>
+        <li><strong>Skip connections do not guarantee perfect optimization</strong> — initialization, normalization, learning rate, and data still matter.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="res-34">
+      <h2>34. Core Technical Concepts to Memorize</h2>
+      <div class="boxed">\[\text{Residual equation:}\quad y=F(x)+x\]</div>
+      <div class="boxed">\[\text{Projection shortcut:}\quad y=F(x)+W_s x\]</div>
+      <div class="boxed">\[\text{Basic block:}\quad 3\times3\rightarrow3\times3\]</div>
+      <div class="boxed">\[\text{Bottleneck block:}\quad 1\times1\rightarrow3\times3\rightarrow1\times1\]</div>
+      <ul>
+        <li>ResNet-18 &amp; ResNet-34 use basic blocks.</li>
+        <li>ResNet-50, 101, 152 use bottleneck blocks.</li>
+        <li>Connection: element-wise addition, not concatenation.</li>
+        <li>Main benefits: better gradient flow, easier optimization, reduced degradation, very deep networks.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="res-35">
+      <h2>35. Common Exam Traps</h2>
+      <ol class="traps">
+        <li>Saying ResNet completely eliminates vanishing gradients.</li>
+        <li>Confusing degradation with overfitting.</li>
+        <li>Saying the shortcut concatenates features.</li>
+        <li>Adding tensors with different dimensions.</li>
+        <li>Forgetting the projection shortcut.</li>
+        <li>Counting ReLU and pooling layers in the ResNet number.</li>
+        <li>Saying ResNet-50 has 50 residual blocks.</li>
+        <li>Forgetting that ResNet-50 uses bottleneck blocks.</li>
+        <li>Assuming an identity shortcut has parameters.</li>
+        <li>Forgetting stride 2 during stage transitions.</li>
+        <li>Calling every shortcut a \(1\times1\) convolution.</li>
+        <li>Confusing the bottleneck block with MobileNetV2's inverted residual.</li>
+      </ol>
+    </section>
+
+    <section class="card" id="res-36">
+      <h2>36. Exam-Style Questions and Answers</h2>
+
+      <div class="qa">
+        <p class="q">Q1. What is residual learning?</p>
+        <p>Residual learning trains a block to learn \(F(x)=H(x)-x\) instead of directly learning \(H(x)\). The desired mapping is reconstructed as \(H(x)=F(x)+x\). This makes identity-like mappings easier to learn and improves optimization in deep networks.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q2. Why do ResNets work better when made deeper?</p>
+        <p>ResNets use identity shortcuts that allow activations and gradients to bypass intermediate layers. These paths improve gradient flow, make identity mappings easy to represent, and reduce the degradation problem in very deep plain networks.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q3. Difference between identity and projection shortcuts?</p>
+        <p>An identity shortcut passes \(x\) unchanged: \(y=F(x)+x\); used when dimensions match, no trainable parameters. A projection shortcut applies a transformation: \(y=F(x)+W_s x\); used when spatial size or channel count changes, commonly via a \(1\times1\) convolution.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q4. Why does ResNet-50 use bottleneck blocks?</p>
+        <p>The bottleneck reduces channel dimensionality before the expensive \(3\times3\) convolution and restores it afterward, greatly reducing parameter and computational cost and making deeper networks practical.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Q5. How does a skip connection help gradients?</p>
+        <p>For \(y=F(x)+x\), the derivative includes \(\dfrac{\partial y}{\partial x}=\dfrac{\partial F}{\partial x}+1\). The identity term provides a direct gradient path, helping gradients propagate through many layers.</p>
+      </div>
+    </section>
+
+    <section class="card" id="res-37">
+      <h2>37. Exam-Style Numerical Problem</h2>
+      <h4>Problem</h4>
+      <p>A residual block receives input \(32\times32\times64\). The main branch has (1) \(3\times3\), 64 filters, stride 1, same padding; (2) \(3\times3\), 64 filters, stride 1, same padding. The shortcut is an identity connection. Find: (1) output shape of each convolution, (2) final block output shape, (3) total convolution parameters including bias, (4) shortcut parameters.</p>
+      <h4>Solution</h4>
+      <p><strong>First convolution</strong> (same padding, stride 1 preserve dimensions): \(32\times32\times64\).</p>
+      <div class="boxed">\[(3\times3\times64+1)\times64=577\times64=36{,}928\]</div>
+      <p><strong>Second convolution:</strong> output \(32\times32\times64\), parameters \(36{,}928\).</p>
+      <p><strong>Shortcut:</strong> input \(32\times32\times64\) = main-branch output \(32\times32\times64\), so identity addition is valid; shortcut parameters \(0\).</p>
+      <div class="boxed">\[\text{Final shape}=\boxed{32\times32\times64}\]</div>
+      <div class="boxed">\[36{,}928+36{,}928=\boxed{73{,}856}\]</div>
+    </section>
+
+    <section class="card" id="res-38">
+      <h2>38. One-Minute Revision Note</h2>
+      <p><strong>Problem solved:</strong> degradation and difficult optimization in deep plain networks.</p>
+      <div class="boxed">\[\text{Core equation:}\quad y=F(x)+x\]</div>
+      <p><strong>Key mechanism:</strong> identity skip connection. <strong>If dimensions differ:</strong></p>
+      <div class="boxed">\[y=F(x)+W_s x\quad(\text{using a }1\times1\text{ projection convolution})\]</div>
+      <ul>
+        <li><strong>Basic block:</strong> \(3\times3\rightarrow3\times3\) — ResNet-18, ResNet-34.</li>
+        <li><strong>Bottleneck block:</strong> \(1\times1\rightarrow3\times3\rightarrow1\times1\) — ResNet-50, 101, 152.</li>
+        <li><strong>Connection type:</strong> element-wise addition.</li>
+        <li><strong>Main benefits:</strong> direct gradient flow, easier identity mapping, reduced degradation, very deep training.</li>
+        <li><strong>vs DenseNet:</strong> ResNet adds, DenseNet concatenates.</li>
+        <li><strong>vs VGG:</strong> VGG is a plain sequential stack, ResNet contains shortcut pathways.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="to-top" id="to-top" aria-label="Back to top">↑</button>
+
+<script src="script.js"></script>
+</body>
+</html>
