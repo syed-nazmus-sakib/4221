@@ -2653,6 +2653,212 @@ Output:       y = ReLU(z)</div>
       <div class="callout">Inception chooses several filter scales in parallel; EfficientNet scales the entire network's depth, width, and resolution in a balanced way.</div>
     </section>
 
+    <!-- ============================================================ -->
+    <!-- ============ PART 10: CNN Numerical Practice =============== -->
+    <!-- ============================================================ -->
+    <div class="part">
+      <h1>Part X — CNN Numerical Practice Set</h1>
+      <div class="part-sub">Fully worked numerical problems: convolution arithmetic, pooling, parameter counts, depthwise-separable, Inception, MobileNetV2, DenseNet.</div>
+    </div>
+
+    <section class="card" id="np-intro">
+      <h2>Formulas Used</h2>
+      <div class="boxed">\[H_{\text{out}}=\left\lfloor\frac{H_{\text{in}}+2P-K}{S}\right\rfloor+1\]
+      \[\text{Conv parameters}=(K^2C_{\text{in}}+1)\,C_{\text{out}}\]
+      \[\text{MACs}=H_{\text{out}}W_{\text{out}}K^2C_{\text{in}}C_{\text{out}}\]</div>
+      <p class="note">One multiplication-and-accumulation counts as one MAC.</p>
+    </section>
+
+    <section class="card" id="np-1">
+      <h2>Problem 1 — Manual Convolution, ReLU, Pooling</h2>
+      <div class="boxed">\[X=\begin{bmatrix}1&2&0&1&3\\0&1&3&2&1\\2&0&1&1&0\\1&3&2&0&2\\0&1&2&3&1\end{bmatrix},\quad K=\begin{bmatrix}1&0&-1\\1&0&-1\\1&0&-1\end{bmatrix},\quad P=0,\ S=1\]</div>
+
+      <h4>1. Output size</h4>
+      <div class="boxed">\[H_{\text{out}}=\frac{5-3}{1}+1=3\quad\Rightarrow\quad\boxed{3\times3}\]</div>
+
+      <h4>2. Convolution output</h4>
+      <p>Per position (each = column-1 sum − column-3 sum of the 3×3 window):</p>
+      <div class="boxed">\[O_{11}=-1,\ O_{12}=-1,\ O_{13}=0\]
+      \[O_{21}=-3,\ O_{22}=1,\ O_{23}=3\]
+      \[O_{31}=-2,\ O_{32}=0,\ O_{33}=2\]</div>
+      <div class="boxed">\[\boxed{O=\begin{bmatrix}-1&-1&0\\-3&1&3\\-2&0&2\end{bmatrix}}\]</div>
+
+      <h4>3. Apply ReLU</h4>
+      <div class="boxed">\[\boxed{O_{\text{ReLU}}=\begin{bmatrix}0&0&0\\0&1&3\\0&0&2\end{bmatrix}}\]</div>
+
+      <h4>4. Values changed to zero</h4>
+      <p>The negatives \(-1,-1,-3,-2\) → \(\boxed{4\text{ values zeroed}}\). Original zeros are not counted as "changed."</p>
+
+      <h4>5. 2×2 max pooling, stride 1</h4>
+      <p>Pooling output size \(\frac{3-2}{1}+1=2\). Windows give \(1,3,1,3\):</p>
+      <div class="boxed">\[\boxed{O_{\text{pool}}=\begin{bmatrix}1&3\\1&3\end{bmatrix}}\quad\text{shape }2\times2\]</div>
+    </section>
+
+    <section class="card" id="np-2">
+      <h2>Problem 2 — Padding, Stride, Parameters, Pooling</h2>
+      <p>Input \(7\times7\times3\); convolution \(K=3,\ S=2,\ P=1\), 8 filters.</p>
+      <h4>1. Convolution output size</h4>
+      <div class="boxed">\[H_{\text{out}}=\left\lfloor\frac{7+2(1)-3}{2}\right\rfloor+1=\left\lfloor\frac{6}{2}\right\rfloor+1=4\quad\Rightarrow\quad\boxed{4\times4\times8}\]</div>
+      <h4>2. Convolution parameters</h4>
+      <div class="boxed">\[P=(3\times3\times3+1)(8)=(27+1)(8)=\boxed{224}\]</div>
+      <h4>3. Max-pooling output</h4>
+      <p>\(2\times2\), stride 2 on \(4\times4\times8\): \(\frac{4-2}{2}+1=2\).</p>
+      <div class="boxed">\[\boxed{2\times2\times8},\qquad\text{pooling parameters }=0\]</div>
+      <p class="note">Depth is 8 because each of the 8 filters produces one output feature map.</p>
+    </section>
+
+    <section class="card" id="np-3">
+      <h2>Problem 3 — Max vs Average Pooling</h2>
+      <div class="boxed">\[F=\begin{bmatrix}2&1&4&3&0&2\\0&5&1&2&3&1\\3&2&0&1&4&2\\1&0&6&2&1&5\end{bmatrix},\qquad 2\times2,\ S=2\]</div>
+      <p>Output shape: \(\frac{4-2}{2}+1=2\) vertically, \(\frac{6-2}{2}+1=3\) horizontally \(\Rightarrow\boxed{2\times3}\).</p>
+      <h4>1. Max pooling</h4>
+      <div class="boxed">\[\boxed{F_{\max}=\begin{bmatrix}5&4&3\\3&6&5\end{bmatrix}}\]</div>
+      <h4>2. Average pooling</h4>
+      <div class="boxed">\[\boxed{F_{\text{avg}}=\begin{bmatrix}2&2.5&1.5\\1.5&2.25&3\end{bmatrix}}\]</div>
+      <p>Both have \(\boxed{0}\) trainable parameters. Max pooling preserves the strongest activation; average pooling summarizes all values in the window.</p>
+    </section>
+
+    <section class="card" id="np-4">
+      <h2>Problem 4 — Complete CNN Parameter Count</h2>
+      <p>Input \(64\times64\times3\).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Output shape</th><th class="num">Parameters</th></tr></thead>
+          <tbody>
+            <tr><td>Conv1 — 16×(3×3), same</td><td>\(64\times64\times16\)</td><td class="num">448</td></tr>
+            <tr><td>Pool1 — 2×2, s2</td><td>\(32\times32\times16\)</td><td class="num">0</td></tr>
+            <tr><td>Conv2 — 32×(5×5), valid</td><td>\(28\times28\times32\)</td><td class="num">12,832</td></tr>
+            <tr><td>Pool2 — 2×2, s2</td><td>\(14\times14\times32\)</td><td class="num">0</td></tr>
+            <tr><td>Flatten</td><td>6,272</td><td class="num">0</td></tr>
+            <tr><td>FC1 — 6,272→128</td><td>128</td><td class="num">802,944</td></tr>
+            <tr><td>FC2 — 128→10</td><td>10</td><td class="num">1,290</td></tr>
+            <tr><td><strong>Total</strong></td><td>—</td><td class="num"><strong>817,514</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="boxed">\[P_1=(3\times3\times3+1)(16)=448\]
+      \[P_2=(5\times5\times16+1)(32)=(400+1)(32)=12{,}832\]
+      \[P_3=(6{,}272+1)(128)=802{,}944\]
+      \[P_4=(128+1)(10)=1{,}290\]</div>
+      <div class="boxed">\[P_{\text{total}}=448+12{,}832+802{,}944+1{,}290=\boxed{817{,}514}\]</div>
+      <p class="note">FC1 dominates: every one of the 6,272 flattened features connects to each of its 128 neurons.</p>
+    </section>
+
+    <section class="card" id="np-5">
+      <h2>Problem 5 — Standard vs Depthwise-Separable</h2>
+      <p>Input \(56\times56\times64\), output 128 channels, \(3\times3\), same padding \(\Rightarrow56\times56\times128\). Biases ignored.</p>
+      <h4>Standard convolution</h4>
+      <div class="boxed">\[P_{\text{standard}}=3\times3\times64\times128=\boxed{73{,}728}\]
+      \[C_{\text{standard}}=56\times56\times3\times3\times64\times128=\boxed{231{,}211{,}008\text{ MACs}}\]</div>
+      <h4>Depthwise</h4>
+      <div class="boxed">\[P_{\text{DW}}=3\times3\times64=\boxed{576},\qquad C_{\text{DW}}=56\times56\times576=\boxed{1{,}806{,}336}\]</div>
+      <h4>Pointwise</h4>
+      <div class="boxed">\[P_{\text{PW}}=1\times1\times64\times128=\boxed{8{,}192},\qquad C_{\text{PW}}=56\times56\times64\times128=\boxed{25{,}690{,}112}\]</div>
+      <h4>Separable total</h4>
+      <div class="boxed">\[P_{\text{sep}}=576+8{,}192=\boxed{8{,}768},\qquad C_{\text{sep}}=1{,}806{,}336+25{,}690{,}112=\boxed{27{,}496{,}448}\]</div>
+      <h4>Relative efficiency</h4>
+      <div class="boxed">\[\frac{231{,}211{,}008}{27{,}496{,}448}\approx\boxed{8.41\times},\qquad \left(1-\frac{27{,}496{,}448}{231{,}211{,}008}\right)100\approx\boxed{88.11\%\text{ saved}}\]</div>
+    </section>
+
+    <section class="card" id="np-6">
+      <h2>Problem 6 — Inception Module &amp; Bottlenecks</h2>
+      <p>Input \(28\times28\times192\); all branches preserve spatial size. Biases ignored.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Branch</th><th>Output</th><th class="num">Parameters</th></tr></thead>
+          <tbody>
+            <tr><td>1: 1×1, 64</td><td>\(28\times28\times64\)</td><td class="num">12,288</td></tr>
+            <tr><td>2: 1×1(96)→3×3(128)</td><td>\(28\times28\times128\)</td><td class="num">129,024</td></tr>
+            <tr><td>3: 1×1(16)→5×5(32)</td><td>\(28\times28\times32\)</td><td class="num">15,872</td></tr>
+            <tr><td>4: pool→1×1(32)</td><td>\(28\times28\times32\)</td><td class="num">6,144</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="boxed">\[\text{Depth: }64+128+32+32=256\quad\Rightarrow\quad\boxed{28\times28\times256}\]</div>
+      <div class="boxed">\[\text{Branch 2: }192\times96+3\times3\times96\times128=18{,}432+110{,}592=129{,}024\]
+      \[\text{Branch 3: }192\times16+5\times5\times16\times32=3{,}072+12{,}800=15{,}872\]</div>
+      <div class="boxed">\[\text{Total Inception params}=12{,}288+129{,}024+15{,}872+6{,}144=\boxed{163{,}328}\]</div>
+      <h4>Bottleneck saving (branch 3 vs direct 5×5)</h4>
+      <div class="boxed">\[P_{\text{direct}}=5\times5\times192\times32=153{,}600,\qquad P_{\text{bottleneck}}=15{,}872\]
+      \[\frac{137{,}728}{153{,}600}\times100\approx\boxed{89.67\%},\qquad \frac{153{,}600}{15{,}872}\approx\boxed{9.68\times\text{ fewer}}\]</div>
+    </section>
+
+    <section class="card" id="np-7">
+      <h2>Problem 7 — MobileNetV2 Inverted Residual Block</h2>
+      <p>Input \(28\times28\times24\), expansion factor \(t=6\).</p>
+      <div class="boxed">\[C_{\text{expanded}}=6(24)=\boxed{144}\]</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th>Output</th><th class="num">Parameters</th></tr></thead>
+          <tbody>
+            <tr><td>1×1 Expand (s1)</td><td>\(28\times28\times144\)</td><td class="num">3,456</td></tr>
+            <tr><td>3×3 Depthwise (s2)</td><td>\(14\times14\times144\)</td><td class="num">1,296</td></tr>
+            <tr><td>1×1 Project</td><td>\(14\times14\times32\)</td><td class="num">4,608</td></tr>
+            <tr><td><strong>Total</strong></td><td>—</td><td class="num"><strong>9,360</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="boxed">\[24\times144=3{,}456,\quad 3\times3\times144=1{,}296,\quad 144\times32=4{,}608\]
+      \[P=3{,}456+1{,}296+4{,}608=\boxed{9{,}360}\]</div>
+      <h4>Residual connection?</h4>
+      <p>Input \(28\times28\times24\) vs output \(14\times14\times32\): spatial and channel counts differ \(\Rightarrow\boxed{\text{No identity residual}}\).</p>
+      <div class="callout">Variation: with \(S=1\) and \(C_{\text{out}}=24\), the output is \(28\times28\times24\), matching the input exactly \(\Rightarrow\) yes, the residual connection can be used.</div>
+    </section>
+
+    <section class="card" id="np-8">
+      <h2>Problem 8 — DenseNet Connectivity &amp; Channel Growth</h2>
+      <p>Input \(32\times32\times32\), 4 dense layers, growth rate \(k=12\) (each layer adds 12 channels).</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 760 210" role="img" aria-label="DenseNet dense block">
+          <defs>
+            <marker id="arrD" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b08d5b"/></marker>
+          </defs>
+          <!-- dense skip arcs above -->
+          <path class="nn-edge" fill="none" d="M60,110 Q200,50 340,110"/>
+          <path class="nn-edge" fill="none" d="M60,110 Q270,30 480,110"/>
+          <path class="nn-edge" fill="none" d="M60,110 Q340,14 620,110"/>
+          <path class="nn-edge" fill="none" d="M200,110 Q340,50 480,110"/>
+          <path class="nn-edge" fill="none" d="M200,110 Q410,34 620,110"/>
+          <path class="nn-edge" fill="none" d="M340,110 Q480,50 620,110"/>
+          <!-- baseline arrows -->
+          <line class="cg-fwd" style="marker-end:url(#arrD)" x1="82" y1="130" x2="176" y2="130"/>
+          <line class="cg-fwd" style="marker-end:url(#arrD)" x1="222" y1="130" x2="316" y2="130"/>
+          <line class="cg-fwd" style="marker-end:url(#arrD)" x1="362" y1="130" x2="456" y2="130"/>
+          <line class="cg-fwd" style="marker-end:url(#arrD)" x1="502" y1="130" x2="596" y2="130"/>
+          <circle class="nn-input"  cx="60"  cy="130" r="21"/><text class="nn-node-t" x="60"  y="130">x₀</text>
+          <circle class="nn-hidden" cx="200" cy="130" r="21"/><text class="nn-node-t" x="200" y="130">L1</text>
+          <circle class="nn-hidden" cx="340" cy="130" r="21"/><text class="nn-node-t" x="340" y="130">L2</text>
+          <circle class="nn-hidden" cx="480" cy="130" r="21"/><text class="nn-node-t" x="480" y="130">L3</text>
+          <circle class="nn-output" cx="620" cy="130" r="21"/><text class="nn-node-t" x="620" y="130">L4</text>
+          <text class="nn-label" x="60"  y="178">32</text>
+          <text class="nn-label" x="200" y="178">in 32</text>
+          <text class="nn-label" x="340" y="178">in 44</text>
+          <text class="nn-label" x="480" y="178">in 56</text>
+          <text class="nn-label" x="620" y="178">in 68 → out 80</text>
+        </svg>
+        <figcaption>Every layer receives the concatenation of all previous feature maps — channels grow by k each step.</figcaption>
+      </figure>
+
+      <h4>Input channels of each layer</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th class="num">Input channels</th><th>Reasoning</th></tr></thead>
+          <tbody>
+            <tr><td>Dense Layer 1</td><td class="num">32</td><td>original input</td></tr>
+            <tr><td>Dense Layer 2</td><td class="num">44</td><td>\(32+12\)</td></tr>
+            <tr><td>Dense Layer 3</td><td class="num">56</td><td>\(32+2(12)\)</td></tr>
+            <tr><td>Dense Layer 4</td><td class="num">68</td><td>\(32+3(12)\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Final channels</h4>
+      <div class="boxed">\[C_{\text{final}}=C_{\text{initial}}+Lk=32+4(12)=\boxed{80}\quad\Rightarrow\quad\boxed{32\times32\times80}\]</div>
+      <h4>DenseNet vs ResNet</h4>
+      <p><strong>ResNet:</strong> combines by addition \(y=F(x)+x\); channel count normally unchanged during identity addition. <strong>DenseNet:</strong> concatenates every previous feature map \(x_l=H_l([x_0,x_1,\ldots,x_{l-1}])\); channels increase after every layer.</p>
+      <div class="callout">DenseNet preserves features more explicitly — earlier feature maps stay as separate channels rather than merging through addition, so every later layer can directly access all previous features. The cost is more activation memory. Spatial dimensions stay \(32\times32\) (stride 1, same padding).</div>
+    </section>
+
   </main>
 </div>
 
