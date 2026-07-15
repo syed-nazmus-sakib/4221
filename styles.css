@@ -345,6 +345,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .nn-node-t { fill: #4a3d2e; font: 600 12px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
 .cg-box    { fill: #fbf4e6; stroke: #c9a87c; stroke-width: 1.6; }
 .cg-box-e  { fill: #efe3d0; stroke: #b08d5b; stroke-width: 1.6; }
+.cg-box2   { fill: #e7dcc8; stroke: #a9884f; stroke-width: 1.6; stroke-dasharray: 4 3; }
 .cg-t      { fill: #4a3d2e; font: 600 13px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
 .cg-fwd    { stroke: #b08d5b; stroke-width: 2; fill: none; marker-end: url(#arrF); }
 .cg-bwd    { stroke: #b5744f; stroke-width: 2; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrB); }
