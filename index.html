@@ -2666,12 +2666,26 @@ Output:       y = ReLU(z)</div>
       <div class="boxed">\[H_{\text{out}}=\left\lfloor\frac{H_{\text{in}}+2P-K}{S}\right\rfloor+1\]
       \[\text{Conv parameters}=(K^2C_{\text{in}}+1)\,C_{\text{out}}\]
       \[\text{MACs}=H_{\text{out}}W_{\text{out}}K^2C_{\text{in}}C_{\text{out}}\]</div>
-      <p class="note">One multiplication-and-accumulation counts as one MAC.</p>
+      <p class="note">One multiplication-and-accumulation counts as one MAC. Include convolution and FC biases; pooling and activation layers have zero trainable parameters. For manual convolution, use the PyTorch-style operation — slide the kernel directly without flipping it.</p>
+      <div class="boxed">\[\text{Recommended solving order:}\quad\boxed{2\rightarrow3\rightarrow1\rightarrow4\rightarrow5\rightarrow6\rightarrow7\rightarrow8}\]</div>
     </section>
 
     <section class="card" id="np-1">
       <h2>Problem 1 — Manual Convolution, ReLU, Pooling</h2>
       <div class="boxed">\[X=\begin{bmatrix}1&2&0&1&3\\0&1&3&2&1\\2&0&1&1&0\\1&3&2&0&2\\0&1&2&3&1\end{bmatrix},\quad K=\begin{bmatrix}1&0&-1\\1&0&-1\\1&0&-1\end{bmatrix},\quad P=0,\ S=1\]</div>
+
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>Find the output feature-map size.</li>
+          <li>Compute every output value by sliding the filter over the input.</li>
+          <li>Apply ReLU to the complete output.</li>
+          <li>Count how many values are changed to zero by ReLU.</li>
+          <li>Apply \(2\times2\) max pooling with stride 1 to the ReLU output.</li>
+          <li>State the final pooled-output shape.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
 
       <h4>1. Output size</h4>
       <div class="boxed">\[H_{\text{out}}=\frac{5-3}{1}+1=3\quad\Rightarrow\quad\boxed{3\times3}\]</div>
@@ -2696,7 +2710,19 @@ Output:       y = ReLU(z)</div>
 
     <section class="card" id="np-2">
       <h2>Problem 2 — Padding, Stride, Parameters, Pooling</h2>
-      <p>Input \(7\times7\times3\); convolution \(K=3,\ S=2,\ P=1\), 8 filters.</p>
+      <p>An input feature map of shape \(7\times7\times3\) passes through a convolution with 8 filters, \(K=3,\ S=2,\ P=1\), followed by \(2\times2\) max pooling with stride 2 and no padding.</p>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>Calculate the convolution output height and width.</li>
+          <li>State the complete convolution output shape.</li>
+          <li>Calculate the trainable parameters in the convolution.</li>
+          <li>Calculate the output shape after max pooling.</li>
+          <li>State the trainable parameters in the pooling layer.</li>
+          <li>Explain why the output depth is 8 rather than 3.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
       <h4>1. Convolution output size</h4>
       <div class="boxed">\[H_{\text{out}}=\left\lfloor\frac{7+2(1)-3}{2}\right\rfloor+1=\left\lfloor\frac{6}{2}\right\rfloor+1=4\quad\Rightarrow\quad\boxed{4\times4\times8}\]</div>
       <h4>2. Convolution parameters</h4>
@@ -2710,6 +2736,18 @@ Output:       y = ReLU(z)</div>
     <section class="card" id="np-3">
       <h2>Problem 3 — Max vs Average Pooling</h2>
       <div class="boxed">\[F=\begin{bmatrix}2&1&4&3&0&2\\0&5&1&2&3&1\\3&2&0&1&4&2\\1&0&6&2&1&5\end{bmatrix},\qquad 2\times2,\ S=2\]</div>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>Divide the matrix into the correct non-overlapping windows.</li>
+          <li>Compute the complete max-pooled output.</li>
+          <li>Compute the complete average-pooled output.</li>
+          <li>State both output shapes.</li>
+          <li>State the number of trainable parameters in each pooling operation.</li>
+          <li>Explain one practical difference between max and average pooling.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
       <p>Output shape: \(\frac{4-2}{2}+1=2\) vertically, \(\frac{6-2}{2}+1=3\) horizontally \(\Rightarrow\boxed{2\times3}\).</p>
       <h4>1. Max pooling</h4>
       <div class="boxed">\[\boxed{F_{\max}=\begin{bmatrix}5&4&3\\3&6&5\end{bmatrix}}\]</div>
@@ -2720,7 +2758,24 @@ Output:       y = ReLU(z)</div>
 
     <section class="card" id="np-4">
       <h2>Problem 4 — Complete CNN Parameter Count</h2>
-      <p>Input \(64\times64\times3\).</p>
+      <p>Input \(64\times64\times3\). Network: (1) Conv1 16×(3×3), s1, same; (2) MaxPool1 2×2, s2; (3) Conv2 32×(5×5), s1, valid; (4) MaxPool2 2×2, s2; (5) Flatten; (6) FC1 128 neurons; (7) FC2 10 outputs.</p>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>Find the output shape after Conv1.</li>
+          <li>Find the output shape after MaxPool1.</li>
+          <li>Find the output shape after Conv2.</li>
+          <li>Find the output shape after MaxPool2.</li>
+          <li>Calculate the flattened-vector length.</li>
+          <li>Calculate the trainable parameters in Conv1.</li>
+          <li>Calculate the trainable parameters in Conv2.</li>
+          <li>Calculate the trainable parameters in FC1.</li>
+          <li>Calculate the trainable parameters in FC2.</li>
+          <li>Calculate the total number of trainable parameters.</li>
+          <li>Identify which layer contains the most parameters and explain why.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Layer</th><th>Output shape</th><th class="num">Parameters</th></tr></thead>
@@ -2746,7 +2801,23 @@ Output:       y = ReLU(z)</div>
 
     <section class="card" id="np-5">
       <h2>Problem 5 — Standard vs Depthwise-Separable</h2>
-      <p>Input \(56\times56\times64\), output 128 channels, \(3\times3\), same padding \(\Rightarrow56\times56\times128\). Biases ignored.</p>
+      <p>Input \(56\times56\times64\), output 128 channels, \(3\times3\), same padding \(\Rightarrow56\times56\times128\). Depthwise-separable uses one \(3\times3\) depthwise filter per input channel then a \(1\times1\) pointwise conv to 128 channels. Biases ignored.</p>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>State the output shape.</li>
+          <li>Calculate the parameter count of standard convolution.</li>
+          <li>Calculate the MACs of standard convolution.</li>
+          <li>Calculate the depthwise-convolution parameters.</li>
+          <li>Calculate the depthwise-convolution MACs.</li>
+          <li>Calculate the pointwise-convolution parameters.</li>
+          <li>Calculate the pointwise-convolution MACs.</li>
+          <li>Find the total parameters and MACs of depthwise-separable convolution.</li>
+          <li>Calculate \(\dfrac{\text{standard cost}}{\text{depthwise-separable cost}}\).</li>
+          <li>Calculate the percentage computation saved.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
       <h4>Standard convolution</h4>
       <div class="boxed">\[P_{\text{standard}}=3\times3\times64\times128=\boxed{73{,}728}\]
       \[C_{\text{standard}}=56\times56\times3\times3\times64\times128=\boxed{231{,}211{,}008\text{ MACs}}\]</div>
@@ -2762,7 +2833,21 @@ Output:       y = ReLU(z)</div>
 
     <section class="card" id="np-6">
       <h2>Problem 6 — Inception Module &amp; Bottlenecks</h2>
-      <p>Input \(28\times28\times192\); all branches preserve spatial size. Biases ignored.</p>
+      <p>Input \(28\times28\times192\). Branch 1: 1×1(64). Branch 2: 1×1(96)→3×3(128). Branch 3: 1×1(16)→5×5(32). Branch 4: 3×3 max pool (s1, same)→1×1(32). All convolutions stride 1, same padding; biases ignored.</p>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>State the output shape of each branch.</li>
+          <li>Calculate the final output depth after concatenation.</li>
+          <li>State the complete Inception-module output shape.</li>
+          <li>Calculate the parameters in each convolutional layer.</li>
+          <li>Calculate the module's total parameter count.</li>
+          <li>For Branch 3, calculate the parameters of a direct \(5\times5\) convolution from 192 to 32 channels without the \(1\times1\) bottleneck.</li>
+          <li>Compare that direct value with the bottlenecked Branch 3.</li>
+          <li>Calculate the percentage parameter reduction produced by the bottleneck.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Branch</th><th>Output</th><th class="num">Parameters</th></tr></thead>
@@ -2785,7 +2870,24 @@ Output:       y = ReLU(z)</div>
 
     <section class="card" id="np-7">
       <h2>Problem 7 — MobileNetV2 Inverted Residual Block</h2>
-      <p>Input \(28\times28\times24\), expansion factor \(t=6\).</p>
+      <p>Input \(28\times28\times24\), expansion factor \(t=6\): \(1\times1\) expansion, \(3\times3\) depthwise (stride 2, same padding), \(1\times1\) linear projection to 32 channels. Biases and BN ignored.</p>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>Calculate the number of expanded channels.</li>
+          <li>State the output shape after expansion.</li>
+          <li>State the output shape after the depthwise convolution.</li>
+          <li>State the output shape after projection.</li>
+          <li>Calculate the expansion-layer parameters.</li>
+          <li>Calculate the depthwise-layer parameters.</li>
+          <li>Calculate the projection-layer parameters.</li>
+          <li>Calculate the block's total parameters.</li>
+          <li>Determine whether an identity residual connection can be used.</li>
+          <li>Explain the answer using spatial dimensions and channel counts.</li>
+          <li><em>Variation:</em> with \(S=1,\ C_{\text{out}}=24\), can the residual connection now be used?</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
       <div class="boxed">\[C_{\text{expanded}}=6(24)=\boxed{144}\]</div>
       <div class="table-wrap">
         <table>
@@ -2807,7 +2909,23 @@ Output:       y = ReLU(z)</div>
 
     <section class="card" id="np-8">
       <h2>Problem 8 — DenseNet Connectivity &amp; Channel Growth</h2>
-      <p>Input \(32\times32\times32\), 4 dense layers, growth rate \(k=12\) (each layer adds 12 channels).</p>
+      <p>Input \(32\times32\times32\), 4 dense layers, growth rate \(k=12\) (each layer produces 12 new feature maps, concatenated with all preceding feature maps).</p>
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol>
+          <li>How many input channels does Dense Layer 1 receive?</li>
+          <li>How many input channels does Dense Layer 2 receive?</li>
+          <li>How many input channels does Dense Layer 3 receive?</li>
+          <li>How many input channels does Dense Layer 4 receive?</li>
+          <li>Calculate the final number of output channels after all four layers.</li>
+          <li>State the final output shape.</li>
+          <li>Explain how DenseNet connectivity differs from ResNet connectivity.</li>
+          <li>Which architecture preserves earlier features more explicitly, and why?</li>
+          <li>Why can DenseNet require more activation memory?</li>
+          <li>Explain why the spatial dimensions remain unchanged inside this dense block.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
 
       <figure class="fig">
         <svg viewBox="0 0 760 210" role="img" aria-label="DenseNet dense block">
