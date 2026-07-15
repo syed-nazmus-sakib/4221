@@ -2977,6 +2977,298 @@ Output:       y = ReLU(z)</div>
       <div class="callout">DenseNet preserves features more explicitly — earlier feature maps stay as separate channels rather than merging through addition, so every later layer can directly access all previous features. The cost is more activation memory. Spatial dimensions stay \(32\times32\) (stride 1, same padding).</div>
     </section>
 
+    <!-- ============================================================ -->
+    <!-- ============ PART 11: Object Detection ===================== -->
+    <!-- ============================================================ -->
+    <div class="part">
+      <h1>Part XI — Object Detection &amp; Segmentation</h1>
+      <div class="part-sub">Localization → YOLO, IoU, NMS, anchor boxes, the R-CNN family, and U-Net — with a fully worked NMS problem.</div>
+    </div>
+
+    <section class="card" id="od-1">
+      <h2>1. Classification, Localization, Detection</h2>
+      <ul>
+        <li><strong>Classification:</strong> predicts the class of the main object.</li>
+        <li><strong>Classification + localization:</strong> predicts one object's class and bounding box.</li>
+        <li><strong>Object detection:</strong> predicts classes and boxes of multiple objects.</li>
+        <li><strong>Semantic segmentation:</strong> predicts a class for every pixel.</li>
+      </ul>
+      <p>A localization output may contain:</p>
+      <div class="boxed">\[y=\begin{bmatrix}p_c&b_x&b_y&b_h&b_w&c_1&c_2&\cdots\end{bmatrix}^{T}\]</div>
+      <p>where \(p_c\) indicates whether an object exists.</p>
+    </section>
+
+    <section class="card" id="od-2">
+      <h2>2. Landmark Detection</h2>
+      <p>Landmark detection predicts important points rather than a bounding box — facial landmarks, human joints, object corners. For \(N\) landmarks the network predicts:</p>
+      <div class="boxed">\[(x_1,y_1),(x_2,y_2),\ldots,(x_N,y_N)\]</div>
+    </section>
+
+    <section class="card" id="od-3">
+      <h2>3. Sliding-Window Detection</h2>
+      <p>A classifier is applied repeatedly to many cropped windows at different positions, scales, and aspect ratios.</p>
+      <div class="boxed">\[\text{It is computationally expensive because the CNN is run repeatedly.}\]</div>
+      <p>The convolutional implementation converts fully connected layers into convolutions, letting the network process many overlapping windows in one forward pass.</p>
+    </section>
+
+    <section class="card" id="od-4">
+      <h2>4. YOLO — You Only Look Once</h2>
+      <p>A one-stage detector that divides the image into a grid; each object is assigned to the grid cell containing its center. Each grid-cell prediction includes \(p_c,b_x,b_y,b_h,b_w,\text{ class scores}\).</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 280 260" role="img" aria-label="YOLO grid">
+          <rect x="20" y="20" width="240" height="240" fill="#fbf4e6" stroke="#c9a87c"/>
+          <line x1="100" y1="20" x2="100" y2="260" stroke="#dcc7a2"/>
+          <line x1="180" y1="20" x2="180" y2="260" stroke="#dcc7a2"/>
+          <line x1="20" y1="100" x2="260" y2="100" stroke="#dcc7a2"/>
+          <line x1="20" y1="180" x2="260" y2="180" stroke="#dcc7a2"/>
+          <rect x="100" y="100" width="80" height="80" fill="rgba(201,168,124,0.28)"/>
+          <rect x="70" y="70" width="150" height="130" fill="none" stroke="#b5744f" stroke-width="2.5"/>
+          <circle cx="140" cy="140" r="5" fill="#b5744f"/>
+          <text class="nn-label" x="140" y="250" style="font-size:11px">object → assigned to the cell holding its center (dot)</text>
+        </svg>
+        <figcaption>S×S grid; the highlighted cell owns the object because it contains the box center.</figcaption>
+      </figure>
+
+      <p>With an \(S\times S\) grid, \(B\) anchor boxes, and \(C\) classes, the output size is:</p>
+      <div class="boxed">\[\boxed{S\times S\times B(5+C)}\]</div>
+      <p>Example: \(3\times3\) grid, two anchors, three classes → \(3\times3\times2\times8\) because \(5+3=8\).</p>
+    </section>
+
+    <section class="card" id="od-5">
+      <h2>5. Intersection over Union (IoU)</h2>
+      <figure class="fig">
+        <svg viewBox="0 0 360 200" role="img" aria-label="IoU">
+          <rect x="40" y="45" width="150" height="110" fill="rgba(201,168,124,0.22)" stroke="#b08d5b" stroke-width="2"/>
+          <rect x="130" y="80" width="160" height="100" fill="rgba(122,151,194,0.20)" stroke="#7a97c2" stroke-width="2"/>
+          <rect x="130" y="80" width="60" height="75" fill="rgba(181,116,79,0.45)" stroke="#b5744f"/>
+          <text class="nn-label" x="80" y="40">Box A</text>
+          <text class="nn-label" x="255" y="192">Box B</text>
+          <text class="nn-label" x="160" y="120" style="fill:#7a4a30;font-weight:600">∩</text>
+        </svg>
+        <figcaption>The shaded overlap is the intersection; the union is both boxes minus that overlap.</figcaption>
+      </figure>
+      <div class="boxed">\[\boxed{IoU=\frac{\text{area of intersection}}{\text{area of union}}},\qquad A_{\text{union}}=A_1+A_2-A_{\text{intersection}}\]</div>
+      <p>A larger IoU means greater overlap.</p>
+    </section>
+
+    <section class="card" id="od-6">
+      <h2>6. Non-Max Suppression (NMS)</h2>
+      <p>A detector may predict several highly overlapping boxes for one real object. NMS keeps the strongest prediction and removes duplicates.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 190" role="img" aria-label="NMS before after">
+          <defs>
+            <marker id="arrN" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#b08d5b"/></marker>
+          </defs>
+          <text class="nn-label" x="115" y="24" style="font-weight:600">Before — duplicates</text>
+          <rect x="60"  y="45" width="120" height="90" fill="none" stroke="#b5744f" stroke-width="2"/>
+          <rect x="75"  y="55" width="120" height="90" fill="none" stroke="#c9a87c" stroke-width="1.5"/>
+          <rect x="48"  y="60" width="120" height="90" fill="none" stroke="#c9a87c" stroke-width="1.5"/>
+          <line x1="220" y1="90" x2="300" y2="90" class="cg-fwd" style="marker-end:url(#arrN)"/>
+          <text class="nn-label" x="260" y="80" style="font-size:11px">NMS</text>
+          <text class="nn-label" x="410" y="24" style="font-weight:600">After — one box</text>
+          <rect x="360" y="50" width="120" height="90" fill="none" stroke="#b5744f" stroke-width="2.5"/>
+        </svg>
+        <figcaption>Keep the highest-confidence box; drop overlapping lower-confidence ones.</figcaption>
+      </figure>
+
+      <p><strong>Procedure:</strong></p>
+      <ol>
+        <li>Remove boxes with very low confidence.</li>
+        <li>Select the remaining box with the highest confidence.</li>
+        <li>Keep it as a final prediction.</li>
+        <li>Remove lower-confidence boxes whose IoU with it exceeds the threshold.</li>
+        <li>Repeat until no boxes remain.</li>
+      </ol>
+      <div class="boxed">\[\text{NMS solves duplicate detections of the same object.}\]</div>
+    </section>
+
+    <section class="card" id="od-7">
+      <h2>7. NMS With Multiple Classes</h2>
+      <p>NMS is applied <strong>separately for each class</strong> — e.g. NMS on all car predictions, then on all pedestrian predictions, then on all motorcycle predictions. A car box should not suppress a pedestrian box merely because they overlap.</p>
+    </section>
+
+    <section class="card" id="od-8">
+      <h2>8. Anchor Boxes</h2>
+      <p>Anchor boxes are predefined box shapes associated with each grid cell. They allow detection of multiple objects whose centers fall in one cell, and handling of different aspect ratios. During training an object is assigned to (1) the cell containing its center, and (2) the anchor with the highest IoU with its ground-truth box.</p>
+      <h4>Limitations</h4>
+      <p>Performance degrades when multiple objects in one cell compete for the same anchor, or when an object's scale/aspect ratio poorly matches the available anchors.</p>
+    </section>
+
+    <section class="card" id="od-9">
+      <h2>9. R-CNN, Fast R-CNN, Faster R-CNN</h2>
+      <h3>R-CNN</h3>
+      <p>Generate region proposals with an external algorithm → run the CNN separately on each proposed region → predict class and box correction. <strong>Problem:</strong> extremely slow because each proposal is processed independently.</p>
+      <h3>Fast R-CNN</h3>
+      <p>Run the image through the CNN once → generate proposals externally → extract proposal features from the shared feature map → classify and regress all proposals. Shares convolution but still depends on an external proposal algorithm.</p>
+      <h3>Faster R-CNN</h3>
+      <p>Extract a shared CNN feature map → use a <strong>Region Proposal Network (RPN)</strong> to generate proposals → classify and refine boxes.</p>
+      <div class="boxed">\[\text{Faster R-CNN learns region proposals using a neural network.}\]</div>
+    </section>
+
+    <section class="card" id="od-10">
+      <h2>10. U-Net</h2>
+      <p>U-Net is mainly used for semantic segmentation.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 560 300" role="img" aria-label="U-Net">
+          <defs>
+            <marker id="arrU" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b5744f"/></marker>
+          </defs>
+          <!-- encoder (left, descending) -->
+          <rect class="cg-box" x="40"  y="40"  width="70" height="34" rx="6"/><text class="cg-t" x="75"  y="57" style="font-size:11px">enc 1</text>
+          <rect class="cg-box" x="70"  y="100" width="70" height="34" rx="6"/><text class="cg-t" x="105" y="117" style="font-size:11px">enc 2</text>
+          <rect class="cg-box" x="100" y="160" width="70" height="34" rx="6"/><text class="cg-t" x="135" y="177" style="font-size:11px">enc 3</text>
+          <!-- bottleneck -->
+          <rect class="cg-box2" x="240" y="220" width="90" height="36" rx="6"/><text class="cg-t" x="285" y="238" style="font-size:11px">bottleneck</text>
+          <!-- decoder (right, ascending) -->
+          <rect class="cg-box" x="400" y="160" width="70" height="34" rx="6"/><text class="cg-t" x="435" y="177" style="font-size:11px">dec 3</text>
+          <rect class="cg-box" x="430" y="100" width="70" height="34" rx="6"/><text class="cg-t" x="465" y="117" style="font-size:11px">dec 2</text>
+          <rect class="cg-box" x="460" y="40"  width="70" height="34" rx="6"/><text class="cg-t" x="495" y="57" style="font-size:11px">dec 1</text>
+          <!-- down arrows -->
+          <line x1="75" y1="74" x2="105" y2="100" class="nn-edge"/>
+          <line x1="105" y1="134" x2="135" y2="160" class="nn-edge"/>
+          <line x1="135" y1="194" x2="270" y2="220" class="nn-edge"/>
+          <!-- up arrows -->
+          <line x1="300" y1="220" x2="435" y2="194" class="nn-edge"/>
+          <line x1="435" y1="160" x2="465" y2="134" class="nn-edge"/>
+          <line x1="465" y1="100" x2="495" y2="74" class="nn-edge"/>
+          <!-- skip connections -->
+          <line x1="110" y1="57"  x2="460" y2="57"  class="cg-bwd" style="marker-end:url(#arrU)"/>
+          <line x1="140" y1="117" x2="430" y2="117" class="cg-bwd" style="marker-end:url(#arrU)"/>
+          <line x1="170" y1="177" x2="400" y2="177" class="cg-bwd" style="marker-end:url(#arrU)"/>
+          <text class="cg-blab" x="285" y="50">skip connections (copy encoder → decoder)</text>
+          <text class="nn-label" x="90" y="285">Encoder: Conv→ReLU→Pool</text>
+          <text class="nn-label" x="470" y="285">Decoder: TransposeConv→Conv</text>
+        </svg>
+        <figcaption>Encoder downsamples for semantics; decoder upsamples; skip connections restore fine spatial detail.</figcaption>
+      </figure>
+
+      <p><strong>Encoder:</strong> Conv → ReLU → Pooling — reduces spatial size, learns semantic features. <strong>Decoder:</strong> Transpose convolution → Conv — restores resolution. <strong>Skip connections:</strong> encoder features are copied to corresponding decoder stages, preserving fine detail lost during downsampling. The final \(1\times1\) convolution produces \(H\times W\times C\) where \(C\) is the number of pixel classes.</p>
+    </section>
+
+    <section class="card" id="od-worked">
+      <h2>Worked Problem — NMS &amp; IoU</h2>
+      <p>Four boxes of the same class, format \((x_1,y_1,x_2,y_2)\):</p>
+      <div class="boxed">\[A=(30,30,90,90),\ s_A=0.88\qquad B=(40,40,100,100),\ s_B=0.80\]
+      \[C=(35,35,85,85),\ s_C=0.72\qquad D=(150,150,200,200),\ s_D=0.60\]</div>
+      <p>Area \(=(x_2-x_1)(y_2-y_1)\); initial \(IoU_{\text{threshold}}=0.5\).</p>
+
+      <div class="prompt">
+        <span class="prompt-label">Tasks</span>
+        <ol type="a">
+          <li>What problem does NMS solve?</li>
+          <li>How is NMS applied with multiple classes?</li>
+          <li>When can anchor-box detectors degrade?</li>
+          <li>Compute \(IoU(A,B)\), \(IoU(A,C)\), \(IoU(A,D)\); apply NMS at threshold 0.5; then repeat at threshold 0.6.</li>
+        </ol>
+      </div>
+      <span class="soln-label">Solution</span>
+
+      <h4>(a) What NMS solves</h4>
+      <p>NMS removes multiple overlapping predictions of the same real object, retaining the highest-confidence box and suppressing lower-confidence duplicates.</p>
+      <h4>(b) Multiple classes</h4>
+      <p>Apply NMS independently per class; boxes of different predicted classes are not normally allowed to suppress one another.</p>
+      <h4>(c) Anchor degradation</h4>
+      <p>(1) Several objects in the same cell assigned to the same anchor; (2) object shapes/sizes that poorly match the predefined anchors.</p>
+
+      <h4>(d-i) IoU(A, B)</h4>
+      <div class="boxed">\[A_A=60\times60=3600,\quad A_B=60\times60=3600\]
+      \[\text{∩ corners }(40,40)\to(90,90):\ 50\times50=2500\]
+      \[A_U=3600+3600-2500=4700,\quad IoU=\frac{2500}{4700}\approx\boxed{0.5319}\]</div>
+      <h4>(d-ii) IoU(A, C)</h4>
+      <p>C \((50\times50=2500)\) lies completely inside A, so \(A_I=2500\):</p>
+      <div class="boxed">\[A_U=3600+2500-2500=3600,\quad IoU=\frac{2500}{3600}\approx\boxed{0.6944}\]</div>
+      <h4>(d-iii) IoU(A, D)</h4>
+      <p>A ends at \((90,90)\), D begins at \((150,150)\) — no overlap: \(\boxed{IoU(A,D)=0}\).</p>
+
+      <h4>(d-iv) NMS at threshold 0.5</h4>
+      <p>Order by confidence \(A(0.88),B(0.80),C(0.72),D(0.60)\). Keep A. \(IoU(A,B)=0.5319>0.5\) → suppress B; \(IoU(A,C)=0.6944>0.5\) → suppress C; \(IoU(A,D)=0\) → D remains. Keep D.</p>
+      <div class="boxed">\[\text{Final detections}=\boxed{\{A,\ D\}}\]</div>
+      <h4>(d-v) NMS at threshold 0.6</h4>
+      <p>Keep A. \(IoU(A,B)=0.5319<0.6\) → B not suppressed; \(IoU(A,C)=0.6944>0.6\) → suppress C; \(IoU(A,D)=0\) → D remains. Next highest is B, which does not overlap D.</p>
+      <div class="boxed">\[\text{Final detections}=\boxed{\{A,\ B,\ D\}}\]</div>
+      <div class="callout">Higher NMS threshold ⇒ less aggressive ⇒ more overlapping boxes retained.</div>
+    </section>
+
+    <section class="card" id="od-practice">
+      <h2>Practice Questions</h2>
+      <p class="note">Try each before revealing the worked answer.</p>
+
+      <h3>Practice 1 — IoU &amp; NMS</h3>
+      <div class="prompt">
+        <span class="prompt-label">Question</span>
+        <p>Same-class boxes: \(A=(10,10,50,50),\ s=0.90\); \(B=(20,20,60,60),\ s=0.82\); \(C=(12,12,45,45),\ s=0.70\); \(D=(80,80,120,120),\ s=0.65\). Using threshold 0.5: (1) \(IoU(A,B)\); (2) \(IoU(A,C)\); (3) apply NMS; (4) repeat with threshold 0.7.</p>
+      </div>
+      <details class="reveal"><summary>Show answer</summary><div class="reveal-body">
+        <div class="boxed">\[A_A=1600,\ A_B=1600,\ A_C=1089,\ A_D=1600\]
+        \[IoU(A,B):\ \cap(20,20)\to(50,50)=30\times30=900,\ A_U=2300\Rightarrow\frac{900}{2300}\approx\boxed{0.391}\]
+        \[IoU(A,C):\ C\subset A\Rightarrow\frac{1089}{1600}\approx\boxed{0.681}\]</div>
+        <p><strong>NMS @ 0.5:</strong> keep A → B (0.391&lt;0.5) kept, C (0.681&gt;0.5) suppressed, D (0) kept. Keep B; \(IoU(B,D)=0\). Final \(\boxed{\{A,B,D\}}\).</p>
+        <p><strong>NMS @ 0.7:</strong> keep A → C (0.681&lt;0.7) now kept, B kept, D kept. \(IoU(B,C)\approx0.303\), all others 0 → nothing suppressed. Final \(\boxed{\{A,B,C,D\}}\).</p>
+      </div></details>
+
+      <h3>Practice 2 — Class-wise NMS</h3>
+      <div class="prompt">
+        <span class="prompt-label">Question</span>
+        <p>Car A \((10,10,50,50)\) 0.90; Car B \((15,15,52,52)\) 0.80; Pedestrian C \((12,12,48,48)\) 0.85. Threshold 0.5: (1) Should C be suppressed by A? (2) Which car box is likely removed? (3) Why must NMS be class-wise?</p>
+      </div>
+      <details class="reveal"><summary>Show answer</summary><div class="reveal-body">
+        <p>(1) <strong>No</strong> — C is a pedestrian; class-wise NMS never compares it against the car A.</p>
+        <p>(2) \(IoU(A,B)\): \(A_A=1600,\ A_B=37\times37=1369\), \(\cap(15,15)\to(50,50)=35\times35=1225\), \(A_U=1744\Rightarrow0.702>0.5\). Lower-score <strong>Car B is removed</strong>.</p>
+        <p>(3) Different classes legitimately overlap (a pedestrian beside a car); cross-class suppression would delete valid detections.</p>
+      </div></details>
+
+      <h3>Practice 3 — YOLO Output Dimension</h3>
+      <div class="prompt">
+        <span class="prompt-label">Question</span>
+        <p>\(13\times13\) grid, 5 anchors per cell, 20 classes. Find the output tensor shape using \(S\times S\times B(5+C)\).</p>
+      </div>
+      <details class="reveal"><summary>Show answer</summary><div class="reveal-body">
+        <div class="boxed">\[13\times13\times5(5+20)=13\times13\times125\quad\Rightarrow\quad\boxed{13\times13\times125}\]</div>
+      </div></details>
+
+      <h3>Practice 4 — Anchor Assignment</h3>
+      <div class="prompt">
+        <span class="prompt-label">Question</span>
+        <p>A cell has Anchor 1 (tall, narrow) and Anchor 2 (short, wide). Two object centers fall in it: a standing pedestrian and a car. (1) Which anchor for each? (2) What if both are tall pedestrians? (3) Why does poor anchor selection harm detection?</p>
+      </div>
+      <details class="reveal"><summary>Show answer</summary><div class="reveal-body">
+        <p>(1) Pedestrian → Anchor 1 (tall/narrow); car → Anchor 2 (short/wide) — each picks the anchor with highest IoU to its shape.</p>
+        <p>(2) Both match Anchor 1 and compete for the same anchor; only one can be represented, so the other is likely missed.</p>
+        <p>(3) A poorly matched anchor has low IoU with the ground truth, making box regression harder and causing missed or inaccurate detections.</p>
+      </div></details>
+
+      <h3>Practice 5 — R-CNN Family</h3>
+      <div class="prompt">
+        <span class="prompt-label">Question</span>
+        <p>Order R-CNN, Fast R-CNN, Faster R-CNN by increasing efficiency. For each: (1) how proposals are generated, (2) whether CNN computation is shared, (3) the main source of slowness.</p>
+      </div>
+      <details class="reveal"><summary>Show answer</summary><div class="reveal-body">
+        <p>Increasing efficiency: <strong>R-CNN &lt; Fast R-CNN &lt; Faster R-CNN</strong>.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Model</th><th>Proposals</th><th>CNN shared?</th><th>Main slowness</th></tr></thead>
+          <tbody>
+            <tr><td>R-CNN</td><td>External (selective search)</td><td>No — one pass per proposal</td><td>Thousands of CNN passes</td></tr>
+            <tr><td>Fast R-CNN</td><td>External (selective search)</td><td>Yes — one pass + RoI pooling</td><td>External proposal generation</td></tr>
+            <tr><td>Faster R-CNN</td><td>Learned (RPN)</td><td>Yes</td><td>Two-stage overhead (still fast)</td></tr>
+          </tbody>
+        </table></div>
+      </div></details>
+
+      <h3>Practice 6 — U-Net</h3>
+      <div class="prompt">
+        <span class="prompt-label">Question</span>
+        <p>An encoder feature map \(64\times64\times128\) and an upsampled decoder feature map \(64\times64\times128\) are joined by a skip connection. (1) Resulting shape? (2) Why is concatenation useful? (3) How would elementwise addition differ?</p>
+      </div>
+      <details class="reveal"><summary>Show answer</summary><div class="reveal-body">
+        <p>(1) Concatenation along channels: \(\boxed{64\times64\times256}\).</p>
+        <p>(2) It keeps both high-level decoder features and fine encoder detail as separate channels, letting the network recover spatial precision.</p>
+        <p>(3) Addition keeps \(64\times64\times128\) (channels unchanged) but requires equal channel counts and merges the two signals rather than preserving both.</p>
+      </div></details>
+    </section>
+
   </main>
 </div>
 

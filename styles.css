@@ -344,6 +344,33 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 .qa .q { font-weight: 700; color: var(--cocoa); }
 
+/* Reveal answer (details/summary) */
+.reveal { margin: 10px 0 4px; }
+.reveal summary {
+  cursor: pointer;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tea-deep);
+  padding: 8px 12px;
+  background: var(--milk);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  list-style: none;
+  user-select: none;
+}
+.reveal summary::-webkit-details-marker { display: none; }
+.reveal summary::before { content: "▸ "; color: var(--tea); }
+.reveal[open] summary::before { content: "▾ "; }
+.reveal[open] summary { border-radius: 9px 9px 0 0; }
+.reveal .reveal-body {
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 9px 9px;
+  padding: 10px 16px;
+  background: var(--cream-2);
+}
+
 /* Trap list */
 .traps li::marker { color: var(--tea-deep); font-weight: 700; }
 
