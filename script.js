@@ -94,4 +94,41 @@ document.addEventListener('DOMContentLoaded', () => {
     toTop.classList.toggle('show', window.scrollY > 600);
   });
   toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  /* ---- Study-tracker persistence (final-exam page) ---- */
+  const boxes = [...document.querySelectorAll('input[type="checkbox"][data-track]')];
+  if (boxes.length) {
+    const KEY = 'exam-prep-final-checks-v1';
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; }
+    catch { saved = {}; }
+
+    const fill = document.getElementById('progress-fill');
+    const count = document.getElementById('progress-count');
+
+    const render = () => {
+      const done = boxes.filter(cb => cb.checked).length;
+      const pct = Math.round((done / boxes.length) * 100);
+      if (fill) fill.style.width = pct + '%';
+      if (count) count.textContent = done + ' / ' + boxes.length + ' drills marked';
+    };
+
+    boxes.forEach(cb => {
+      if (saved[cb.dataset.track]) cb.checked = true;
+      cb.addEventListener('change', () => {
+        saved[cb.dataset.track] = cb.checked;
+        localStorage.setItem(KEY, JSON.stringify(saved));
+        render();
+      });
+    });
+    render();
+  }
+
+  document.querySelectorAll('details.reveal').forEach(d => {
+    d.addEventListener('toggle', () => {
+      if (d.open && window.MathJax && typeof MathJax.typesetPromise === 'function') {
+        MathJax.typesetPromise([d]).catch(() => {});
+      }
+    });
+  });
 });
