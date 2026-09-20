@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>object-det-5 — Multi-Class NMS (6 boxes)</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}td.num{font-family:var(--mono)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">object-det-5</div>
+<h1>Practice Problem 4 — Multi-Class NMS</h1>
+<p class="subtitle">One more proper multi-class NMS problem. Same structure as the retake: class-agnostic NMS can suppress overlapping boxes from different classes, whereas multi-class NMS only compares boxes within the same class.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#given">Given + Questions (a)–(e)</a></li>
+<li><a href="#a">Solution (a) — IoUs</a></li>
+<li><a href="#b">Solution (b) — Class-Agnostic NMS</a></li>
+<li><a href="#c">Solution (c) — Multi-Class NMS</a></li>
+<li><a href="#d">Solution (d) — Which boxes saved?</a></li>
+<li><a href="#e">Solution (e) — Confidence + Multi-Class</a></li>
+</ol></nav>
+
+<section class="card hero" id="given">
+<h2 class="sec">Given</h2><div class="meta">T_NMS = 0.50 · 6 predictions · Car / Person</div>
+<table><tr><th>Box</th><th>Class</th><th>\((x_1,y_1)\)</th><th>\((x_2,y_2)\)</th><th style="text-align:right">Conf.</th></tr>
+<tr><td>A</td><td>Car</td><td>(10, 10)</td><td>(70, 70)</td><td class="num" style="text-align:right">0.95</td></tr>
+<tr><td>B</td><td>Car</td><td>(20, 20)</td><td>(80, 80)</td><td class="num" style="text-align:right">0.88</td></tr>
+<tr><td>C</td><td>Person</td><td>(15, 15)</td><td>(65, 65)</td><td class="num" style="text-align:right">0.84</td></tr>
+<tr><td>D</td><td>Person</td><td>(120, 120)</td><td>(180, 180)</td><td class="num" style="text-align:right">0.78</td></tr>
+<tr><td>E</td><td>Car</td><td>(130, 130)</td><td>(190, 190)</td><td class="num" style="text-align:right">0.72</td></tr>
+<tr><td>F</td><td>Person</td><td>(125, 125)</td><td>(175, 175)</td><td class="num" style="text-align:right">0.69</td></tr></table>
+<div class="formula">\[ \boxed{T_{\mathrm{NMS}} = 0.50} \]</div>
+<p><strong>(a)</strong> Compute \(IoU(A,B),\; IoU(A,C),\; IoU(D,E),\; IoU(D,F).\) Show intersection area, union area and final IoU.</p>
+<p><strong>(b)</strong> Apply <strong>class-agnostic NMS</strong> with threshold \(0.50\). Show every suppression decision.</p>
+<p><strong>(c)</strong> Apply <strong>multi-class NMS</strong> with threshold \(0.50\). Run NMS independently for Cars and Persons.</p>
+<p><strong>(d)</strong> Which predictions are saved by multi-class NMS compared with class-agnostic NMS? Explain.</p>
+<p><strong>(e)</strong> Start again from all six predictions. Apply a <strong>confidence threshold of \(0.75\)</strong> first and then perform multi-class NMS with IoU threshold \(0.50\). State the final detections.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">Solution (a) — IoUs</h2>
+<h3>1. \(IoU(A,B)\)</h3>
+<p>A: \((10,10)\rightarrow(70,70)\) · B: \((20,20)\rightarrow(80,80)\) · Each area \(60\times 60 = 3600.\)</p>
+<p>Intersection: \((20,20)\rightarrow(70,70)\) so \(A_I = 50\times 50 = 2500.\)</p>
+<div class="formula">\[ A_U = 3600+3600-2500 = 4700. \]</div>
+<div class="result">\[ \boxed{IoU(A,B)=\frac{2500}{4700}\approx 0.532} \]</div>
+<p class="muted">They are also both <strong style="color:var(--text)">Cars</strong>.</p>
+<h3>2. \(IoU(A,C)\)</h3>
+<p>C: \((15,15)\rightarrow(65,65)\) · Area \(50\times 50 = 2500.\) C lies completely inside A. Therefore \(A_I = 2500.\)</p>
+<div class="formula">\[ A_U = 3600+2500-2500 = 3600. \]</div>
+<div class="result">\[ \boxed{IoU(A,C)=\frac{2500}{3600}\approx 0.694} \]</div>
+<p class="muted">Notice \(0.694 &gt; 0.5\) but A = Car, C = Person. Keep that in mind.</p>
+<h3>3. \(IoU(D,E)\)</h3>
+<p>D: \((120,120)\rightarrow(180,180)\) · E: \((130,130)\rightarrow(190,190)\) · Both area \(3600.\)</p>
+<p>Intersection: \((130,130)\rightarrow(180,180)\) so \(A_I = 50\times 50 = 2500.\)</p>
+<div class="formula">\[ A_U = 3600+3600-2500 = 4700. \]</div>
+<div class="result">\[ \boxed{IoU(D,E)\approx 0.532} \]</div>
+<p class="muted">But D = Person, E = Car.</p>
+<h3>4. \(IoU(D,F)\)</h3>
+<p>F: \((125,125)\rightarrow(175,175)\) · Area \(2500.\) F lies completely inside D. So \(A_I = 2500\) and \(A_U = 3600+2500-2500 = 3600.\)</p>
+<div class="result">\[ \boxed{IoU(D,F)=\frac{2500}{3600}\approx 0.694} \]</div>
+<p class="muted">D and F are both <strong style="color:var(--text)">Persons</strong>.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">Solution (b) — Class-Agnostic NMS</h2>
+<p>Ignore all class labels. Confidence ordering:</p>
+<div class="formula">\[ A(.95) &gt; B(.88) &gt; C(.84) &gt; D(.78) &gt; E(.72) &gt; F(.69) \]</div>
+<h3>Step 1: Select A</h3>
+<p>Keep A. A vs B: \(0.532 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress B}} \]</div>
+<p>A vs C: \(0.694 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress C}} \]</div>
+<p class="muted">Even though C is a Person, class-agnostic NMS does not care. A has no meaningful overlap with D, E or F. Keep them. Remaining: \(D, E, F.\)</p>
+<h3>Step 2: Select D</h3>
+<p>D has confidence \(0.78\), so select D. D vs E: \(IoU(D,E) = 0.532 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress E}} \]</div>
+<p class="muted">Again, D is Person and E is Car. Doesn't matter here.</p>
+<p>D vs F: \(IoU(D,F) = 0.694 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress F}} \]</div>
+<p>Nothing remains.</p>
+<div class="result gold">\[ \boxed{\text{Class-agnostic survivors}=\{A,D\}} \]</div>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">Solution (c) — Multi-Class NMS</h2>
+<p>Now class labels matter. We separate the predictions.</p>
+<h3>Cars — \(A(.95),\; B(.88),\; E(.72)\)</h3>
+<p>Select A. Compare A with B: \(IoU(A,B) = 0.532 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress B}} \]</div>
+<p>Compare A with E. Far apart: \(IoU(A,E) = 0.\)</p>
+<div class="result">\[ \boxed{\text{Keep E}} \]</div>
+<div class="result">\[ \boxed{\{A,E\}} \]</div>
+<h3>Persons — \(C(.84),\; D(.78),\; F(.69)\)</h3>
+<p>Select C. C is far away from D and F. Therefore \(IoU(C,D) = 0\) and \(IoU(C,F) = 0.\) Keep both. Remaining: \(D, F.\)</p>
+<p>Select D. Now \(IoU(D,F) = 0.694 &gt; 0.50.\) Because D and F are <strong>both Persons</strong>:</p>
+<div class="result">\[ \boxed{\text{Suppress F}} \]</div>
+<div class="result">\[ \boxed{\{C,D\}} \]</div>
+<p>Combine both classes:</p>
+<div class="result gold">\[ \boxed{\text{Multi-class survivors}=\{A,C,D,E\}} \]</div>
+<p class="muted">Precisely the logic used in the retake solution: run NMS independently inside each class, then combine the survivors.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">Solution (d) — Which boxes did multi-class NMS save?</h2>
+<p>Class-agnostic gave \(\boxed{\{A,D\}}\). Multi-class gave \(\boxed{\{A,C,D,E\}}\). Therefore multi-class NMS saved:</p>
+<div class="result">\[ \boxed{C\text{ and }E} \]</div>
+<h3>Why was C saved?</h3>
+<p>A and C overlap heavily: \(IoU(A,C) = 0.694.\) Class-agnostic: \(0.694 &gt; 0.5\) so A suppresses C. But in multi-class NMS \(A = \text{Car},\; C = \text{Person}.\) They are never compared. Hence C survives.</p>
+<h3>Why was E saved?</h3>
+<p>Similarly \(IoU(D,E) = 0.532 &gt; 0.5.\) Class-agnostic: \(D \rightarrow \text{suppresses E}.\) But \(D = \text{Person},\; E = \text{Car}.\) Multi-class NMS does not compare them. Hence E survives.</p>
+<blockquote>Key rule: \[ \boxed{\text{High IoU alone is NOT enough for suppression in multi-class NMS.}} \] You need: \[ \boxed{\text{same class AND IoU above threshold}} \]</blockquote>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">Solution (e) — Confidence filtering + Multi-Class NMS</h2>
+<div class="formula">\[ T_{\mathrm{conf}} = 0.75. \]</div>
+<p>Check each prediction: \(A = 0.95\;\checkmark\) · \(B = 0.88\;\checkmark\) · \(C = 0.84\;\checkmark\) · \(D = 0.78\;\checkmark\) · \(E = 0.72\;\times\) · \(F = 0.69\;\times\)</p>
+<div class="formula">\[ \boxed{\{A,B,C,D\}} \]</div>
+<p>Now multi-class NMS.</p>
+<h4>Cars — \(A,B\)</h4>
+<p>\(IoU(A,B) = 0.532 &gt; 0.50.\) A has greater confidence \(0.95 &gt; 0.88.\) Therefore A suppresses B. Car survivor: \(\boxed{A}\)</p>
+<h4>Persons — \(C,D\)</h4>
+<p>They are spatially separated: \(IoU(C,D) = 0.\) Therefore both survive. Person survivors: \(\boxed{C,D}\)</p>
+<div class="result">\[ \boxed{\{A,C,D\}} \]</div>
+<hr class="sep" />
+<h3>Quick check</h3>
+<table><tr><th>Pair</th><th style="text-align:right">IoU</th><th>Same class?</th><th>Multi-class suppression?</th></tr>
+<tr><td>A–B</td><td class="num" style="text-align:right">0.532</td><td>✅ Car/Car</td><td>✅ B suppressed</td></tr>
+<tr><td>A–C</td><td class="num" style="text-align:right">0.694</td><td>❌ Car/Person</td><td>❌ C survives</td></tr>
+<tr><td>D–E</td><td class="num" style="text-align:right">0.532</td><td>❌ Person/Car</td><td>❌ E survives</td></tr>
+<tr><td>D–F</td><td class="num" style="text-align:right">0.694</td><td>✅ Person/Person</td><td>✅ F suppressed</td></tr></table>
+<p class="muted">That table is basically the whole concept of <strong style="color:var(--text)">multi-class NMS</strong>.</p>
+</section>
+
+<footer>object-det-5 · Multi-Class NMS (6 boxes) · dark minimal notes</footer>
+</div>
+</body>
+</html>

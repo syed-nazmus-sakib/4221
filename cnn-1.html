@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-1 — Previous Final 2025, Q6</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}td.num{font-family:var(--mono)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-1</div>
+<h1>Question 1 — Previous Final 2025, Q6</h1>
+<p class="subtitle">DenseNet vs ResNet, output size + computational cost, and a complete CNN parameter count. Keep these six formulas beside you — almost the entire numerical CNN portion reduces to them.</p>
+</header>
+
+<section class="card hero">
+<h2 class="sec">Core formulas</h2>
+<div class="formula">
+\[ \boxed{ n_{\text{out}} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1 } \]
+\[ \boxed{ P_{\text{standard conv}} = (k_hk_wC_{in}+1)C_{out} } \]
+\[ \boxed{ P_{\text{depthwise}} = (k_hk_w+1)C_{in} } \]
+\[ \boxed{ P_{\text{pointwise}} = (C_{in}+1)C_{out} } \]
+\[ \boxed{ P_{\text{FC}} = N_{in}N_{out}+N_{out} } \]
+\[ \boxed{ MAC_{\text{standard}} = H_oW_oK^2C_{in}C_{out} } \]
+</div>
+</section>
+
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#a">Q6(a) — DenseNet vs ResNet</a></li>
+<li><a href="#b">Q6(b) — Output size + MAC cost + DS cost</a></li>
+<li><a href="#c">Q6(c) — Complete CNN parameter count</a></li>
+</ol></nav>
+
+<section class="card" id="a">
+<h2 class="sec">Q6(a) — DenseNet vs ResNet connectivity</h2>
+<blockquote>How does DenseNet differ from ResNet in terms of connectivity pattern? Which architecture preserves features more effectively, and why?</blockquote>
+<p class="muted">The paper contains the question but no model solution; the following is the standard course-level answer.</p>
+<h3>ResNet</h3>
+<p>In a ResNet, a residual block learns \(F(x)\) and adds the original input through a shortcut:</p>
+<div class="formula">\[ \boxed{y=F(x)+x} \]</div>
+<p>So earlier information can bypass intermediate layers through an <strong>additive skip connection</strong>. Conceptually \(x \rightarrow F(x)\) while another path carries \(x\) directly, and the two are added: \(F(x)+x.\)</p>
+<h3>DenseNet</h3>
+<p>DenseNet uses <strong>concatenation rather than addition</strong>. Layer \(l\) receives the outputs of <strong>all preceding layers</strong>:</p>
+<div class="formula">\[ \boxed{ x_l=H_l([x_0,x_1,\ldots,x_{l-1}]) } \]</div>
+<p class="muted">where \([\cdots]\) means concatenation. So approximately \(x_0\rightarrow x_1\), \([x_0,x_1]\rightarrow x_2\), \([x_0,x_1,x_2]\rightarrow x_3\), and so on.</p>
+<h3>Which preserves features more explicitly?</h3>
+<div class="result">\[ \boxed{\text{DenseNet}} \]</div>
+<p>because it <strong>concatenates</strong> earlier feature maps instead of combining them through summation. In ResNet, \(F(x)+x\) mixes the two representations. In DenseNet, \([x_0,x_1,x_2,\ldots]\) keeps the earlier representations available as separate channels.</p>
+<blockquote>ResNet uses additive residual/skip connections, where a block output is \(F(x)+x\). DenseNet concatenates the feature maps from all previous layers and supplies them to each subsequent layer. DenseNet therefore preserves and reuses earlier features more explicitly because previous feature maps remain directly available rather than being merged through addition.</blockquote>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">Q6(b) — Output size + computational cost</h2>
+<div class="meta">Input 64×64×128 · 64 filters · 5×5 · s=1 · valid</div>
+<p>Given: \(\text{Input}=64\times64\times128\). Standard convolution: number of filters \(=64\), kernel \(=5\times5\), stride \(s=1\), padding = valid. Asks: <strong>(i)</strong> output size <strong>(ii)</strong> standard cost <strong>(iii)</strong> depthwise-separable cost <strong>(iv)</strong> compare.</p>
+<h3>(i) Output feature-map size</h3>
+<p>For valid convolution, \(p=0.\)</p>
+<div class="formula">
+\[ n_{\text{out}} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1. \quad n=64,\;p=0,\;k=5,\;s=1. \]
+\[ n_{\text{out}} = \frac{64-5}{1}+1 = 59+1 = 60. \]
+</div>
+<p>There are 64 filters, therefore output depth is 64.</p>
+<div class="result">\[ \boxed{60\times60\times64} \]</div>
+<h3>(ii) Computational cost of standard convolution</h3>
+<p>One output value requires \(5\times5\times128 = 25\times128 = 3200\) multiplications/MACs. How many output values? \(60\times60\times64.\)</p>
+<div class="formula">
+\[ MAC_{\text{std}} = 60\times60\times64\times5\times5\times128. \]
+\[ = 60\times60\times25\times128\times64. \]
+</div>
+<div class="result">\[ \boxed{ MAC_{\text{std}} = 737{,}280{,}000 } \qquad \boxed{737.28\text{ million MACs}} \]</div>
+<p class="muted">Using the standard multiplication/MAC-count convention. If multiply and add are counted as two separate FLOPs, the FLOP figure is approximately twice this.</p>
+<h3>(iii) Depthwise-separable convolution cost</h3>
+<p>Two operations: \(\boxed{\text{Depthwise }5\times5}\) followed by \(\boxed{\text{Pointwise }1\times1}.\)</p>
+<p><strong>Depthwise:</strong> one \(5\times5\) filter for each of the 128 input channels.</p>
+<div class="formula">
+\[ MAC_{DW} = 60\times60\times128\times5\times5 = 60\times60\times128\times25. \]
+\[ \boxed{ MAC_{DW}=11{,}520{,}000 } \]
+</div>
+<p><strong>Pointwise:</strong> \(64\) \(1\times1\) filters across 128 channels:</p>
+<div class="formula">
+\[ MAC_{PW} = 60\times60\times128\times64. \quad \boxed{ MAC_{PW}=29{,}491{,}200 } \]
+</div>
+<div class="result">\[ MAC_{DS} = 11{,}520{,}000+29{,}491{,}200 \quad \boxed{ MAC_{DS}=41{,}011{,}200 } \quad \boxed{41.01\text{ million MACs}} \]</div>
+<h3>(iv) Comparison</h3>
+<p>Standard \(737.28M\) vs DS \(41.0112M.\)</p>
+<div class="formula">
+\[ \frac{737.28}{41.0112} \approx 17.98. \]
+</div>
+<div class="result">\[ \boxed{\text{standard convolution costs about }18\times\text{ more}} \qquad \boxed{\text{DS convolution is about }18\times\text{ cheaper}} \]</div>
+<div class="formula">
+\[ \frac{41.0112}{737.28} \approx 0.055625. \]
+</div>
+<div class="result gold">\[ \boxed{5.56\%} \quad \boxed{\text{computation reduced by approximately }94.44\%} \]</div>
+<p class="muted">This is a very important calculation pattern.</p>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">Q6(c) — Complete CNN parameter count</h2>
+<div class="meta">224×224×3 → Conv1 20×5×5 same → Pool1 → Conv2 40×7×7 same → Pool2 → FC100 → FC5</div>
+<p>First we need the dimensions.</p>
+<div class="formula">
+\[ \text{Input } 224\times224\times3. \quad \text{Conv1 same: } 224\times224\times20. \quad \text{Pool1 2×2 s=2: } 112\times112\times20. \]
+\[ \text{Conv2 same: } 112\times112\times40. \quad \text{Pool2: } 56\times56\times40. \]
+\[ \text{Flatten: } 56\times56\times40 = 125{,}440. \]
+</div>
+<h3>Conv1 parameters</h3>
+<p>Each filter \(5\times5\times3 = 75\) weights + 1 bias \(= 76.\) 20 filters:</p>
+<div class="result">\[ P_{Conv1}=76\times20 \quad \boxed{P_{Conv1}=1{,}520} \]</div>
+<h3>Pool1</h3>
+<div class="result">\[ \boxed{P_{Pool1}=0} \]</div>
+<h3>Conv2 parameters</h3>
+<p>Input has <strong>20 channels</strong>, not 3. Each \(7\times7\) filter: \(7\times7\times20 = 980\) weights + bias \(= 981.\) 40 filters:</p>
+<div class="result">\[ P_{Conv2}=981\times40. \quad \boxed{P_{Conv2}=39{,}240} \]</div>
+<p class="muted">This channel-count transition is exactly the sort of thing that can cause errors in the exam.</p>
+<h3>Pool2</h3>
+<div class="result">\[ \boxed{0} \]</div>
+<h3>FC1 parameters</h3>
+<div class="formula">\[ P_{FC1} = 125{,}440\times100+100 = 12{,}544{,}000+100 \]</div>
+<div class="result">\[ \boxed{P_{FC1}=12{,}544{,}100} \]</div>
+<p class="muted">Notice how enormous this is compared with the convolution layers.</p>
+<h3>FC2 parameters</h3>
+<div class="result">\[ 100\times5+5 \quad \boxed{P_{FC2}=505} \]</div>
+<h3>Total</h3>
+<div class="result gold">\[ P_{total} = 1520+39{,}240+12{,}544{,}100+505 \quad \boxed{ P_{total}=12{,}585{,}365 } \]</div>
+<table><tr><th>Layer</th><th style="text-align:right">Output</th><th style="text-align:right">Parameters</th></tr>
+<tr><td>Conv1</td><td class="num" style="text-align:right">224×224×20</td><td class="num" style="text-align:right">1,520</td></tr>
+<tr><td>Pool1</td><td class="num" style="text-align:right">112×112×20</td><td class="num" style="text-align:right">0</td></tr>
+<tr><td>Conv2</td><td class="num" style="text-align:right">112×112×40</td><td class="num" style="text-align:right">39,240</td></tr>
+<tr><td>Pool2</td><td class="num" style="text-align:right">56×56×40</td><td class="num" style="text-align:right">0</td></tr>
+<tr><td>Flatten</td><td class="num" style="text-align:right">125,440</td><td class="num" style="text-align:right">0</td></tr>
+<tr><td>FC1</td><td class="num" style="text-align:right">100</td><td class="num" style="text-align:right">12,544,100</td></tr>
+<tr><td>FC2</td><td class="num" style="text-align:right">5</td><td class="num" style="text-align:right">505</td></tr>
+<tr><td><strong>Total</strong></td><td style="text-align:right">—</td><td class="num" style="text-align:right"><strong>12,585,365</strong></td></tr></table>
+</section>
+
+<footer>cnn-1 · Previous Final Q6 · dark minimal notes</footer>
+</div>
+</body>
+</html>

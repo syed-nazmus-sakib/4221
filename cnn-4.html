@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-4 — Fresh Problem 1: Full Architecture + DS Conv</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}td.num{font-family:var(--mono)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-4</div>
+<h1>Fresh CNN Problem 1 — Full Architecture + DS Conv</h1>
+<p class="subtitle">New practice, same style as in-course and retake — full tracking, stride/padding, depthwise + pointwise, flattening, standard comparison.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#given">Given + Questions</a></li>
+<li><a href="#a">Output shapes</a></li>
+<li><a href="#b">Parameter counts + total</a></li>
+<li><a href="#c">Replace Conv2 with standard</a></li>
+<li><a href="#d">Ratio + saving + traps</a></li>
+</ol></nav>
+
+<section class="card hero" id="given">
+<h2 class="sec">Given</h2>
+<table><tr><th>Layer</th><th>Configuration</th></tr>
+<tr><td>Input</td><td>\(96\times96\times3\)</td></tr>
+<tr><td>Conv1</td><td>Standard, 24 filters, \(5\times5\), p=2, s=2</td></tr>
+<tr><td>Pool1</td><td>MaxPool \(3\times3\), valid, s=2</td></tr>
+<tr><td>Conv2-DW</td><td>Depthwise \(3\times3\), same, s=1</td></tr>
+<tr><td>Conv2-PW</td><td>Pointwise, 48 filters, \(1\times1\), s=1</td></tr>
+<tr><td>Conv3</td><td>Standard, 96 filters, \(3\times3\), valid, s=2</td></tr>
+<tr><td>Flatten</td><td>—</td></tr>
+<tr><td>FC1</td><td>50 neurons</td></tr>
+<tr><td>FC2</td><td>6 neurons</td></tr></table>
+<p class="muted">Every filter / neuron has one bias.</p>
+<p><strong>(a)</strong> Output shape after every layer. <strong>(b)</strong> Parameters in Conv1, DW, PW, Conv3, FC1, FC2 + total. <strong>(c)</strong> Replace DW+PW with single standard \(3\times3\) → 48 ch. <strong>(d)</strong> Ratio + % saving.</p>
+<div class="formula">
+\[ \boxed{ n_{out} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1 } \quad
+\boxed{ P_{\text{standard}} =(K^2C_{in}+1)C_{out} } \]
+\[ \boxed{ P_{\text{DW}} =(K^2+1)C_{in} } \quad
+\boxed{ P_{\text{PW}} =(C_{in}+1)C_{out} } \quad
+\boxed{ P_{FC}=N_{in}N_{out}+N_{out} } \]
+</div>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Output shapes</h2>
+<h3>Input</h3><div class="result blue">\[ \boxed{96\times96\times3} \]</div>
+<h3>Conv1 — n=96, k=5, p=2, s=2</h3>
+<div class="formula">
+\[ n_{out} = \left\lfloor \frac{96+4-5}{2} \right\rfloor+1 = \left\lfloor \frac{95}{2} \right\rfloor+1 = 47+1 = 48. \]
+</div>
+<div class="result">\[ \boxed{Conv1=48\times48\times24} \]</div>
+<p class="muted">Stride 2 approximately halves spatial dims.</p>
+<h3>Pool1 — k=3, p=0, s=2</h3>
+<div class="formula">
+\[ n_{out} = \left\lfloor \frac{48-3}{2} \right\rfloor+1 = \left\lfloor \frac{45}{2} \right\rfloor+1 = 22+1 = 23. \]
+</div>
+<div class="result">\[ \boxed{Pool1=23\times23\times24} \]</div>
+<p class="muted">Odd 23 is intentional — don't assume pooling always halves exactly.</p>
+<h3>Conv2-DW — same, s=1</h3>
+<div class="result">\[ \boxed{Conv2\text{-}DW=23\times23\times24} \]</div>
+<h3>Conv2-PW — 48 filters</h3>
+<div class="result">\[ \boxed{Conv2\text{-}PW=23\times23\times48} \]</div>
+<blockquote>Main role of pointwise: \[ \boxed{\text{mix/change channels}} \] while depthwise handles spatial filtering per channel.</blockquote>
+<h3>Conv3 — k=3, p=0, s=2, 96 filters</h3>
+<div class="formula">\[ n_{out} = \left\lfloor \frac{23-3}{2} \right\rfloor+1 = 10+1 = 11. \]</div>
+<div class="result">\[ \boxed{Conv3=11\times11\times96} \]</div>
+<h3>Flatten / FC</h3>
+<div class="formula">\[ 11\times11\times96 = 121\times96 = 11{,}616. \]</div>
+<div class="result">\[ \boxed{\text{Flatten}=11{,}616} \quad \boxed{50} \quad \boxed{6} \]</div>
+<div class="formula">
+\[ \boxed{ 96\times96\times3 } \downarrow \boxed{ 48\times48\times24 } \downarrow \boxed{ 23\times23\times24 } \]
+\[ \downarrow DW\; \boxed{ 23\times23\times24 } \downarrow PW\; \boxed{ 23\times23\times48 } \downarrow \boxed{ 11\times11\times96 } \downarrow \boxed{11{,}616\rightarrow50\rightarrow6} \]
+</div>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Parameter counts</h2>
+<h3>Conv1</h3>
+<p>\(5\times5\times3 = 75\) + bias \(= 76.\) 24 filters:</p>
+<div class="result">\[ P_{Conv1} = 76\times24. \quad \boxed{P_{Conv1}=1{,}824} \]</div>
+<h3>Conv2-DW</h3>
+<p>One \(3\times3\) per channel: \(9+1 = 10.\) ×24:</p>
+<div class="result">\[ P_{DW} = 10\times24 \quad \boxed{P_{DW}=240} \]</div>
+<h3>Conv2-PW</h3>
+<p>Each \(1\times1\times24 = 24\) + bias \(= 25.\) ×48:</p>
+<div class="result">\[ P_{PW} = 25\times48 \quad \boxed{P_{PW}=1{,}200} \]</div>
+<div class="formula">\[ P_{DS} = 240+1200 \quad \boxed{P_{DS}=1{,}440} \]</div>
+<h3>Conv3</h3>
+<p>One filter \(3\times3\times48 = 432\) + bias \(= 433.\) ×96: \(433\times(100-4) = 43{,}300-1{,}732\):</p>
+<div class="result">\[ \boxed{P_{Conv3}=41{,}568} \]</div>
+<h3>FC1</h3>
+<div class="formula">\[ 11{,}616\times50 = 580{,}800. +50 \]</div>
+<div class="result">\[ \boxed{P_{FC1}=580{,}850} \]</div>
+<blockquote>\[ \boxed{\text{FC1 dominates the network parameter count}} \]</blockquote>
+<h3>FC2</h3>
+<div class="result">\[ 50\times6=300.+6 \quad \boxed{P_{FC2}=306} \]</div>
+<h3>Total</h3>
+<div class="result gold">\[ 1824+240=2064,\;2064+1200=3264,\;3264+41{,}568=44{,}832,\;44{,}832+580{,}850=625{,}682 \quad \boxed{ P_{\text{total}}=625{,}988 } \]</div>
+<table><tr><th>Layer</th><th style="text-align:right">Parameters</th></tr>
+<tr><td>Conv1</td><td class="num" style="text-align:right">1,824</td></tr>
+<tr><td>Conv2-DW</td><td class="num" style="text-align:right">240</td></tr>
+<tr><td>Conv2-PW</td><td class="num" style="text-align:right">1,200</td></tr>
+<tr><td>Conv3</td><td class="num" style="text-align:right">41,568</td></tr>
+<tr><td>FC1</td><td class="num" style="text-align:right">580,850</td></tr>
+<tr><td>FC2</td><td class="num" style="text-align:right">306</td></tr>
+<tr><td><strong>Total</strong></td><td class="num" style="text-align:right"><strong>625,988</strong></td></tr></table>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Replace Conv2 with standard convolution</h2>
+<p>\(C_{in}=24,\; C_{out}=48.\) Each filter \(3\times3\times24 = 216\) + bias \(= 217.\) ×48: \(217\times(50-2) = 10{,}850-434\):</p>
+<div class="result">\[ \boxed{ P_{standard}=10{,}416 } \qquad \boxed{ P_{DS}=1{,}440 } \]</div>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Parameter reduction + traps</h2>
+<div class="formula">\[ \frac{10{,}416}{1{,}440} \approx 7.23. \]</div>
+<div class="result">\[ \boxed{ \text{standard uses about }7.23\times \text{ more parameters} } \]</div>
+<div class="formula">\[ \frac{1440}{10{,}416}\times100 \approx 13.82\%. \]</div>
+<div class="result">\[ \boxed{ \text{DS uses only about }13.82\% } \]</div>
+<div class="result gold">\[ 100-13.82 = 86.18\%. \quad \boxed{ \text{parameter saving}\approx86.18\% } \]</div>
+<hr class="sep" />
+<h3>Four deliberate traps</h3>
+<p><strong>Trap 1:</strong> \(48 \xrightarrow{\text{pool }3\times3,s=2} 23\) not 24 — use the formula.<br />
+<strong>Trap 2:</strong> DW preserves 24 ch (\(23\times23\times24\)); PW changes \(24\rightarrow48\).<br />
+<strong>Trap 3:</strong> Conv3 uses \(C_{in}=48\) from pointwise output.<br />
+<strong>Trap 4:</strong> Flatten \(11\times11\times96 = 11{,}616\) before FC.</p>
+</section>
+
+<footer>cnn-4 · Fresh Problem 1 · dark minimal notes</footer>
+</div>
+</body>
+</html>

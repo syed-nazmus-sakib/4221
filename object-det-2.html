@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>object-det-2 — Same-Class Detection + NMS</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+  :root{
+    --bg:#0a0c10;
+    --panel:#11151c;
+    --panel-2:#161c26;
+    --border:#232c3a;
+    --text:#e6e9ef;
+    --muted:#9aa4b5;
+    --faint:#6b7688;
+    --accent:#8ab4ff;
+    --accent-dim:#3a4a68;
+    --green:#7ee2a8;
+    --gold:#e8c07a;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+  .file-tag{
+    display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;
+    color:var(--muted);border:1px solid var(--border);
+    padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px;
+  }
+  h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+  .subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+  nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+  nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+  nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+  nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}
+  nav.toc a:hover{color:var(--accent)}
+  section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+  section.card.hero{background:linear-gradient(180deg,#121824 0%, #11151c 100%)}
+  h2.sec{font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+  h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+  h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+  .meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+  p{margin:10px 0}
+  .muted{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+  tr:last-child td{border-bottom:none}
+  td.num{font-family:var(--mono)}
+  .formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+  .result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+  .result.gold{border-left-color:var(--gold);background:#1a1610}
+  .result.blue{border-left-color:var(--accent);background:#101725}
+  blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+  ol.tight li,ul.tight li{margin:6px 0}
+  .pill{display:inline-block;font-family:var(--mono);font-size:13px;background:#0d1219;border:1px solid var(--border);border-radius:999px;padding:3px 11px;margin:4px 6px 4px 0;color:var(--text)}
+  .pill b{color:var(--green);font-weight:600}
+  hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+  footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+  a{color:var(--accent)}
+  @media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="file-tag">object-det-2</div>
+    <h1>Problem 1 — Same-Class Detection + NMS</h1>
+    <p class="subtitle">Two synthesized exam-style problems together cover every object-detection variation in the uploaded papers. Problem 1 covers the <strong style="color:var(--text)">same-class</strong> family: IoU, ordinary NMS, TP/FP, confidence filtering, and changing the NMS threshold — exactly the variations used in the in-course and previous-final questions.</p>
+  </header>
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#given">Given boxes + tasks (a)–(e)</a></li>
+      <li><a href="#a">Solution (a) — IoU(A,B) and IoU(A,C)</a></li>
+      <li><a href="#b">Solution (b) — Standard NMS, threshold 0.50</a></li>
+      <li><a href="#c">Solution (c) — TP / FP</a></li>
+      <li><a href="#d">Solution (d) — Confidence 0.80 before NMS</a></li>
+      <li><a href="#e">Solution (e) — NMS threshold to 0.65</a></li>
+      <li><a href="#covered">What Problem 1 covered</a></li>
+    </ol>
+  </nav>
+
+  <section class="card hero" id="given">
+    <h2 class="sec">Given</h2>
+    <div class="meta">same object class · NMS IoU threshold 0.50 initially</div>
+    <p>A detector predicts four bounding boxes for the <strong>same object class</strong>:</p>
+    <table>
+      <tr><th>Box</th><th>\((x_1,y_1)\)</th><th>\((x_2,y_2)\)</th><th style="text-align:right">Confidence</th></tr>
+      <tr><td>A</td><td>(20, 20)</td><td>(80, 80)</td><td class="num" style="text-align:right">0.92</td></tr>
+      <tr><td>B</td><td>(32, 32)</td><td>(92, 92)</td><td class="num" style="text-align:right">0.84</td></tr>
+      <tr><td>C</td><td>(12, 12)</td><td>(72, 72)</td><td class="num" style="text-align:right">0.76</td></tr>
+      <tr><td>D</td><td>(130, 130)</td><td>(180, 180)</td><td class="num" style="text-align:right">0.62</td></tr>
+    </table>
+    <p>Initially use an <strong>NMS IoU threshold of 0.50</strong>.</p>
+    <p><strong>(a)</strong> Compute \(IoU(A,B)\) and \(IoU(A,C)\), showing intersection and union areas.</p>
+    <p><strong>(b)</strong> Apply NMS with threshold \(0.50\). Show every suppression decision and give the surviving boxes.</p>
+    <p>Suppose the ground-truth box is \[ G=(20,20,80,80). \]</p>
+    <p><strong>(c)</strong> Using the boxes surviving part (b), classify each as TP or FP using \(IoU \ge 0.5\).</p>
+    <p><strong>(d)</strong> Now apply a <strong>confidence threshold of 0.80 before NMS</strong>. Which boxes finally survive?</p>
+    <p><strong>(e)</strong> Go back to all four original boxes, remove the confidence pre-filter, and increase the NMS IoU threshold from \(0.50\) to \(0.65\). What changes?</p>
+  </section>
+
+  <section class="card" id="a">
+    <h2 class="sec">Solution (a) — IoU</h2>
+    <div class="meta">intersection / union · all of A, B, C are 60×60</div>
+    <p>Remember:</p>
+    <div class="formula">
+      \[ IoU = \frac{\text{Intersection}}{\text{Union}} \]
+      \[ \text{Union} = A_1 + A_2 - \text{Intersection}. \]
+    </div>
+    <p>All of A, B, and C are \(60 \times 60\), so</p>
+    <div class="formula">\[ A_A = A_B = A_C = 3600. \]</div>
+
+    <h3>IoU(A,B)</h3>
+    <p>A: \((20,20) \rightarrow (80,80)\) · B: \((32,32) \rightarrow (92,92)\)</p>
+    <p>The overlapping region starts at</p>
+    <div class="formula">\[ (\max(20,32),\max(20,32)) = (32,32) \]</div>
+    <p>and ends at</p>
+    <div class="formula">\[ (\min(80,92),\min(80,92)) = (80,80). \]</div>
+    <p>Therefore,</p>
+    <div class="formula">
+      \[ W_I = 80-32 = 48 \]
+      \[ H_I = 80-32 = 48 \]
+      \[ A_I = 48 \times 48 = 2304. \]
+    </div>
+    <p>Union:</p>
+    <div class="formula">
+      \[ A_U = 3600 + 3600 - 2304 \]
+      \[ = 4896. \]
+    </div>
+    <p>Therefore,</p>
+    <div class="formula">\[ IoU(A,B) = \frac{2304}{4896} \]</div>
+    <div class="result">\[ \boxed{IoU(A,B) \approx 0.471} \]</div>
+    <p>The important observation: \(0.471 &lt; 0.50.\) So A and B are <strong>not sufficiently overlapping to suppress each other at threshold 0.5</strong>.</p>
+
+    <hr class="sep" />
+    <h3>IoU(A,C)</h3>
+    <p>C: \((12,12) \rightarrow (72,72)\)</p>
+    <p>The intersection of A and C is \((20,20) \rightarrow (72,72).\) Therefore,</p>
+    <div class="formula">
+      \[ W_I = 72-20 = 52 \]
+      \[ H_I = 72-20 = 52 \]
+      \[ A_I = 52 \times 52 = 2704. \]
+    </div>
+    <p>Union:</p>
+    <div class="formula">
+      \[ A_U = 3600 + 3600 - 2704 \]
+      \[ = 4496. \]
+    </div>
+    <p>Hence,</p>
+    <div class="formula">\[ IoU(A,C) = \frac{2704}{4496} \]</div>
+    <div class="result">\[ \boxed{IoU(A,C) \approx 0.601} \]</div>
+    <p>Thus, \(0.601 &gt; 0.50.\) So C <strong>can be suppressed by A</strong>.</p>
+  </section>
+
+  <section class="card" id="b">
+    <h2 class="sec">Solution (b) — Standard NMS, threshold = 0.50</h2>
+    <div class="meta">sort → select → suppress → repeat</div>
+    <p>First sort by confidence:</p>
+    <div class="formula">\[ A(0.92) &gt; B(0.84) &gt; C(0.76) &gt; D(0.62). \]</div>
+    <h3>Step 1: Select A</h3>
+    <p>A is the highest-confidence prediction, so we <strong>keep A</strong>. Now compare A with every remaining box.</p>
+    <p>A vs B: \(IoU(A,B) = 0.471 &lt; 0.50\)</p>
+    <div class="result">\[ \boxed{\text{Keep B}} \]</div>
+    <p>A vs C: \(IoU(A,C) = 0.601 &gt; 0.50\)</p>
+    <div class="result">\[ \boxed{\text{Suppress C}} \]</div>
+    <p>A vs D: They are far apart, so \(IoU(A,D) = 0.\)</p>
+    <div class="result">\[ \boxed{\text{Keep D}} \]</div>
+    <p>After processing A: \(\{B, D\}\) remain.</p>
+    <h3>Step 2: Select B</h3>
+    <p>B now has the highest remaining confidence. B and D do not overlap: \(IoU(B,D) = 0.\) So D remains.</p>
+    <div class="result gold">\[ \boxed{\text{NMS survivors}=\{A,B,D\}} \]</div>
+    <p class="muted">This is exactly the same NMS procedure used in the course solutions: sort by confidence, select the highest box, compare IoUs, suppress above threshold, then repeat.</p>
+  </section>
+
+  <section class="card" id="c">
+    <h2 class="sec">Solution (c) — TP / FP</h2>
+    <div class="meta">ground truth G = (20,20,80,80) · rule: IoU ≥ 0.5 → TP</div>
+    <p>Ground truth:</p>
+    <div class="formula">\[ G = (20,20,80,80). \]</div>
+    <p>Our surviving boxes are: \(A,\; B,\; D.\)</p>
+    <p>Use \(IoU(\text{prediction}, G) \ge 0.5\) for a true positive.</p>
+    <h3>Box A</h3>
+    <p>A is exactly equal to G. Therefore:</p>
+    <div class="formula">\[ IoU(A,G) = 1. \]</div>
+    <div class="result">\[ \boxed{A = \text{TP}} \]</div>
+    <h3>Box B</h3>
+    <p>Because \(G = A\),</p>
+    <div class="formula">\[ IoU(B,G) = IoU(B,A) = 0.471. \]</div>
+    <p>Since \(0.471 &lt; 0.5\),</p>
+    <div class="result">\[ \boxed{B = \text{FP}} \]</div>
+    <h3>Box D</h3>
+    <p>D does not overlap G: \(IoU(D,G) = 0.\) Therefore:</p>
+    <div class="result">\[ \boxed{D = \text{FP}} \]</div>
+    <p>Final:</p>
+    <div class="result gold">\[ \boxed{A = \text{TP},\quad B = \text{FP},\quad D = \text{FP}} \]</div>
+    <p class="muted">This matches the exact TP/FP question type from the in-course paper.</p>
+  </section>
+
+  <section class="card" id="d">
+    <h2 class="sec">Solution (d) — Confidence threshold = 0.80 before NMS</h2>
+    <div class="meta">two thresholds — do not confuse them</div>
+    <p>This is where you must distinguish <strong>two thresholds</strong>.</p>
+    <div>
+      <span class="pill">confidence threshold = <b>0.80</b></span>
+      <span class="pill">NMS IoU threshold = <b>0.50</b></span>
+    </div>
+    <p>First do confidence filtering.</p>
+    <p>A: \(0.92 \ge 0.80\) — keep. &nbsp; B: \(0.84 \ge 0.80\) — keep.</p>
+    <p>C: \(0.76 &lt; 0.80\) — discard. &nbsp; D: \(0.62 &lt; 0.80\) — discard.</p>
+    <p>So before NMS we have only:</p>
+    <div class="formula">\[ \boxed{\{A,B\}} \]</div>
+    <p>Now NMS: \(IoU(A,B) = 0.471 &lt; 0.50.\) Therefore B is <strong>not suppressed</strong>.</p>
+    <div class="result">\[ \boxed{\{A,B\}} \]</div>
+    <p class="muted">This is the exact ordering used in the in-course question: <strong style="color:var(--text)">confidence filtering first, then NMS</strong>.</p>
+  </section>
+
+  <section class="card" id="e">
+    <h2 class="sec">Solution (e) — Increase NMS threshold to 0.65</h2>
+    <div class="meta">all four boxes restored · no confidence filtering · T = 0.65</div>
+    <p>Now restore all four boxes. There is <strong>no confidence filtering</strong>.</p>
+    <div class="formula">\[ T_{NMS} = 0.65. \]</div>
+    <p>Sort: \(A &gt; B &gt; C &gt; D.\) Select A.</p>
+    <p>For B: \(IoU(A,B) = 0.471 &lt; 0.65\) — keep B.</p>
+    <p>For C: \(IoU(A,C) = 0.601 &lt; 0.65\) — keep C.</p>
+    <p>For D: \(IoU(A,D) = 0\) — keep D.</p>
+    <p>Now B is selected next. We need B vs C.</p>
+    <p>B: \((32,32) \rightarrow (92,92)\) · C: \((12,12) \rightarrow (72,72).\)</p>
+    <p>Intersection: \((32,32) \rightarrow (72,72)\) so</p>
+    <div class="formula">\[ A_I = 40 \times 40 = 1600. \]</div>
+    <p>Union:</p>
+    <div class="formula">\[ 3600 + 3600 - 1600 = 5600. \]</div>
+    <p>Hence:</p>
+    <div class="formula">
+      \[ IoU(B,C) = \frac{1600}{5600} \]
+      \[ \approx 0.286. \]
+    </div>
+    <p>Since \(0.286 &lt; 0.65,\) C remains. D also remains.</p>
+    <div class="result">\[ \boxed{\text{Survivors}=\{A,B,C,D\}} \]</div>
+    <p>Compare that with threshold \(0.50\):</p>
+    <div class="formula">
+      \[ T = 0.50 \Rightarrow \{A,B,D\} \]
+      \[ T = 0.65 \Rightarrow \{A,B,C,D\}. \]
+    </div>
+    <h3>Key intuition</h3>
+    <div class="result gold">\[ \boxed{\text{Higher NMS threshold} \Rightarrow \text{less suppression}} \]</div>
+    <p class="muted">A box must now overlap <strong style="color:var(--text)">more strongly</strong> before it is considered a duplicate.</p>
+  </section>
+
+  <section class="card" id="covered">
+    <h2 class="sec">What Problem 1 covered</h2>
+    <div class="meta">same-class family complete</div>
+    <p>You have now done every <strong>same-class</strong> variation your papers use:</p>
+    <p><strong>IoU → NMS → TP/FP → confidence filtering before NMS → changing the IoU threshold.</strong></p>
+    <hr class="sep" />
+    <p class="muted">Problem 2 should now introduce <strong style="color:var(--text)">multiple classes</strong>, where we compare <strong>class-agnostic NMS vs multi-class NMS</strong>. That will complete the exact object-detection patterns in the three papers.</p>
+  </section>
+
+  <footer>object-det-2 · Same-Class Detection + NMS · dark minimal notes</footer>
+
+</div>
+</body>
+</html>

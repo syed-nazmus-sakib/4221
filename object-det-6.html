@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>object-det-6 — Multiple Ground Truths + Precision</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}td.num{font-family:var(--mono)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">object-det-6</div>
+<h1>Final Object-Detection Problem — Multiple Ground Truths</h1>
+<p class="subtitle">New variant combining two things tested separately: classifying NMS survivors as TP/FP against a ground-truth box (in-course), and multi-class NMS (retake). The <strong style="color:var(--text)">new part</strong> is <strong style="color:var(--text)">multiple ground-truth objects with one-to-one matching</strong> — not in the uploaded questions, but a natural next variation.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#given">Given + Questions (a)–(d)</a></li>
+<li><a href="#a">Solution (a) — IoUs</a></li>
+<li><a href="#b">Solution (b) — Multi-Class NMS</a></li>
+<li><a href="#c">Solution (c) — Match to ground truth</a></li>
+<li><a href="#d">Solution (d) — Precision</a></li>
+<li><a href="#wrap">Object Detection — Wrapped</a></li>
+</ol></nav>
+
+<section class="card hero" id="given">
+<h2 class="sec">Given</h2><div class="meta">6 predictions · 2 ground truths · T_NMS 0.50 · T_GT 0.50</div>
+<table><tr><th>Box</th><th>Class</th><th>Coordinates</th><th style="text-align:right">Conf.</th></tr>
+<tr><td>A</td><td>Car</td><td>(20, 20) → (80, 80)</td><td class="num" style="text-align:right">0.94</td></tr>
+<tr><td>B</td><td>Car</td><td>(28, 28) → (88, 88)</td><td class="num" style="text-align:right">0.87</td></tr>
+<tr><td>C</td><td>Person</td><td>(120, 120) → (180, 180)</td><td class="num" style="text-align:right">0.91</td></tr>
+<tr><td>D</td><td>Person</td><td>(128, 128) → (188, 188)</td><td class="num" style="text-align:right">0.83</td></tr>
+<tr><td>E</td><td>Car</td><td>(130, 20) → (180, 70)</td><td class="num" style="text-align:right">0.76</td></tr>
+<tr><td>F</td><td>Person</td><td>(10, 120) → (60, 170)</td><td class="num" style="text-align:right">0.63</td></tr></table>
+<p>Ground-truth objects:</p>
+<div class="formula">\[ G_1 = \text{Car }(20,20,80,80) \qquad G_2 = \text{Person }(120,120,180,180) \]</div>
+<div class="formula">\[ T_{\text{NMS}} = 0.50 \qquad T_{\text{IoU,GT}} = 0.50. \]</div>
+<p><strong>(a)</strong> Compute \(IoU(A,B),\; IoU(C,D).\)</p>
+<p><strong>(b)</strong> Apply <strong>multi-class NMS</strong>.</p>
+<p><strong>(c)</strong> Match the surviving predictions to the ground-truth objects. A prediction is a TP only if: 1. its class matches the GT, 2. its IoU with that GT is at least \(0.5,\) 3. each ground-truth object can be matched to <strong>only one prediction</strong>. Classify every survivor as TP or FP.</p>
+<p><strong>(d)</strong> Compute precision: \[ \text{Precision} = \frac{TP}{TP+FP}. \]</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">Solution (a) — IoUs</h2>
+<h3>A vs B</h3>
+<p>Both are \(60\times 60\): \(A_A = A_B = 3600.\) Intersection: \((28,28)\rightarrow(80,80)\) so \(w_I = 52,\; h_I = 52\), \(A_I = 52\times 52 = 2704.\)</p>
+<div class="formula">\[ A_U = 3600+3600-2704 = 4496. \]</div>
+<div class="formula">\[ IoU(A,B) = \frac{2704}{4496} \approx 0.601. \]</div>
+<div class="result">\[ \boxed{IoU(A,B)\approx 0.601} \]</div>
+<h3>C vs D</h3>
+<p>The geometry is identical: C \((120,120)\rightarrow(180,180)\), D \((128,128)\rightarrow(188,188).\) Again \(A_I = 52\times 52 = 2704\) and \(A_U = 4496.\)</p>
+<div class="result">\[ \boxed{IoU(C,D)\approx 0.601} \]</div>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">Solution (b) — Multi-Class NMS</h2>
+<p>We process classes separately.</p>
+<h3>Cars — \(A(0.94),\; B(0.87),\; E(0.76)\)</h3>
+<p>Select A. A vs B: \(0.601 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress B}} \]</div>
+<p>A vs E: A ends at \(x = 80\), while E begins at \(x = 130.\) No overlap: \(IoU(A,E) = 0.\) So E remains.</p>
+<div class="result">\[ \boxed{\{A,E\}} \]</div>
+<h3>Persons — \(C(0.91),\; D(0.83),\; F(0.63)\)</h3>
+<p>Select C. C vs D: \(0.601 &gt; 0.50\)</p>
+<div class="result">\[ \boxed{\text{Suppress D}} \]</div>
+<p>C vs F: spatially separate. \(IoU(C,F) = 0\) so F remains.</p>
+<div class="result">\[ \boxed{\{C,F\}} \]</div>
+<div class="result gold">\[ \boxed{\text{NMS survivors}=\{A,C,E,F\}} \]</div>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">Solution (c) — Match predictions to ground truth</h2>
+<div class="meta">one-to-one matching · class must match · IoU ≥ 0.5</div>
+<p>Ground truths: \(G_1 = \text{Car}\), \(G_2 = \text{Person}\). Predictions surviving NMS: \(A,\; C,\; E,\; F.\)</p>
+<h3>Prediction A</h3>
+<p>A: \(\text{Car }(20,20,80,80)\) is identical to \(G_1\): \(\text{Car }(20,20,80,80).\)</p>
+<div class="formula">\[ IoU(A,G_1) = 1. \]</div>
+<p>Class matches and \(1 \ge 0.5.\)</p>
+<div class="result">\[ \boxed{A = TP} \]</div>
+<p class="muted">Now \(G_1\) is considered <strong style="color:var(--text)">matched</strong>.</p>
+<h3>Prediction C</h3>
+<p>C: \(\text{Person }(120,120,180,180)\) is exactly \(G_2.\) Thus \(IoU(C,G_2) = 1.\)</p>
+<div class="result">\[ \boxed{C = TP} \]</div>
+<p class="muted">Now \(G_2\) is also matched.</p>
+<h3>Prediction E</h3>
+<p>E: \(\text{Car }(130,20,180,70)\). Only one Car ground truth, \(G_1\), and E does not overlap it. \(IoU(E,G_1) = 0.\)</p>
+<div class="result">\[ \boxed{E = FP} \]</div>
+<h3>Prediction F</h3>
+<p>F: \(\text{Person }(10,120,60,170)\). The Person GT is \(G_2 = (120,120,180,180).\) They do not overlap. \(IoU(F,G_2) = 0.\)</p>
+<div class="result">\[ \boxed{F = FP} \]</div>
+<table><tr><th>Prediction</th><th>Result</th></tr>
+<tr><td>A</td><td>TP</td></tr><tr><td>C</td><td>TP</td></tr>
+<tr><td>E</td><td>FP</td></tr><tr><td>F</td><td>FP</td></tr></table>
+<div class="result blue">\[ \boxed{TP = 2} \qquad \boxed{FP = 2} \]</div>
+<hr class="sep" />
+<h3>Why the one-to-one rule matters</h3>
+<p>Suppose B had somehow survived NMS too. B overlaps \(G_1\) strongly. You might initially think: A matches the Car GT and B also matches the Car GT, so both are TP. No. A single physical object should not give you two correct detections. Once A has matched \(G_1\),</p>
+<div class="result gold">\[ \boxed{G_1\text{ cannot be matched again}} \]</div>
+<p>so another duplicate detection of the same ground-truth object becomes an FP. This is actually one reason NMS is useful in the first place.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">Solution (d) — Precision</h2>
+<p>We have \(TP = 2,\; FP = 2.\)</p>
+<div class="formula">
+\[ \text{Precision} = \frac{TP}{TP+FP} \]
+\[ = \frac{2}{2+2} \]
+\[ = \frac12 \]
+</div>
+<div class="result">\[ \boxed{\text{Precision} = 0.50 = 50\%} \]</div>
+</section>
+
+<section class="card" id="wrap">
+<h2 class="sec">Object Detection — Wrapped</h2>
+<div class="meta">11 skills · 3 thresholds</div>
+<p>At this point you can solve all the important variants:</p>
+<ol>
+<li><strong>Bounding-box area</strong></li>
+<li><strong>Intersection / Union</strong></li>
+<li><strong>IoU</strong></li>
+<li><strong>Confidence filtering</strong></li>
+<li><strong>Standard NMS</strong></li>
+<li><strong>Changing the NMS threshold</strong></li>
+<li><strong>Class-agnostic NMS</strong></li>
+<li><strong>Multi-class NMS</strong></li>
+<li><strong>TP / FP using GT IoU</strong></li>
+<li><strong>Multiple GTs and one-to-one matching</strong></li>
+<li><strong>Basic precision calculation</strong></li>
+</ol>
+<p>And the three thresholds should never get mixed up:</p>
+<blockquote>\(\boxed{\text{Confidence threshold}}\) → Is the prediction confident enough to consider?<br />\(\boxed{\text{NMS IoU threshold}}\) → Is this prediction too similar to another prediction?<br />\(\boxed{\text{GT IoU threshold}}\) → Is this prediction accurate enough to count as a correct detection?</blockquote>
+<p class="muted">That completes <strong style="color:var(--text)">object detection</strong> nicely. <strong>Next: LSTM.</strong> First inspect the LSTM problems in the uploaded papers, identify the recurring numerical template, and solve the exact exam questions before creating variations.</p>
+</section>
+
+<footer>object-det-6 · Multiple Ground Truths + Precision · dark minimal notes</footer>
+</div>
+</body>
+</html>

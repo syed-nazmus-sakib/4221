@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-2 — In-Course Exam, Q2</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-2</div>
+<h1>Question 2 — In-Course Exam, Q2</h1>
+<p class="subtitle">Standard 5×5 Conv + Depthwise + Pointwise + pooling + FC. Intermediate sizes 224→112→56 given; every filter / neuron has one bias.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#arch">Architecture + tasks</a></li>
+<li><a href="#qa">Q2(a) — Parameter count</a></li>
+<li><a href="#qb">Q2(b) — Replace DS with standard</a></li>
+<li><a href="#qc">Q2(c) — Same → valid padding</a></li>
+</ol></nav>
+
+<section class="card hero" id="arch">
+<h2 class="sec">Architecture</h2>
+<div class="formula">
+\[ 224\times224\times3 \rightarrow \text{Standard }5\times5\text{ Conv, 20 filters} \rightarrow 2\times2\text{ MaxPool} \]
+\[ \rightarrow 3\times3\text{ Depthwise Conv} \rightarrow 1\times1\text{ Pointwise Conv, 40 filters} \]
+\[ \rightarrow 2\times2\text{ MaxPool} \rightarrow \text{Flatten} \rightarrow \text{FC }100 \rightarrow \text{FC }5. \]
+</div>
+<p><strong>(a)</strong> Parameters in Conv1, Conv2-DW, Conv2-PW, FC1 and FC2, and total. <strong>(b)</strong> Replace Conv2 with one standard \(3\times3\) convolution producing 40 maps. Its parameters + reduction by DS version. <strong>(c)</strong> If Conv1 changed from same to valid padding, its output spatial size.</p>
+</section>
+
+<section class="card" id="qa">
+<h2 class="sec">Q2(a) — Parameter count</h2>
+<h3>Conv1</h3>
+<p>Input channels \(C_{in}=3.\) Kernel \(5\times5.\) 20 output filters.</p>
+<div class="formula">
+\[ P=(5\times5\times3+1)\times20 = (75+1)\times20 = 76\times20 \]
+</div>
+<div class="result">\[ \boxed{1{,}520} \]</div>
+<h3>Conv2-DW</h3>
+<p>After Conv1 and Pool1: \(112\times112\times20.\) Depthwise = <strong>one \(3\times3\) filter per input channel</strong>. One filter \(3\times3\times1 = 9\) weights + bias \(= 10.\) 20 channels:</p>
+<div class="result">\[ \boxed{P_{DW}=200} \]</div>
+<h3>Conv2-PW</h3>
+<p>Input channels 20. Pointwise \(1\times1.\) Each output filter \(1\times1\times20 = 20\) weights + bias \(= 21.\) 40 output filters:</p>
+<div class="result">\[ P_{PW}=21\times40 \quad \boxed{P_{PW}=840} \]</div>
+<h3>Pool2 and flatten size</h3>
+<p>After pointwise: \(112\times112\times40.\) After \(2\times2\), stride-2 pooling: \(56\times56\times40.\) Flatten \(56\times56\times40 = 3136\times40\):</p>
+<div class="result">\[ \boxed{125{,}440}. \]</div>
+<h3>FC1</h3>
+<div class="formula">\[ P_{FC1} = 125{,}440\times100+100 = 12{,}544{,}000+100 \]</div>
+<div class="result">\[ \boxed{12{,}544{,}100} \]</div>
+<h3>FC2</h3>
+<div class="result">\[ 100\rightarrow5. \quad P=100\times5+5 \quad \boxed{505} \]</div>
+<h3>Total</h3>
+<div class="result gold">\[ P_{total} = 1520+200+840+12{,}544{,}100+505. \quad 1520+200+840=2560. \quad \boxed{12{,}547{,}165} \]</div>
+</section>
+
+<section class="card" id="qb">
+<h2 class="sec">Q2(b) — Replace DS Conv with standard \(3\times3\) Conv</h2>
+<p>Input channels 20, output channels 40. Each standard filter covers <strong>all 20 input channels</strong>. One filter \(3\times3\times20 = 180\) weights + bias \(= 181.\) 40 filters:</p>
+<div class="result">\[ P_{std}=181\times40. \quad \boxed{P_{std}=7{,}240} \]</div>
+<p>Depthwise-separable block used \(P_{DS} = 200+840 = 1{,}040.\)</p>
+<h3>How many times more?</h3>
+<div class="formula">\[ \frac{7240}{1040} \approx 6.96. \]</div>
+<div class="result">\[ \boxed{\text{standard uses about }6.96\times\text{ more parameters}} \]</div>
+<div class="formula">\[ \frac{1040}{7240}\times100 \approx 14.36\%. \]</div>
+<div class="result">\[ \boxed{\text{DS uses only }14.36\%\text{ of the standard parameters}} \]</div>
+<div class="result gold">\[ 100-14.36 = 85.64\%. \quad \boxed{\text{Parameter reduction}\approx85.64\%} \]</div>
+<p class="muted">Bias-free theoretical expression gives ≈13.6%, while exact with biases gives 14.36%.</p>
+</section>
+
+<section class="card" id="qc">
+<h2 class="sec">Q2(c) — Same padding → valid padding</h2>
+<p>Originally \(224\times224\times3\) with \(5\times5\), stride 1. For valid \(p=0\):</p>
+<div class="formula">
+\[ n_{out} = \frac{224-5}{1}+1 = 219+1 = 220. \]
+</div>
+<div class="result">\[ \boxed{220\times220} \quad \boxed{220\times220\times20}. \]</div>
+</section>
+
+<footer>cnn-2 · In-Course Q2 · dark minimal notes</footer>
+</div>
+</body>
+</html>

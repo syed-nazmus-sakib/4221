@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-3 — Retake Exam, Q2 + Patterns</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}td.num{font-family:var(--mono)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-3</div>
+<h1>Question 3 — Retake Exam, Q2</h1>
+<p class="subtitle">Most versatile numerical CNN question: stride-2 same conv, DS block, valid stride-2 conv, FC, plus receptive field with / without pooling.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#arch">Architecture</a></li>
+<li><a href="#qa">Output sizes</a></li>
+<li><a href="#qb">Parameter counts + total</a></li>
+<li><a href="#qc">DS vs standard</a></li>
+<li><a href="#qd">Receptive field</a></li>
+<li><a href="#patterns">What the three CNN questions tell us</a></li>
+</ol></nav>
+
+<section class="card hero" id="arch">
+<h2 class="sec">Architecture</h2>
+<div class="formula">
+\[ 64\times64\times3 \rightarrow \text{Conv1: }3\times3,\ 32\text{ filters, same, s=2} \]
+\[ \rightarrow \text{Conv2-DW: }3\times3,\ 32\text{ ch, same, s=1} \rightarrow \text{Conv2-PW: }1\times1,\ 64\text{ filters} \]
+\[ \rightarrow \text{Conv3: }3\times3,\ 128\text{ filters, valid, s=2} \rightarrow \text{Flatten} \rightarrow \text{FC }10. \]
+</div>
+<p>Asks output sizes, all parameters, DS vs standard reduction, and receptive field with/without pooling.</p>
+</section>
+
+<section class="card" id="qa">
+<h2 class="sec">Q2(a) — Output size after Conv1 and Conv3</h2>
+<div class="formula">\[ n_{out} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1. \]</div>
+<h3>Conv1 — n=64, k=3, p=1 (same), s=2</h3>
+<div class="formula">
+\[ n_{out} = \left\lfloor \frac{64+2(1)-3}{2} \right\rfloor+1 = \left\lfloor \frac{63}{2} \right\rfloor+1 = 31+1 = 32. \]
+</div>
+<div class="result">\[ \boxed{Conv1=32\times32\times32} \]</div>
+<h3>Conv2-DW / PW</h3>
+<p>Same, stride 1: \(32\times32\times32.\) Pointwise changes only channels:</p>
+<div class="result">\[ \boxed{32\times32\times64}. \]</div>
+<h3>Conv3 — n=32, k=3, p=0 (valid), s=2</h3>
+<div class="formula">
+\[ n_{out} = \left\lfloor \frac{32-3}{2} \right\rfloor+1 = \left\lfloor \frac{29}{2} \right\rfloor+1 = 14+1 = 15. \]
+</div>
+<div class="result">\[ \boxed{Conv3=15\times15\times128} \]</div>
+<p>Flatten \(15\times15\times128 = 225\times128\):</p>
+<div class="result">\[ \boxed{28{,}800}. \]</div>
+</section>
+
+<section class="card" id="qb">
+<h2 class="sec">Q2(b) — Parameter counts</h2>
+<h3>Conv1</h3>
+<div class="formula">\[ (3\times3\times3+1)\times32 = (27+1)\times32 = 28\times32 \]</div>
+<div class="result">\[ \boxed{896} \]</div>
+<h3>Conv2-DW</h3>
+<div class="formula">\[ (3\times3\times1+1)\times32 = 10\times32 \]</div>
+<div class="result">\[ \boxed{320} \]</div>
+<h3>Conv2-PW</h3>
+<div class="formula">\[ (1\times1\times32+1)\times64 = 33\times64 \]</div>
+<div class="result">\[ \boxed{2{,}112} \]</div>
+<h3>Conv3</h3>
+<p>Input channels 64, output 128, kernel \(3\times3\): \(3\times3\times64 = 576\) + bias \(= 577.\)</p>
+<div class="result">\[ 577\times128 \quad \boxed{73{,}856} \]</div>
+<h3>FC</h3>
+<div class="formula">\[ 28{,}800\times10+10 = 288{,}000+10 \]</div>
+<div class="result">\[ \boxed{288{,}010} \]</div>
+<h3>Total</h3>
+<div class="result gold">\[ 896+320+2112+73{,}856+288{,}010. \quad 896+320=1216,\;1216+2112=3328,\;3328+73{,}856=77{,}184 \quad \boxed{365{,}194} \]</div>
+</section>
+
+<section class="card" id="qc">
+<h2 class="sec">Q2(c) — Replace Conv2 with standard convolution</h2>
+<p>Standard \(3\times3\), in 32, out 64: \(3\times3\times32 = 288\) + bias \(= 289.\)</p>
+<div class="result">\[ 289\times64 \quad \boxed{18{,}496} \]</div>
+<p>DS Conv2: \(320+2112 = \boxed{2{,}432}.\)</p>
+<div class="formula">\[ \frac{18{,}496}{2432} \approx 7.61. \]</div>
+<div class="result">\[ \boxed{\text{standard uses about }7.61\times\text{ more parameters}} \]</div>
+<div class="formula">\[ \frac{2432}{18{,}496}\times100 \approx 13.15\%. \]</div>
+<div class="result gold">\[ \boxed{13.15\%} \quad \boxed{86.85\%\text{ saving}}. \]</div>
+<p class="muted">Bias-free approximation: \(\frac1{64}+\frac1{9} \approx 12.7\%.\).</p>
+</section>
+
+<section class="card" id="qd">
+<h2 class="sec">Q2(d) — Receptive field</h2>
+<div class="formula">
+\[ \boxed{ r_l = r_{l-1} + (k_l-1)j_{l-1} } \qquad \boxed{ j_l=j_{l-1}s_l } \qquad r_0=1,\; j_0=1. \]
+</div>
+<h3>Case 1 — Two consecutive 3×3, stride-1 convolutions</h3>
+<p>Conv1: \(r_1 = 1+(3-1)(1) = 3.\) Jump \(j_1 = 1.\) So \(\boxed{RF=3\times3}\). Conv2: \(r_2 = 3+(3-1)(1) = 5.\)</p>
+<div class="result">\[ \boxed{RF=5\times5} \]</div>
+<h3>Case 2 — Conv → Pool → Conv (3×3 s=1, 2×2 Pool s=2, 3×3 s=1)</h3>
+<p>First conv: \(r_1=3,\; j_1=1.\) Pooling k=2 s=2: \(r_2 = 3+(2-1)(1) = 4.\) Jump \(j_2 = 2.\) Second conv:</p>
+<div class="formula">\[ r_3 = 4+(3-1)(2) = 4+4 = 8. \]</div>
+<div class="result gold">\[ \boxed{RF=8\times8} \]</div>
+<blockquote>Pooling with stride 2 increases the spacing between adjacent features. Therefore each later convolution covers a much larger region of the original input. Without pooling \(5\times5\); with intermediate stride-2 pool \(8\times8\).</blockquote>
+</section>
+
+<section class="card" id="patterns">
+<h2 class="sec">What these three questions tell us</h2>
+<h3>Pattern 1 — Output dimension</h3>
+<div class="formula">\[ \boxed{ \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1 } \]</div>
+<p class="muted">Especially same / valid, stride 1 / 2, max pooling.</p>
+<h3>Pattern 2 — Standard conv parameters</h3>
+<div class="formula">\[ \boxed{ K_hK_wC_{in}C_{out}+C_{out} } \qquad \boxed{ (K_hK_wC_{in}+1)C_{out} } \]</div>
+<p class="muted">Most common mistake: forgetting every filter spans every input channel.</p>
+<h3>Pattern 3 — Depthwise</h3>
+<div class="formula">\[ \boxed{ (K_hK_w+1)C_{in} } \]</div>
+<h3>Pattern 4 — Pointwise</h3>
+<div class="formula">\[ \boxed{ (C_{in}+1)C_{out} } \]</div>
+<h3>Pattern 5 — DS vs standard</h3>
+<p>Calculate \(P_{DS}=P_{DW}+P_{PW}\) vs \(P_{standard}\). Very high-priority exam skill.</p>
+<h3>Pattern 6 — FC explosion</h3>
+<p>Once you flatten \(H\times W\times C\), FC dominates. In-course FC1 = 12,544,100 while DS Conv2 = only 1,040. Whole-network saving from DS looks small because FC1 alone is ~12.5M.</p>
+<h3>Pattern 7 — Computation ≠ parameters</h3>
+<p>Parameter count depends on kernel/channels. Computation additionally multiplies by \(H_{out}W_{out}\).</p>
+<h3>Pattern 8 — Receptive field</h3>
+<div class="formula">\[ r_l=r_{l-1}+(k_l-1)j_{l-1} \qquad j_l=j_{l-1}s_l. \]</div>
+<hr class="sep" />
+<p class="muted">Exact previous questions finished. For fresh practice: 3–4 designed problems — strange padding/stride, standard+DW+PW+pool+FC, computation + receptive field, and one harder full architecture tracking input to output.</p>
+</section>
+
+<footer>cnn-3 · Retake Q2 + Patterns · dark minimal notes</footer>
+</div>
+</body>
+</html>

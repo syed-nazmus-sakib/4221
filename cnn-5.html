@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-5 — Fresh Problem 2: Computation + RF</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-5</div>
+<h1>Fresh CNN Problem 2 — Computation + Efficiency + RF</h1>
+<p class="subtitle">Targets the two easily confused skills: <strong style="color:var(--text)">computational cost</strong> (previous final) and <strong style="color:var(--text)">receptive field</strong> (retake, \(r_l,j_l\) notation).</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#given">Given designs A / B</a></li>
+<li><a href="#a">Output shapes</a></li>
+<li><a href="#b">Parameters + ratio</a></li>
+<li><a href="#c">MACs + comparison</a></li>
+<li><a href="#d">RF without pooling</a></li>
+<li><a href="#e">RF with pooling + sheet</a></li>
+</ol></nav>
+
+<section class="card hero" id="given">
+<h2 class="sec">Given</h2>
+<div class="formula">\[ \boxed{56\times56\times48} \rightarrow 96\text{ output channels}. \]</div>
+<p><strong>Design A:</strong> \(3\times3\), 96 filters, same, s=1. <strong>Design B:</strong> DW \(3\times3\) same s=1 + PW \(1\times1\) 96 filters. Every filter has one bias. For MACs, ignore bias, count MACs.</p>
+<p><strong>(a)</strong> Output shapes. <strong>(b)</strong> Params + ratio + saving. <strong>(c)</strong> MACs + compare. <strong>(d)</strong> RF of \(3\rightarrow3\rightarrow5\) all s=1. <strong>(e)</strong> RF with \(2\times2\) Pool s=2 inserted.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Output shapes</h2>
+<div class="formula">\[ n_{\text{out}} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1. \quad 3\times3,\ s=1,\ \text{same }p=1: \]
+\[ n_{\text{out}} = \frac{56+2-3}{1}+1 = 56. \]</div>
+<div class="result">\[ \boxed{56\times56\times96} \]</div>
+<p>Depthwise stage preserves 48 ch: \(\boxed{56\times56\times48}\), then pointwise → \(\boxed{56\times56\times96}\). Both designs produce \(\boxed{56\times56\times96}\). Difference is cost/params, not shape.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Parameter counts</h2>
+<h3>Design A — standard</h3>
+<div class="formula">\[ P_{\text{std}} =(K^2C_{in}+1)C_{out}. \quad K=3,\ C_{in}=48,\ C_{out}=96. \]
+\[ 3\times3\times48 = 432.+1 = 433. \quad 433\times96 = 433(100-4) = 43{,}300-1{,}732 \]</div>
+<div class="result">\[ \boxed{P_{\text{standard}}=41{,}568} \]</div>
+<h3>Depthwise</h3>
+<div class="formula">\[ P_{DW} =(K^2+1)C_{in}. \quad 9+1=10. \quad 10\times48 \]</div>
+<div class="result">\[ \boxed{P_{DW}=480} \]</div>
+<h3>Pointwise</h3>
+<div class="formula">\[ 1\times1\times48 = 48.+1 = 49. \quad 49\times96 = 49(100-4) = 4900-196 \]</div>
+<div class="result">\[ \boxed{P_{PW}=4{,}704} \]</div>
+<div class="result">\[ P_{DS} = 480+4704 \quad \boxed{P_{DS}=5{,}184} \quad \boxed{ 41{,}568\quad\text{vs}\quad5{,}184 } \]</div>
+<div class="formula">\[ \frac{41{,}568}{5{,}184} \approx 8.02. \]</div>
+<div class="result">\[ \boxed{ \text{Standard uses about }8.02\times \text{ as many parameters} } \]</div>
+<div class="formula">\[ \frac{5184}{41568}\times100 \approx 12.47\%. \]</div>
+<div class="result gold">\[ \boxed{\text{DS uses about }12.47\%} \quad \boxed{\text{Parameter saving}\approx87.53\%} \]</div>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Computational cost (MACs)</h2>
+<blockquote>\[ \boxed{\text{Parameter count}\neq\text{computational cost}} \] Every filter applied at every output location: \(56\times56 = 3136.\)</blockquote>
+<h3>Standard MACs</h3>
+<div class="formula">
+\[ MAC_{\text{std}} = H_oW_oK^2C_{in}C_{out} = 56\times56\times9\times48\times96. \]
+\[ 9\times48\times96 = 41{,}472. \quad 3136\times41{,}472. \]
+</div>
+<div class="result">\[ \boxed{ MAC_{\text{std}} = 130{,}056{,}192 } \quad \boxed{130.06\text{ million MACs}} \]</div>
+<h3>Depthwise MACs</h3>
+<div class="formula">\[ MAC_{DW} = 56\times56\times9\times48 = 3136\times432. \]</div>
+<div class="result">\[ \boxed{ MAC_{DW}=1{,}354{,}752 } \quad 1.355M. \]</div>
+<h3>Pointwise MACs</h3>
+<div class="formula">\[ MAC_{PW} = 56\times56\times48\times96 = 3136\times4608. \]</div>
+<div class="result">\[ \boxed{ MAC_{PW}=14{,}450{,}688 } \]</div>
+<div class="result">\[ MAC_{DS} = 1{,}354{,}752+14{,}450{,}688 \quad \boxed{ MAC_{DS}=15{,}805{,}440 } \quad \boxed{15.81M} \]</div>
+<div class="formula">\[ \frac{130.056}{15.805} \approx 8.23. \]</div>
+<div class="result">\[ \boxed{ \text{Standard requires about }8.23\times \text{ more MACs} } \]</div>
+<div class="formula">\[ \frac{15.805}{130.056}\times100 \approx 12.15\%. \]</div>
+<div class="result gold">\[ \boxed{12.15\%} \quad \boxed{\text{Computation saving}\approx87.85\%} \]</div>
+<p class="muted">Parameter saving ≈87.53% vs MAC saving ≈87.85% — close but not identical (biases in params, ignored in MACs).</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Receptive field — no pooling</h2>
+<p>\(3\times3 \rightarrow 3\times3 \rightarrow 5\times5\), all s=1.</p>
+<div class="formula">\[ \boxed{ r_l=r_{l-1}+(k_l-1)j_{l-1} } \qquad \boxed{ j_l=j_{l-1}s_l } \quad r_0=1,\ j_0=1. \]</div>
+<div class="formula">
+\[ r_1 = 1+(3-1)(1) = 3.\ j_1=1. \quad \boxed{r_1=3} \]
+\[ r_2 = 3+(3-1)(1) = 5. \quad \boxed{r_2=5} \]
+\[ r_3 = 5+(5-1)(1) = 9. \]
+</div>
+<div class="result">\[ \boxed{\text{Final RF}=9\times9} \]</div>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Insert MaxPool + final sheet</h2>
+<p>\(3\times3 \rightarrow 2\times2\) Pool s=2 \(\rightarrow 3\times3 \rightarrow 5\times5.\)</p>
+<div class="formula">
+\[ r_1 = 1+(3-1)(1)=3.\ j_1=1. \quad \boxed{r_1=3,\ j_1=1} \]
+\[ r_2 = 3+(2-1)(1)=4.\ j_2=2. \quad \boxed{r_2=4,\ j_2=2} \]
+\[ r_3 = 4+(3-1)(2)=8.\ j_3=2. \quad \boxed{r_3=8} \]
+\[ r_4 = 8+(5-1)(2)=16. \]
+</div>
+<div class="result gold">\[ \boxed{\text{Final RF}=16\times16} \]</div>
+<p>Without pooling \(\boxed{9\times9}\); with stride-2 pooling \(\boxed{16\times16}\) — after pooling \(j=2\), each step covers 2 input pixels.</p>
+<hr class="sep" />
+<div class="formula">
+\[ \boxed{\text{Output}=56\times56\times96} \quad \boxed{P_{\text{standard}}=41{,}568} \quad \boxed{P_{DW}=480} \quad \boxed{P_{PW}=4{,}704} \quad \boxed{P_{DS}=5{,}184} \]
+\[ \boxed{\text{ratio}\approx8.02\times} \quad \boxed{\text{saving}\approx87.53\%} \quad \boxed{MAC_{\text{std}}=130{,}056{,}192} \quad \boxed{MAC_{DS}=15{,}805{,}440} \]
+\[ \boxed{3\rightarrow3\rightarrow5 \Rightarrow 9\times9} \quad \boxed{3\rightarrow Pool \rightarrow 3\rightarrow5 \Rightarrow 16\times16} \]
+</div>
+</section>
+
+<footer>cnn-5 · Fresh Problem 2 · dark minimal notes</footer>
+</div>
+</body>
+</html>

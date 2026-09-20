@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-theory — CNN Theory / Concepts</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-theory</div>
+<h1>CNN Theory / Concepts</h1>
+<p class="subtitle">Only explicit named-architecture comparison in the previous-year paper is <strong style="color:var(--text)">DenseNet vs ResNet</strong>. In-course and retake emphasize standard / depthwise / pointwise, stride, padding, and receptive field. This is the exam-relevant theory set — not twenty unexamined architectures.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#s1">1. ResNet vs DenseNet</a></li>
+<li><a href="#s2">2. Standard vs Depthwise-Separable</a></li>
+<li><a href="#s3">3. What does 1×1 do?</a></li>
+<li><a href="#s4">4. Same vs Valid padding</a></li>
+<li><a href="#s5">5. Pooling vs Strided Conv</a></li>
+<li><a href="#s6">6. Pooling + receptive field</a></li>
+<li><a href="#s7">7. Why FC dominates</a></li>
+<li><a href="#s8">8. Parameters vs MACs + memorize list</a></li>
+</ol></nav>
+
+<section class="card hero" id="s1">
+<h2 class="sec">1. ResNet vs DenseNet</h2><div class="meta">direct previous-year theory question</div>
+<h3>ResNet</h3>
+<div class="formula">\[ \boxed{y=F(x)+x} \]</div>
+<p>Input travels through a shortcut and is <strong>added</strong> to the transformed representation: \(x\rightarrow F(x)\) plus \(x\rightarrow\text{shortcut}\), then \(\boxed{F(x)+x}\). Deep nets suffer difficult optimization / weak gradients; the shortcut gives an easier route.</p>
+<div class="result">\[ \boxed{\text{Addition}} \]</div>
+<h3>DenseNet</h3>
+<p>Instead of adding, it <strong>concatenates</strong>:</p>
+<div class="formula">\[ \boxed{ x_l=H_l([x_0,x_1,\ldots,x_{l-1}]) } \]</div>
+<p class="muted">E.g. \(x_0\rightarrow x_1\), layer 2 receives \([x_0,x_1]\), layer 3 receives \([x_0,x_1,x_2]\), and so on.</p>
+<div class="result">\[ \boxed{\text{Concatenation}} \]</div>
+<h3>Exam comparison</h3>
+<table><tr><th>ResNet</th><th>DenseNet</th></tr>
+<tr><td>Skip connections</td><td>Dense connections</td></tr>
+<tr><td>Features <strong>added</strong></td><td>Features <strong>concatenated</strong></td></tr>
+<tr><td>\(F(x)+x\)</td><td>\([x_0,x_1,\ldots]\)</td></tr>
+<tr><td>Residual reuse</td><td>Every later layer directly receives earlier features</td></tr>
+<tr><td>Channels need not grow</td><td>Concatenation tends to increase channels</td></tr></table>
+<p>DenseNet preserves earlier features more explicitly because old maps remain separately available instead of merged by summation.</p>
+<blockquote>ResNet combines transformed features with input using element-wise addition, \(y=F(x)+x\). DenseNet concatenates outputs of all preceding layers; earlier maps remain explicitly available and strongly reused.</blockquote>
+</section>
+
+<section class="card" id="s2">
+<h2 class="sec">2. Standard vs Depthwise-Separable Convolution</h2><div class="meta">most important concept · in-course + retake numerical core</div>
+<p>Suppose \(C_{in}=M,\; C_{out}=N\), kernel \(K\times K\).</p>
+<h3>Standard convolution</h3>
+<p>Every output filter sees <strong>every input channel</strong>. One filter \(K\times K\times M.\) With \(N\) filters:</p>
+<div class="formula">\[ \boxed{ K^2MN } \]</div>
+<p class="muted">weights, ignoring biases. Spatial filtering + channel mixing simultaneously.</p>
+<h3>Depthwise convolution</h3>
+<p>One \(K\times K\) filter per input channel:</p>
+<div class="formula">\[ \boxed{K^2M} \]</div>
+<p class="muted">E.g. 32 channels → 32 separate spatial filters. Depth usually stays \(32\rightarrow32\).</p>
+<div class="result">\[ \boxed{\text{Spatial filtering}} \]</div>
+<h3>Pointwise convolution</h3>
+<p>\(1\times1\) filters, each seeing all input channels:</p>
+<div class="formula">\[ \boxed{MN} \]</div>
+<div class="result">\[ \boxed{\text{Channel mixing}} \]</div>
+<div class="result blue">\[ \boxed{ \text{Depthwise = spatial processing} } \qquad \boxed{ \text{Pointwise = channel mixing} } \]</div>
+<h3>Why the saving?</h3>
+<div class="formula">
+\[ \text{Standard: } K^2MN. \quad \text{DS: } K^2M+MN. \]
+\[ \frac{K^2M+MN}{K^2MN} = \frac{K^2+N}{K^2N} = \boxed{ \frac1N+\frac1{K^2} } \]
+</div>
+<p>For \(K=3,\; N=64\): \(\frac1{64}+\frac19 \approx 0.127.\) DS uses only ~\(\boxed{12.7\%}\) of standard params (biases ignored).</p>
+</section>
+
+<section class="card" id="s3">
+<h2 class="sec">3. What does a \(1\times1\) convolution actually do?</h2>
+<p>At one spatial position \([x_1,\ldots,x_{32}]\), a \(1\times1\times32\) filter computes \(w_1x_1+\cdots+w_{32}x_{32}+b.\) Spatial size \(1\times1\) but operates through entire channel depth. Therefore:</p>
+<div class="result">\[ \boxed{\text{mix information between channels}} \qquad \boxed{\text{change the number of channels}}. \]</div>
+<p>E.g. \(112\times112\times20\) through 40 pointwise filters → \(\boxed{112\times112\times40}\) — exactly the in-course pattern.</p>
+</section>
+
+<section class="card" id="s4">
+<h2 class="sec">4. Same Padding vs Valid Padding</h2>
+<h3>Valid</h3>
+<p>No padding \(p=0.\) Stride 1: \(n_{out}=n-k+1.\) E.g. \(224 \xrightarrow{5\times5} 220.\)</p>
+<div class="result">\[ \boxed{\text{valid convolution shrinks the spatial size}} \]</div>
+<h3>Same</h3>
+<p>Padding preserves size at \(s=1.\) E.g. \(224\times224 \rightarrow 224\times224.\)</p>
+<div class="result">\[ \boxed{\text{same padding preserves border dimensions at stride 1}} \]</div>
+<p class="muted">Trap: same + stride 2 still downsamples. Retake: \(64\times64 \xrightarrow[\text{same}]{3\times3,s=2} 32\times32.\)</p>
+</section>
+
+<section class="card" id="s5">
+<h2 class="sec">5. Pooling vs Strided Convolution</h2>
+<h3>Pooling — e.g. 2×2 s=2</h3>
+<p>\(224\times224 \rightarrow 112\times112.\)</p>
+<div class="result">\[ \boxed{0\text{ trainable parameters}} \]</div>
+<h3>Strided convolution — e.g. 3×3 s=2</h3>
+<p>Simultaneously learns filters, changes channels, downsamples. Retake uses strided convs for downsampling instead of pooling.</p>
+<div class="result blue">\[ \boxed{ \text{Pooling = fixed downsampling} } \qquad \boxed{ \text{strided conv = learned filtering + downsampling} } \]</div>
+</section>
+
+<section class="card" id="s6">
+<h2 class="sec">6. Why does pooling increase receptive field so quickly?</h2>
+<p>Without pooling \(3\times3 \rightarrow 3\times3\): \(3\rightarrow5\), RF \(\boxed{5\times5}.\) With \(3\times3 \rightarrow 2\times2\) Pool s=2 \(\rightarrow 3\times3\): RF \(\boxed{8\times8}.\)</p>
+<p>Reason: effective jump. Before pool \(j=1\); after stride-2 pool \(j=2.\) One step in next map = two pixels in input, so later kernels expand RF faster.</p>
+</section>
+
+<section class="card" id="s7">
+<h2 class="sec">7. Why can FC layers dominate?</h2>
+<p>Last map \(56\times56\times40\) → flatten \(125{,}440\) → 100 neurons: \(125{,}440\times100+100\) = \(\boxed{12{,}544{,}100}\) params. Meanwhile DS Conv2 block = \(200+840 = \boxed{1040}\). One FC layer dwarfs all conv layers.</p>
+</section>
+
+<section class="card" id="s8">
+<h2 class="sec">8. Parameters vs MACs + memorize list</h2>
+<div class="formula">\[ \text{Params } \boxed{ K^2C_{in}C_{out} } \qquad \text{MACs } \boxed{ H_oW_oK^2C_{in}C_{out} } \]</div>
+<p class="muted">Extra \(H_oW_o\) because kernel weights reuse at every spatial position — few weights, large compute.</p>
+<hr class="sep" />
+<h3>Memorize if exam is tomorrow</h3>
+<ol>
+<li><strong>ResNet:</strong> added — \(y=F(x)+x.\)</li>
+<li><strong>DenseNet:</strong> concatenated, reused by later layers.</li>
+<li><strong>Standard:</strong> every filter across all input channels.</li>
+<li><strong>Depthwise:</strong> one spatial filter per channel.</li>
+<li><strong>Pointwise:</strong> \(1\times1\) mixes + changes channels.</li>
+<li><strong>Same:</strong> preserves size at stride 1.</li>
+<li><strong>Valid:</strong> no padding, shrinks.</li>
+<li><strong>Pooling:</strong> downsamples, no params.</li>
+<li><strong>Stride &gt;1:</strong> downsamples.</li>
+<li><strong>RF:</strong> grows via kernels, faster after stride/downsampling.</li>
+<li><strong>Flatten+FC:</strong> enormous counts.</li>
+<li><strong>Params ≠ MACs:</strong> MACs add \(H_oW_o\).</li>
+</ol>
+<p class="muted">Boundary: VGG, GoogLeNet/Inception, EfficientNet, ShuffleNet, SqueezeNet, SENet, ResNeXt, ConvNeXt do not appear in the uploaded exam questions found. Study separately from lecture notes if in syllabus.</p>
+</section>
+
+<footer>cnn-theory · CNN Theory / Concepts · dark minimal notes</footer>
+</div>
+</body>
+</html>

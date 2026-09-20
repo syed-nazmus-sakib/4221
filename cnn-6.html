@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-6 — Fresh Problem 3: Full Mixed Final Boss</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+tr:last-child td{border-bottom:none}td.num{font-family:var(--mono)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-6</div>
+<h1>Fresh CNN Problem 3 — Full Mixed Final Boss</h1>
+<p class="subtitle">Combines nearly everything: output dims, standard / DW / PW params, flatten + FC, DS comparison, MACs, and receptive field.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#given">Given + Questions</a></li>
+<li><a href="#a">Output dimensions</a></li>
+<li><a href="#b">Parameters + total</a></li>
+<li><a href="#c">Replace Conv3 with DS</a></li>
+<li><a href="#d">MACs original vs DS</a></li>
+<li><a href="#e">Receptive field + sheet</a></li>
+</ol></nav>
+
+<section class="card hero" id="given">
+<h2 class="sec">Given</h2>
+<table><tr><th>Layer</th><th>Configuration</th></tr>
+<tr><td>Input</td><td>\(128\times128\times3\)</td></tr>
+<tr><td>Conv1</td><td>Standard, 32 filters, \(5\times5\), p=2, s=2</td></tr>
+<tr><td>Pool1</td><td>MaxPool \(3\times3\), valid, s=2</td></tr>
+<tr><td>Conv2-DW</td><td>Depthwise \(3\times3\), same, s=1</td></tr>
+<tr><td>Conv2-PW</td><td>Pointwise, 64 filters, \(1\times1\)</td></tr>
+<tr><td>Conv3</td><td>Standard, 128 filters, \(3\times3\), valid, s=2</td></tr>
+<tr><td>Pool2</td><td>MaxPool \(2\times2\), valid, s=2</td></tr>
+<tr><td>FC1 / FC2</td><td>64 / 8 neurons</td></tr></table>
+<p class="muted">One bias per filter / neuron. MACs ignore bias.</p>
+<p><strong>(a)</strong> Shapes. <strong>(b)</strong> Params + total. <strong>(c)</strong> Conv3 → DS-128. <strong>(d)</strong> MACs. <strong>(e)</strong> RF after Pool2.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Output dimensions</h2>
+<div class="formula">\[ \boxed{ n_{out} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1 } \]</div>
+<h3>Input</h3><div class="result blue">\[ \boxed{128\times128\times3} \]</div>
+<h3>Conv1 — n=128, k=5, p=2, s=2</h3>
+<div class="formula">\[ n_{out} = \left\lfloor \frac{128+4-5}{2} \right\rfloor+1 = \left\lfloor \frac{127}{2} \right\rfloor+1 = 64. \]</div>
+<div class="result">\[ \boxed{64\times64\times32} \]</div>
+<h3>Pool1 — 3×3 valid s=2</h3>
+<div class="formula">\[ n_{out} = \left\lfloor \frac{64-3}{2} \right\rfloor+1 = \lfloor30.5\rfloor+1 = 31. \]</div>
+<div class="result">\[ \boxed{31\times31\times32} \]</div>
+<p class="muted">Trap: \(64 \xrightarrow{3\times3,s=2} 31\) not 32.</p>
+<h3>DW / PW</h3>
+<div class="result">\[ \boxed{31\times31\times32} \]</div>
+<div class="result">\[ \boxed{31\times31\times64} \]</div>
+<h3>Conv3 — 3×3 valid s=2</h3>
+<div class="formula">\[ n_{out} = \left\lfloor \frac{31-3}{2} \right\rfloor+1 = 15. \]</div>
+<div class="result">\[ \boxed{15\times15\times128} \]</div>
+<h3>Pool2 — 2×2 s=2</h3>
+<div class="formula">\[ n_{out} = \left\lfloor \frac{15-2}{2} \right\rfloor+1 = \lfloor6.5\rfloor+1 = 7. \]</div>
+<div class="result">\[ \boxed{7\times7\times128} \]</div>
+<h3>Flatten</h3>
+<div class="formula">\[ 7\times7\times128 = 49\times128 = \boxed{6272} \quad 6272\rightarrow64\rightarrow8. \]</div>
+<div class="formula">
+\[ \boxed{ 128\times128\times3 } \downarrow 64\times64\times32 \downarrow 31\times31\times32 \]
+\[ \downarrow DW\; 31\times31\times32 \downarrow PW\; 31\times31\times64 \downarrow 15\times15\times128 \downarrow 7\times7\times128 \downarrow 6272\rightarrow64\rightarrow8. \]
+</div>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Parameter counts</h2>
+<h3>Conv1 — (25×3+1)×32</h3>
+<div class="result">\[ (75+1)\times32 = 76\times32 \quad \boxed{2432} \]</div>
+<h3>Pool1</h3><div class="result">\[ \boxed{0} \]</div>
+<h3>DW — 10×32</h3><div class="result">\[ \boxed{320} \]</div>
+<h3>PW — 33×64</h3><div class="result">\[ \boxed{2112} \quad 320+2112 = \boxed{2432}} \]</div>
+<p class="muted">Coincidence: Conv2 block equals Conv1 here.</p>
+<h3>Conv3 — 577×128</h3>
+<div class="formula">\[ 3\times3\times64 = 576.+1 = 577. \]</div>
+<div class="result">\[ \boxed{73{,}856} \]</div>
+<h3>Pool2</h3><div class="result">\[ \boxed{0} \]</div>
+<h3>FC1 — 6272→64</h3>
+<div class="formula">\[ 6272\times64 = 401{,}408.+64 \]</div>
+<div class="result">\[ \boxed{ P_{FC1}=401{,}472 } \]</div>
+<h3>FC2 — 64→8</h3>
+<div class="result">\[ 64\times8=512.+8 \quad \boxed{520} \]</div>
+<h3>Total</h3>
+<div class="result gold">\[ 2432+320=2752,\;2752+2112=4864,\;4864+73{,}856=78{,}720,\;78{,}720+401{,}472=480{,}192 \quad \boxed{480{,}712} \]</div>
+<table><tr><th>Layer</th><th style="text-align:right">Params</th></tr>
+<tr><td>Conv1</td><td class="num" style="text-align:right">2,432</td></tr>
+<tr><td>DW</td><td class="num" style="text-align:right">320</td></tr>
+<tr><td>PW</td><td class="num" style="text-align:right">2,112</td></tr>
+<tr><td>Conv3</td><td class="num" style="text-align:right">73,856</td></tr>
+<tr><td>FC1</td><td class="num" style="text-align:right">401,472</td></tr>
+<tr><td>FC2</td><td class="num" style="text-align:right">520</td></tr>
+<tr><td><strong>Total</strong></td><td class="num" style="text-align:right"><strong>480,712</strong></td></tr></table>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Replace Conv3 with DS block</h2>
+<p class="muted">Careful: Conv3 input is \(\boxed{31\times31\times64}\), output \(15\times15\times128\). Replacement: \(3\times3\) DW valid s=2 + \(1\times1\) PW →128.</p>
+<h3>DW — 10×64</h3><div class="result">\[ P_{DW} = 10\times64 \quad \boxed{640} \]</div>
+<h3>PW — 65×128</h3><div class="result">\[ P_{PW} = 65\times128 \quad \boxed{8320} \]</div>
+<div class="result">\[ P_{DS} = 640+8320 \quad \boxed{8960} \quad \text{vs } \boxed{73{,}856} \]</div>
+<div class="formula">\[ \frac{73{,}856}{8{,}960} \approx 8.24. \]</div>
+<div class="result">\[ \boxed{ \text{standard uses about }8.24\times \text{ more parameters} } \]</div>
+<div class="formula">\[ \frac{8960}{73856}\times100 \approx 12.13\%. \]</div>
+<div class="result gold">\[ \boxed{87.87\%} \quad \boxed{87.9\%} \]</div>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Computational cost</h2>
+<p>Output spatial \(15\times15.\)</p>
+<h3>Original standard Conv3</h3>
+<div class="formula">\[ MAC_{\text{std}} = 15\times15\times9\times64\times128 = 225\times9\times64\times128. \]</div>
+<div class="result">\[ \boxed{ MAC_{\text{std}} = 16{,}588{,}800 } \quad \boxed{16.59M} \]</div>
+<h3>DW / PW</h3>
+<div class="formula">\[ MAC_{DW} = 225\times9\times64. \quad \boxed{129{,}600} \]</div>
+<div class="formula">\[ MAC_{PW} = 225\times64\times128. \quad \boxed{1{,}843{,}200} \]</div>
+<div class="result">\[ MAC_{DS} = 129{,}600+1{,}843{,}200 \quad \boxed{ 1{,}972{,}800 } \quad 1.97M. \]</div>
+<div class="formula">\[ \frac{16{,}588{,}800}{1{,}972{,}800} \approx 8.41. \]</div>
+<div class="result">\[ \boxed{ \text{standard requires about }8.41\times \text{more MACs} } \]</div>
+<div class="formula">\[ \frac{1{,}972{,}800}{16{,}588{,}800}\times100 \approx 11.89\%. \]</div>
+<div class="result gold">\[ \boxed{88.11\%} \]</div>
+<p class="muted">Params ≈87.87% vs compute ≈88.11% — close, not identical.</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Receptive field after Pool2 + sheet</h2>
+<div class="formula">\[ \boxed{ r_l=r_{l-1}+(k_l-1)j_{l-1} } \qquad \boxed{ j_l=j_{l-1}s_l } \quad r_0=1,\ j_0=1. \]</div>
+<div class="formula">
+\[ \text{Conv1 k5 s2: } r_1 = 1+4 = 5.\ j_1=2. \quad \boxed{r_1=5,\ j_1=2} \]
+\[ \text{Pool1 k3 s2: } r_2 = 5+2\cdot2 = 9.\ j_2=4. \quad \boxed{r_2=9,\ j_2=4} \]
+\[ \text{DW k3 s1: } r_3 = 9+2\cdot4 = 17.\ j_3=4. \quad \boxed{r_3=17,\ j_3=4} \]
+\[ \text{PW k1: } r_4 = 17. \quad \boxed{r_4=17} \quad \boxed{\text{1×1 does not enlarge RF.}} \]
+\[ \text{Conv3 k3 s2: } r_5 = 17+2\cdot4 = 25.\ j_5=8. \quad \boxed{r_5=25,\ j_5=8} \]
+\[ \text{Pool2 k2 s2: } r_6 = 25+1\cdot8 = 33.\ j_6=16. \]
+</div>
+<div class="result gold">\[ \boxed{ \text{Final RF}=33\times33 } \]</div>
+<hr class="sep" />
+<div class="formula">
+\[ \boxed{ 128\times128\times3 \rightarrow 64\times64\times32 \rightarrow 31\times31\times32 \rightarrow 31\times31\times32 \rightarrow 31\times31\times64 \rightarrow 15\times15\times128 \rightarrow 7\times7\times128 } \]
+\[ \boxed{\text{Flatten}=6272} \quad \boxed{Conv1=2432} \quad \boxed{DW=320} \quad \boxed{PW=2112} \quad \boxed{Conv3=73{,}856} \quad \boxed{FC1=401{,}472} \quad \boxed{FC2=520} \quad \boxed{\text{Total}=480{,}712} \]
+\[ \boxed{P_{\text{std}}=73{,}856} \quad \boxed{P_{\text{DS}}=8960} \quad \boxed{87.87\%} \quad \boxed{MAC_{\text{std}}=16{,}588{,}800} \quad \boxed{MAC_{\text{DS}}=1{,}972{,}800} \quad \boxed{88.11\%} \quad \boxed{33\times33} \]
+</div>
+<p class="muted">CNN numerical section genuinely covered. Left: architecture/theory side — ResNet vs DenseNet, VGG/GoogLeNet/MobileNet/EfficientNet conceptual questions — rather than more arithmetic.</p>
+</section>
+
+<footer>cnn-6 · Fresh Problem 3 Final Boss · dark minimal notes</footer>
+</div>
+</body>
+</html>

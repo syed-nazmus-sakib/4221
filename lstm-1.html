@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>lstm-1 — Exact LSTM Problem 1 (In-Course)</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">lstm-1</div>
+<h1>Exact LSTM Problem 1 — Previous In-Course</h1>
+<p class="subtitle">Same strategy as object detection: solve the <strong style="color:var(--text)">exact exam questions first</strong>. Two clear LSTM numerical questions exist — in-course (10-mark cell calculation) and final (same gate matrices, different \(h_{t-1}, C_{t-1}, x_t\)). This topic is even more repetitive than object detection.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#given">Given + standard equations</a></li>
+<li><a href="#flow">0. LSTM flow</a></li>
+<li><a href="#draw">Draw the LSTM cell</a></li>
+<li><a href="#b">Forget gate \(f_t\)</a></li>
+<li><a href="#c">Input gate \(i_t\)</a></li>
+<li><a href="#d">Candidate \(\tilde C_t\)</a></li>
+<li><a href="#e">Updated cell \(C_t\)</a></li>
+<li><a href="#f">Output gate \(o_t\) + hidden \(h_t\)</a></li>
+<li><a href="#final">Final answer sheet</a></li>
+</ol><li><a href="#architecture">Cell architecture → equations</a></li>
+</nav>
+
+<section class="lstm-architecture" id="architecture" aria-labelledby="architecture-title">
+<h2 id="architecture-title">LSTM cell: architecture → equations</h2>
+<p>At time \(t\), the old hidden state \(h_{t-1}\) and current input \(x_t\) feed all four gate calculations. The old cell state \(C_{t-1}\) follows the memory path.</p>
+<pre class="lstm-path" aria-label="LSTM memory and output paths">h(t−1), x(t) ──→ f, i, C̃, o
+C(t−1) ──× f──┐
+               + ──→ C(t) ──tanh──× o──→ h(t)
+       C̃ ──× i──┘</pre>
+<ol class="lstm-steps">
+<li><div><strong>Forget: old memory path</strong><span>\(f_t=\sigma(W_f^{(h)}h_{t-1}+W_f^{(x)}x_t+b_f)\). Multiply this gate by \(C_{t-1}\) to keep part of the old memory.</span></div></li>
+<li><div><strong>Input: new memory valve</strong><span>\(i_t=\sigma(W_i^{(h)}h_{t-1}+W_i^{(x)}x_t+b_i)\). This controls how much new information enters.</span></div></li>
+<li><div><strong>Candidate: proposed new memory</strong><span>\(\tilde C_t=\tanh(W_c^{(h)}h_{t-1}+W_c^{(x)}x_t+b_c)\). This branch uses tanh.</span></div></li>
+<li><div><strong>Merge the two memory paths</strong><span>\(C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t\). The two products meet at the plus sign in the diagram.</span></div></li>
+<li><div><strong>Output: exposure valve</strong><span>\(o_t=\sigma(W_o^{(h)}h_{t-1}+W_o^{(x)}x_t+b_o)\). This gate decides how much of the updated memory to show.</span></div></li>
+<li><div><strong>Hidden state: cell output</strong><span>\(h_t=o_t\odot\tanh(C_t)\). Send \(h_t\) and \(C_t\) to the next time step.</span></div></li>
+</ol>
+<p>\(\odot\) is element-wise multiplication. Compute each matrix product separately before applying sigmoid or tanh.</p>
+</section>
+
+
+
+<section class="card hero" id="given">
+<h2 class="sec">Given</h2><div class="meta">hidden dim 2 · separate W(h) and W(x) · no concatenation</div>
+<div class="formula">
+\[ h_{t-1} = \begin{bmatrix} 0.3 \\ -0.5 \end{bmatrix}, \qquad
+C_{t-1} = \begin{bmatrix} 0.1 \\ -0.3 \end{bmatrix}, \qquad
+x_t = \begin{bmatrix} 0.8 \\ 0.2 \end{bmatrix}. \]
+</div>
+<p>The question gives an LSTM with hidden-state dimension \(2\). It explicitly says the gates are computed <strong>without concatenating</strong> \(h_{t-1}\) and \(x_t\); instead, separate weight matrices are used. Tasks: draw the LSTM cell, then compute forget gate, input gate, candidate cell state, updated cell state, output gate, and final hidden state.</p>
+<p class="muted">Standard equations implied by those gate names:</p>
+<div class="formula">
+\[ f_t=\sigma(W_f^{(h)}h_{t-1}+W_f^{(x)}x_t+b_f) \]
+\[ i_t=\sigma(W_i^{(h)}h_{t-1}+W_i^{(x)}x_t+b_i) \]
+\[ \tilde C_t=\tanh(W_c^{(h)}h_{t-1}+W_c^{(x)}x_t+b_c) \]
+\[ C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t \]
+\[ o_t=\sigma(W_o^{(h)}h_{t-1}+W_o^{(x)}x_t+b_o) \]
+\[ h_t=o_t\odot\tanh(C_t) \]
+</div>
+<p class="muted">where \(\odot\) means <strong style="color:var(--text)">element-wise multiplication</strong>.</p>
+</section>
+
+<section class="card" id="flow">
+<h2 class="sec">0. First understand the LSTM flow</h2>
+<p>Think of it as \(\boxed{h_{t-1},x_t}\) feeding four computations: \(f_t,\; i_t,\; \tilde C_t,\; o_t.\) Then:</p>
+<div class="formula">\[ \boxed{ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t } \]</div>
+<p>and finally:</p>
+<div class="formula">\[ \boxed{ h_t=o_t\odot\tanh(C_t) } \]</div>
+<p>So the entire numerical question always follows:</p>
+<div class="result blue">\[ \boxed{ f_t \rightarrow i_t \rightarrow \tilde C_t \rightarrow C_t \rightarrow o_t \rightarrow h_t } \]</div>
+<p class="muted">That order is worth memorizing.</p>
+</section>
+
+<section class="card" id="draw">
+<h2 class="sec">(a) Draw the LSTM cell</h2>
+<pre class="diagram">                 ┌──────── f_t ────────┐
+C_(t-1) ─────────────── × ─────────────┐
+                                       │
+                                       + ─────── C_t ── tanh ── × ── h_t
+                                       │                    ↑
+                 ┌──── i_t ──┐         │                    │
+h_(t-1), x_t ────┤            ×────────┘                   o_t
+                 └─ C~_t ────┘</pre>
+<p>Interpretation: \(f_t\) how much old memory to keep · \(i_t\) how much new candidate memory to write · \(\tilde C_t\) proposed new information · \(C_t\) updated memory · \(o_t\) how much memory to expose as hidden state.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Forget gate \(f_t\)</h2>
+<div class="formula">
+\[ W_f^{(h)} = \begin{bmatrix} 0.4 & -1.0 \\ -0.3 & 0.2 \end{bmatrix} \quad
+W_f^{(x)} = \begin{bmatrix} 0.5 & 0.6 \\ 0.8 & -0.3 \end{bmatrix} \quad
+b_f = \begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix}. \]
+\[ z_f = W_f^{(h)}h_{t-1} + W_f^{(x)}x_t + b_f. \]
+</div>
+<h3>Hidden-state contribution</h3>
+<div class="formula">
+\[ W_f^{(h)}h_{t-1} = \begin{bmatrix} 0.4 & -1 \\ -0.3 & 0.2 \end{bmatrix} \begin{bmatrix} 0.3 \\ -0.5 \end{bmatrix} \]
+\[ \text{First: } 0.4(0.3)+(-1)(-0.5) = 0.12+0.50 = 0.62. \]
+\[ \text{Second: } -0.3(0.3)+0.2(-0.5) = -0.09-0.10 = -0.19. \]
+\[ = \begin{bmatrix} 0.62 \\ -0.19 \end{bmatrix}. \]
+</div>
+<h3>Input contribution</h3>
+<div class="formula">
+\[ W_f^{(x)}x_t = \begin{bmatrix} 0.5 & 0.6 \\ 0.8 & -0.3 \end{bmatrix} \begin{bmatrix} 0.8 \\ 0.2 \end{bmatrix}
+= \begin{bmatrix} 0.5(0.8)+0.6(0.2) \\ 0.8(0.8)-0.3(0.2) \end{bmatrix}
+= \begin{bmatrix} 0.52 \\ 0.58 \end{bmatrix}. \]
+</div>
+<p>Now add everything:</p>
+<div class="formula">
+\[ z_f = \begin{bmatrix} 0.62 \\ -0.19 \end{bmatrix} + \begin{bmatrix} 0.52 \\ 0.58 \end{bmatrix} + \begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix}
+= \boxed{ \begin{bmatrix} 1.34 \\ 0.29 \end{bmatrix}} \]
+</div>
+<div class="result">\[ f_t = \sigma(z_f) \quad \boxed{ f_t \approx \begin{bmatrix} 0.7925 \\ 0.5720 \end{bmatrix}} \]</div>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Input gate \(i_t\)</h2>
+<div class="formula">
+\[ W_i^{(h)} = \begin{bmatrix} 0.4 & -0.3 \\ 0.2 & 0.4 \end{bmatrix},\quad
+W_i^{(x)} = \begin{bmatrix} 0.1 & 0.4 \\ -0.2 & 0.5 \end{bmatrix},\quad
+b_i = \begin{bmatrix} 0 \\ 0.1 \end{bmatrix}. \]
+</div>
+<p>Hidden contribution \(W_i^{(h)}h_{t-1} = \begin{bmatrix} 0.27 \\ -0.14 \end{bmatrix}.\) Input contribution \(W_i^{(x)}x_t = \begin{bmatrix} 0.16 \\ -0.06 \end{bmatrix}.\)</p>
+<div class="formula">
+\[ z_i = \begin{bmatrix} 0.27 \\ -0.14 \end{bmatrix} + \begin{bmatrix} 0.16 \\ -0.06 \end{bmatrix} + \begin{bmatrix} 0 \\ 0.1 \end{bmatrix}
+= \boxed{ \begin{bmatrix} 0.43 \\ -0.10 \end{bmatrix}} \]
+</div>
+<div class="result">\[ \boxed{ i_t = \begin{bmatrix} \sigma(0.43) \\ \sigma(-0.10) \end{bmatrix} \approx \begin{bmatrix} 0.6059 \\ 0.4750 \end{bmatrix}} \]</div>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Candidate cell state \(\tilde C_t\)</h2>
+<div class="formula">
+\[ W_c^{(h)} = \begin{bmatrix} 0.3 & -0.2 \\ -0.4 & 0.1 \end{bmatrix} \quad
+W_c^{(x)} = \begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix},\quad
+b_c = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}. \]
+</div>
+<p>Hidden: \(W_c^{(h)}h_{t-1} = \begin{bmatrix} 0.19 \\ -0.17 \end{bmatrix}.\) Input: \(W_c^{(x)}x_t = \begin{bmatrix} 0.42 \\ 0.22 \end{bmatrix}.\)</p>
+<div class="formula">
+\[ z_c = \begin{bmatrix} 0.19 \\ -0.17 \end{bmatrix} + \begin{bmatrix} 0.42 \\ 0.22 \end{bmatrix} + \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}
+= \boxed{ \begin{bmatrix} 0.61 \\ 0.10 \end{bmatrix}} \]
+</div>
+<p>Candidate uses <strong>tanh</strong>, not sigmoid:</p>
+<div class="result">\[ \tilde C_t = \tanh(z_c) \quad \boxed{ \tilde C_t \approx \begin{bmatrix} 0.5441 \\ 0.0997 \end{bmatrix}} \]</div>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Updated cell state \(C_t\)</h2>
+<div class="formula">\[ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t. \]</div>
+<p>Retained old memory:</p>
+<div class="formula">
+\[ f_t\odot C_{t-1} = \begin{bmatrix} 0.7925 \\ 0.5720 \end{bmatrix} \odot \begin{bmatrix} 0.1 \\ -0.3 \end{bmatrix}
+= \begin{bmatrix} 0.07925 \\ -0.17160 \end{bmatrix}. \]
+</div>
+<p>New memory:</p>
+<div class="formula">
+\[ i_t\odot\tilde C_t = \begin{bmatrix} 0.6059 \\ 0.4750 \end{bmatrix} \odot \begin{bmatrix} 0.5441 \\ 0.0997 \end{bmatrix}
+\approx \begin{bmatrix} 0.32967 \\ 0.04734 \end{bmatrix}. \]
+</div>
+<div class="result">\[ \boxed{ C_t \approx \begin{bmatrix} 0.4089 \\ -0.1243 \end{bmatrix}} \]</div>
+</section>
+
+<section class="card" id="f">
+<h2 class="sec">(f) Output gate \(o_t\) + hidden \(h_t\)</h2>
+<div class="formula">
+\[ W_o^{(h)} = \begin{bmatrix} 0.5 & -0.2 \\ -0.6 & 0.4 \end{bmatrix} \quad
+W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\quad
+b_o = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}. \]
+</div>
+<p>Hidden: \(\begin{bmatrix} 0.25 \\ -0.38 \end{bmatrix}.\) Input: \(\begin{bmatrix} 0.38 \\ 0.38 \end{bmatrix}.\)</p>
+<div class="formula">
+\[ z_o = \begin{bmatrix} 0.25 \\ -0.38 \end{bmatrix} + \begin{bmatrix} 0.38 \\ 0.38 \end{bmatrix} + \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}
+= \boxed{ \begin{bmatrix} 0.63 \\ 0.05 \end{bmatrix}} \]
+</div>
+<div class="result">\[ \boxed{ o_t \approx \begin{bmatrix} 0.6525 \\ 0.5125 \end{bmatrix}} \]</div>
+<hr class="sep" />
+<h3>Final hidden state \(h_t\)</h3>
+<div class="formula">\[ h_t = o_t\odot\tanh(C_t). \quad C_t = \begin{bmatrix} 0.4089 \\ -0.1243 \end{bmatrix}. \]</div>
+<div class="formula">\[ \tanh(C_t) \approx \begin{bmatrix} 0.3876 \\ -0.1236 \end{bmatrix}. \]</div>
+<div class="result">\[ h_t = \begin{bmatrix} 0.6525 \\ 0.5125 \end{bmatrix} \odot \begin{bmatrix} 0.3876 \\ -0.1236 \end{bmatrix} \quad \boxed{ h_t \approx \begin{bmatrix} 0.2529 \\ -0.0634 \end{bmatrix}} \]</div>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<div class="formula">
+\[ \boxed{ f_t = \begin{bmatrix} 0.7925 \\ 0.5720 \end{bmatrix}} \quad
+\boxed{ i_t = \begin{bmatrix} 0.6059 \\ 0.4750 \end{bmatrix}} \quad
+\boxed{ \tilde C_t = \begin{bmatrix} 0.5441 \\ 0.0997 \end{bmatrix}} \]
+\[ \boxed{ C_t = \begin{bmatrix} 0.4089 \\ -0.1243 \end{bmatrix}} \quad
+\boxed{ o_t = \begin{bmatrix} 0.6525 \\ 0.5125 \end{bmatrix}} \quad
+\boxed{ h_t = \begin{bmatrix} 0.2529 \\ -0.0634 \end{bmatrix}} \]
+</div>
+<p class="muted">Only one LSTM numerical algorithm: \(\boxed{f\rightarrow i\rightarrow\tilde C\rightarrow C\rightarrow o\rightarrow h}\). The next previous-final question uses essentially the <strong style="color:var(--text)">same gate matrices but changes \(h_{t-1}, C_{t-1}, x_t\)</strong>.</p>
+</section>
+
+<footer>lstm-1 · Exact In-Course · dark minimal notes</footer>
+</div>
+</body>
+</html>
