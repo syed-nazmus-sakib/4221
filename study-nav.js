@@ -1,8 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
   const groups = [
-    ['Object detection', ['object-det-1','object-det-2','object-det-3','object-det-4','object-det-5','object-det-6']],
-    ['LSTM', ['lstm-1','lstm-2','lstm-3']],
-    ['CNN', ['cnn-1','cnn-2','cnn-3','cnn-4','cnn-5','cnn-6','cnn-theory']]
+    ['Object detection', [
+      ['object-detection-1', 'object-detection-1'],
+      ['object-detection-2', 'object-detection-2'],
+      ['object-detection-3', 'object-detection-3']
+    ]],
+    ['Object detection practice', [
+      ['object-det-2', 'same-class NMS'],
+      ['object-det-3', 'same-class · 5 boxes'],
+      ['object-det-4', 'multi-class · 5 boxes'],
+      ['object-det-5', 'multi-class · 6 boxes'],
+      ['object-det-6', 'multiple ground truths']
+    ]],
+    ['LSTM', [['lstm-1','lstm-1'],['lstm-2','lstm-2'],['lstm-3','lstm-3']]],
+    ['CNN', [['cnn-1','cnn-1'],['cnn-2','cnn-2'],['cnn-3','cnn-3'],['cnn-4','cnn-4'],['cnn-5','cnn-5'],['cnn-6','cnn-6'],['cnn-theory','cnn-theory']]]
   ];
   const current = location.pathname.split('/').pop() || 'index.html';
   const sidebar = document.createElement('aside');
@@ -22,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     heading.className = 'study-group';
     heading.textContent = name;
     nav.append(heading);
-    for (const page of pages) {
+    for (const [page, label] of pages) {
       const link = document.createElement('a');
       link.className = 'study-link';
       link.href = `${page}.html`;
-      link.textContent = page.startsWith('object-det-') ? page.replace('object-det-', 'object-detection-') : page;
+      link.textContent = label;
       if (current === `${page}.html`) link.setAttribute('aria-current', 'page');
       nav.append(link);
     }

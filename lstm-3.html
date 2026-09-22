@@ -29,7 +29,9 @@ footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid 
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
 </style>
 <link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="lstm-diagram.css" />
 <script src="study-nav.js" defer></script>
+<script src="lstm-diagram.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -41,26 +43,9 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <li><a href="#fp1">Fresh Problem 1 — same matrices, new state</a></li>
 <li><a href="#fp2">Fresh Problem 2 — new matrices + new state</a></li>
 <li><a href="#wrap">LSTM wrapped</a></li>
-</ol><li><a href="#architecture">Cell architecture → equations</a></li>
-</nav>
+<li><a href="#solution-architecture">Interactive solution architecture</a></li></ol></nav>
 
-<section class="lstm-architecture" id="architecture" aria-labelledby="architecture-title">
-<h2 id="architecture-title">LSTM cell: architecture → equations</h2>
-<p>At time \(t\), the old hidden state \(h_{t-1}\) and current input \(x_t\) feed all four gate calculations. The old cell state \(C_{t-1}\) follows the memory path.</p>
-<pre class="lstm-path" aria-label="LSTM memory and output paths">h(t−1), x(t) ──→ f, i, C̃, o
-C(t−1) ──× f──┐
-               + ──→ C(t) ──tanh──× o──→ h(t)
-       C̃ ──× i──┘</pre>
-<ol class="lstm-steps">
-<li><div><strong>Forget: old memory path</strong><span>\(f_t=\sigma(W_f^{(h)}h_{t-1}+W_f^{(x)}x_t+b_f)\). Multiply this gate by \(C_{t-1}\) to keep part of the old memory.</span></div></li>
-<li><div><strong>Input: new memory valve</strong><span>\(i_t=\sigma(W_i^{(h)}h_{t-1}+W_i^{(x)}x_t+b_i)\). This controls how much new information enters.</span></div></li>
-<li><div><strong>Candidate: proposed new memory</strong><span>\(\tilde C_t=\tanh(W_c^{(h)}h_{t-1}+W_c^{(x)}x_t+b_c)\). This branch uses tanh.</span></div></li>
-<li><div><strong>Merge the two memory paths</strong><span>\(C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t\). The two products meet at the plus sign in the diagram.</span></div></li>
-<li><div><strong>Output: exposure valve</strong><span>\(o_t=\sigma(W_o^{(h)}h_{t-1}+W_o^{(x)}x_t+b_o)\). This gate decides how much of the updated memory to show.</span></div></li>
-<li><div><strong>Hidden state: cell output</strong><span>\(h_t=o_t\odot\tanh(C_t)\). Send \(h_t\) and \(C_t\) to the next time step.</span></div></li>
-</ol>
-<p>\(\odot\) is element-wise multiplication. Compute each matrix product separately before applying sigmoid or tanh.</p>
-</section>
+
 
 
 
@@ -84,6 +69,7 @@ W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\;
 b_o = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}. \]
 </div>
 <p>Compute \(f_t,i_t,\tilde C_t,C_t,o_t,h_t\).</p>
+<div id="solution-architecture" class="lstm-visual"></div>
 <h3>Forget gate</h3>
 <div class="formula">
 \[ W_f^{(h)}h_{t-1} = \begin{bmatrix} 0.48 \\ -0.14 \end{bmatrix} \qquad
@@ -148,6 +134,7 @@ b_c = \begin{bmatrix} 0.05 \\ -0.05 \end{bmatrix} \]
 W_o^{(x)} = \begin{bmatrix} 0.2 & 0.6 \\ -0.4 & 0.3 \end{bmatrix},\;
 b_o = \begin{bmatrix} 0.05 \\ 0 \end{bmatrix}. \]
 </div>
+<div class="lstm-visual"></div>
 <h3>Forget gate</h3>
 <div class="formula">
 \[ W_f^{(h)}h_{t-1} = \begin{bmatrix} 0 \\ 0.11 \end{bmatrix} \qquad
