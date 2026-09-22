@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ['object-det-5', 'multi-class · 6 boxes'],
       ['object-det-6', 'multiple ground truths']
     ]],
+    ['ANN', [['ANN-1','ANN-1 · forward + backprop'],['ANN-2','ANN-2 · 3→2→2 · sigmoid+CCE'],['ANN-3','ANN-3 · 2→3→2 · tanh+softmax'],['ANN-4','ANN-4 · 3→3→3 · softmax backprop']]],
     ['LSTM', [['lstm-1','lstm-1'],['lstm-2','lstm-2'],['lstm-3','lstm-3']]],
     ['CNN', [['cnn-1','cnn-1'],['cnn-2','cnn-2'],['cnn-3','cnn-3'],['cnn-4','cnn-4'],['cnn-5','cnn-5'],['cnn-6','cnn-6'],['cnn-theory','cnn-theory']]]
   ];

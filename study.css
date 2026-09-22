@@ -26,3 +26,10 @@
   .study-toggle{display:block;position:sticky;top:0;z-index:15;width:100%;text-align:left;background:#0d1117;border:0;border-bottom:1px solid var(--border,#232c3a);color:var(--text,#e6e9ef);padding:11px 18px;font:inherit;font-size:14px;cursor:pointer}
   body.study-nav-open .study-backdrop{display:block;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.6)}
 }
+
+/* --- exam-question list --- */
+.question-list{list-style:none;margin:14px 0 0;padding:0}
+.question-list li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:9px 0;border-top:1px solid var(--border,#232c3a)}
+.question-list li:last-child{border-bottom:1px solid var(--border,#232c3a)}
+.question-list .part{font-family:var(--mono,monospace);font-size:13px;color:var(--accent,#8ab4ff);padding-top:3px}
+.marks{color:var(--faint,#6b7688);font-size:12.5px;font-family:var(--mono,monospace);margin-left:6px}

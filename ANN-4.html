@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-4 — Exact ANN Problem (Retake)</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.cmp th{color:var(--faint);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-4</div>
+<h1>Exact ANN Problem — Retake, Question 1</h1>
+<p class="subtitle">The clean multiclass backprop version: \(3\rightarrow3\rightarrow3\) with <strong style="color:var(--text)">Tanh hidden + Softmax output + categorical cross-entropy</strong>. Unlike <a href="ANN-3.html">ANN-3</a> it also asks for the <strong style="color:var(--text)">output-layer gradient</strong>, and the paper hands you the shortcut \(\partial L/\partial z^{(2)}_k=\hat y_k-y_k\) outright — because for this pairing it is genuinely valid.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#shapes">Before solving: shapes and wiring</a></li>
+<li><a href="#a">(a) Hidden layer — \(z^{(1)}\) and \(h\)</a></li>
+<li><a href="#b">(b) Output layer — \(z^{(2)}\) and Softmax</a></li>
+<li><a href="#c">(c) Categorical cross-entropy</a></li>
+<li><a href="#d">(d) Output-layer gradients</a></li>
+<li><a href="#outer">Why the weight gradient is an outer product</a></li>
+<li><a href="#checks">Three free sanity checks</a></li>
+<li><a href="#e">(e) Universal Approximation Theorem</a></li>
+<li><a href="#final">Final answer sheet</a></li></ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Retake Exam · Question 1 · 3 → 3 → 3 network · tanh + softmax + CCE</div>
+<p>A feed-forward network has <strong style="color:var(--text)">3 inputs, 3 Tanh hidden neurons and 3 Softmax output neurons</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 1.0 \\ 0.5 \\ -0.5 \end{bmatrix}, \qquad y=\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \]
+\[ W^{(1)}=\begin{bmatrix} 0.4 & 0.0 & 0.4 \\ 0.4 & -0.5 & 0.2 \\ 0.2 & 0.5 & -0.2 \end{bmatrix} \qquad
+b^{(1)}=\begin{bmatrix} 0 \\ 0 \\ 0.1 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.3 & 0.1 & 0.5 \\ 0.2 & 0.4 & -0.1 \\ -0.3 & 0.2 & 0.6 \end{bmatrix} \qquad
+b^{(2)}=\begin{bmatrix} 0 \\ 0.1 \\ -0.1 \end{bmatrix} \]
+</div>
+<p>The learning rate is given as \(\eta=0.3\), and the pre-activations use \((W^{(1)})^{T}\) and \((W^{(2)})^{T}\).</p>
+<p class="muted">Answer the following:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Compute \(z^{(1)}\) and \(h=\tanh(z^{(1)})\).</span></li>
+<li><span class="part">(b)</span><span>Compute \(z^{(2)}\) and the <strong>Softmax</strong> probabilities \(\hat y\).</span></li>
+<li><span class="part">(c)</span><span>Compute the <strong>categorical cross-entropy</strong> loss.</span></li>
+<li><span class="part">(d)</span><span>Compute \(\dfrac{\partial L}{\partial W^{(2)}}\) and \(\dfrac{\partial L}{\partial b^{(2)}}\).</span></li>
+<li><span class="part">(e)</span><span>State the <strong>Universal Approximation Theorem</strong> and explain what it guarantees and what it does not.</span></li>
+</ul>
+<hr class="sep" />
+<blockquote>Note that \(\eta=0.3\) is given but <strong style="color:var(--text)">never used</strong> — the question stops at the gradients and never asks for a weight update. Do not invent an update step; compute what is asked. (If you want the update anyway as practice, it is \(\theta-0.3\nabla\theta\).)</blockquote>
+<p class="muted">The shortcut the paper supplies for this pairing:</p>
+<div class="formula">\[ \boxed{ \frac{\partial L}{\partial z^{(2)}_k}=\hat y_k-y_k } \]</div>
+</section>
+
+<section class="card" id="shapes">
+<h2 class="sec">Before solving: shapes and wiring</h2>
+<p>Both weight matrices are \(3\times3\) here, so the transposes are easy to lose track of. Keep the rule: stored <em>input-by-output</em>, transposed in the forward pass.</p>
+<pre class="diagram">    x (3)               h (3)                y^ (3)
+   ┌──────┐   W(1)ᵀ   ┌──────┐   W(2)ᵀ     ┌──────────┐
+   │  1.0 │ ────────► │ tanh │ ──────────► │          │ ─► y^₁ = 0.238
+   │  0.5 │  + b(1)   │ tanh │   + b(2)    │ Softmax  │ ─► y^₂ = 0.295
+   │ -0.5 │           │ tanh │             │          │ ─► y^₃ = 0.467  ← correct class
+   └──────┘           └──────┘             └──────────┘
+        3×3                    3×3                 │
+                                          y = [0,0,1]ᵀ ─► CCE ─► L</pre>
+<p class="muted">Same forward pass as <a href="ANN-3.html">ANN-3</a>, one layer wider. The genuinely new part is (d): the backward step through the output layer.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Hidden layer — pre-activations and Tanh</h2>
+<div class="formula">
+\[ \boxed{ z^{(1)}=(W^{(1)})^{T}x+b^{(1)} } \qquad
+(W^{(1)})^{T}=\begin{bmatrix} 0.4 & 0.4 & 0.2 \\ 0 & -0.5 & 0.5 \\ 0.4 & 0.2 & -0.2 \end{bmatrix} \]
+\[ z^{(1)}=\begin{bmatrix} 0.4 & 0.4 & 0.2 \\ 0 & -0.5 & 0.5 \\ 0.4 & 0.2 & -0.2 \end{bmatrix}
+\begin{bmatrix} 1 \\ 0.5 \\ -0.5 \end{bmatrix}+\begin{bmatrix} 0 \\ 0 \\ 0.1 \end{bmatrix} \]
+</div>
+<h3>Hidden neuron 1</h3>
+<div class="formula">
+\[ z^{(1)}_1 = 0.4(1)+0.4(0.5)+0.2(-0.5)+0 = 0.4+0.2-0.1 \qquad \boxed{ z^{(1)}_1 = 0.50 } \]
+</div>
+<h3>Hidden neuron 2</h3>
+<div class="formula">
+\[ z^{(1)}_2 = 0(1)+(-0.5)(0.5)+0.5(-0.5)+0 = -0.25-0.25 \qquad \boxed{ z^{(1)}_2 = -0.50 } \]
+</div>
+<h3>Hidden neuron 3</h3>
+<div class="formula">
+\[ z^{(1)}_3 = 0.4(1)+0.2(0.5)+(-0.2)(-0.5)+0.1 = 0.4+0.1+0.1+0.1 \qquad \boxed{ z^{(1)}_3 = 0.70 } \]
+</div>
+<div class="result">\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.50 \\ -0.50 \\ 0.70 \end{bmatrix} } \]</div>
+<hr class="sep" />
+<h3>Apply Tanh</h3>
+<div class="formula">
+\[ \tanh(0.5)\approx 0.462 \qquad \tanh(-0.5)\approx -0.462 \qquad \tanh(0.7)\approx 0.604 \]
+</div>
+<div class="result">\[ \boxed{ h \approx \begin{bmatrix} 0.462 \\ -0.462 \\ 0.604 \end{bmatrix} } \]</div>
+<p>Note the symmetry — tanh is an <strong style="color:var(--text)">odd function</strong>:</p>
+<div class="formula">\[ \tanh(-z)=-\tanh(z) \qquad\Longrightarrow\qquad \boxed{ h_2=-h_1 } \]</div>
+<p class="muted">You only need to evaluate \(\tanh(0.5)\) once. This also means a ReLU network could not produce this pattern — ReLU would have set \(h_2=0\) and killed that unit's gradient entirely. Tanh keeps the negative signal alive.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Output layer — logits and Softmax</h2>
+<div class="formula">
+\[ \boxed{ z^{(2)}=(W^{(2)})^{T}h+b^{(2)} } \qquad
+(W^{(2)})^{T}=\begin{bmatrix} 0.3 & 0.2 & -0.3 \\ 0.1 & 0.4 & 0.2 \\ 0.5 & -0.1 & 0.6 \end{bmatrix} \]
+</div>
+<h3>Output 1</h3>
+<div class="formula">
+\[ z^{(2)}_1 = 0.3(0.462)+0.2(-0.462)-0.3(0.604)+0 \]
+\[ = 0.1386-0.0924-0.1812 \qquad \boxed{ z^{(2)}_1 \approx -0.135 } \]
+</div>
+<p class="muted">The model answer prints \(-0.134\) here; the arithmetic above gives \(-0.135\), and so does carrying full precision (\(-0.1351\)). The difference is a rounding artefact and it changes nothing downstream — the probabilities agree to 3 decimal places either way. Use \(-0.135\) and show your working.</p>
+<h3>Output 2</h3>
+<div class="formula">
+\[ z^{(2)}_2 = 0.1(0.462)+0.4(-0.462)+0.2(0.604)+0.1 \]
+\[ = 0.0462-0.1848+0.1208+0.1 \qquad \boxed{ z^{(2)}_2 \approx 0.082 } \]
+</div>
+<h3>Output 3</h3>
+<div class="formula">
+\[ z^{(2)}_3 = 0.5(0.462)-0.1(-0.462)+0.6(0.604)-0.1 \]
+\[ = 0.231+0.0462+0.3624-0.1 \qquad \boxed{ z^{(2)}_3 \approx 0.539 } \]
+</div>
+<div class="result">\[ \boxed{ z^{(2)} \approx \begin{bmatrix} -0.135 \\ 0.082 \\ 0.539 \end{bmatrix} } \]</div>
+<hr class="sep" />
+<h3>Apply Softmax</h3>
+<div class="formula">\[ \hat y_k=\frac{e^{z_k}}{\sum_j e^{z_j}} \]</div>
+<div class="formula">
+\[ e^{-0.135}\approx 0.874 \qquad e^{0.082}\approx 1.085 \qquad e^{0.539}\approx 1.714 \]
+\[ S = 0.874+1.085+1.714 \qquad \boxed{ S \approx 3.674 } \]
+</div>
+<div class="formula">
+\[ \hat y_1=\frac{0.874}{3.674}\approx 0.238 \qquad
+\hat y_2=\frac{1.085}{3.674}\approx 0.295 \qquad
+\hat y_3=\frac{1.714}{3.674}\approx 0.467 \]
+</div>
+<div class="result">
+\[ \boxed{ \hat y \approx \begin{bmatrix} 0.238 \\ 0.295 \\ 0.467 \end{bmatrix} }, \qquad 0.238+0.295+0.467=1 \;\checkmark \]
+</div>
+<p class="muted">The network already ranks class 3 highest, but only at \(46.7\%\) — confident enough to be right, not confident enough to have a small loss.</p>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Categorical cross-entropy loss</h2>
+<div class="formula">\[ L=-\sum_{k=1}^{3} y_k\ln\hat y_k, \qquad y=\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \]</div>
+<p>Only \(y_3=1\) survives, so the sum collapses to one term:</p>
+<div class="formula">\[ L=-\ln(\hat y_3)=-\ln(0.467) \]</div>
+<div class="result">\[ \boxed{ L \approx 0.762 } \]</div>
+<p class="muted">Same one-hot rule as <a href="ANN-3.html">ANN-3</a>: \(L=-\ln(\text{probability of the correct class})\). For reference, a uniform guess over 3 classes would give \(-\ln(1/3)=1.099\), so \(0.762\) means the network is doing better than chance here — but not by a lot.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Output-layer gradients</h2>
+<p>For <strong style="color:var(--text)">Softmax + categorical cross-entropy</strong>, the two derivatives collapse into one clean expression — this is the pairing where the shortcut is genuinely valid, and the paper states it outright:</p>
+<div class="result blue">\[ \boxed{ \delta^{(2)}=\frac{\partial L}{\partial z^{(2)}}=\hat y-y } \]</div>
+<div class="formula">
+\[ \delta^{(2)}=\begin{bmatrix} 0.238 \\ 0.295 \\ 0.467 \end{bmatrix}-\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(2)} = \begin{bmatrix} 0.238 \\ 0.295 \\ -0.533 \end{bmatrix} } \]</div>
+<p>Read the signs — they are the whole story:</p>
+<ul class="muted">
+<li>The two <strong style="color:var(--text)">wrong</strong> classes have <strong style="color:var(--text)">positive</strong> deltas: their probabilities need to come <em>down</em>.</li>
+<li>The <strong style="color:var(--text)">correct</strong> class has a <strong style="color:var(--text)">negative</strong> delta, because its predicted \(0.467\) is below its target of \(1\): its probability needs to go <em>up</em>.</li>
+</ul>
+<hr class="sep" />
+<h3>Gradient of \(W^{(2)}\)</h3>
+<p>Since \(z^{(2)}=(W^{(2)})^{T}h+b^{(2)}\), the gradient is the <strong style="color:var(--text)">outer product</strong>:</p>
+<div class="formula">
+\[ \boxed{ \frac{\partial L}{\partial W^{(2)}}=h\,(\delta^{(2)})^{T} }
+\qquad \underbrace{h}_{3\times1}\;\underbrace{(\delta^{(2)})^{T}}_{1\times3} \;\Rightarrow\; \underbrace{\nabla W^{(2)}}_{3\times3} \]
+\[ \begin{bmatrix} 0.462 \\ -0.462 \\ 0.604 \end{bmatrix}
+\begin{bmatrix} 0.238 & 0.295 & -0.533 \end{bmatrix} \]
+</div>
+<h4>Row 1 (from \(h_1=0.462\))</h4>
+<div class="formula">
+\[ 0.462(0.238)\approx 0.110 \qquad 0.462(0.295)\approx 0.136 \qquad 0.462(-0.533)\approx -0.246 \]
+</div>
+<h4>Row 2 (from \(h_2=-0.462\))</h4>
+<div class="formula">
+\[ -0.462(0.238)\approx -0.110 \qquad -0.462(0.295)\approx -0.136 \qquad -0.462(-0.533)\approx 0.246 \]
+</div>
+<p class="muted">Because \(h_2=-h_1\), row 2 is just \(-1\times\) row 1. No new multiplications needed — copy row 1 and flip every sign.</p>
+<h4>Row 3 (from \(h_3=0.604\))</h4>
+<div class="formula">
+\[ 0.604(0.238)\approx 0.144 \qquad 0.604(0.295)\approx 0.178 \qquad 0.604(-0.533)\approx -0.322 \]
+</div>
+<div class="result">
+\[ \boxed{ \frac{\partial L}{\partial W^{(2)}} \approx
+\begin{bmatrix} 0.110 & 0.136 & -0.246 \\ -0.110 & -0.136 & 0.246 \\ 0.144 & 0.178 & -0.322 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>Gradient of \(b^{(2)}\)</h3>
+<p>The bias has \(\partial z^{(2)}_k/\partial b^{(2)}_k=1\), so the gradient is the delta itself:</p>
+<div class="result">
+\[ \boxed{ \frac{\partial L}{\partial b^{(2)}} = \delta^{(2)} = \begin{bmatrix} 0.238 \\ 0.295 \\ -0.533 \end{bmatrix} } \]
+</div>
+</section>
+
+<section class="card" id="outer">
+<h2 class="sec">Why the weight gradient is an outer product</h2>
+<p>Worth understanding once, because it repeats in every layer of every network you will ever differentiate.</p>
+<p>Each output-layer weight \(w^{(2)}_{ij}\) connects exactly one hidden activation to one logit: \(h_i\rightarrow z^{(2)}_j\). It appears in the forward pass in exactly one product, \(w^{(2)}_{ij}h_i\), so:</p>
+<div class="formula">
+\[ \frac{\partial z^{(2)}_j}{\partial w^{(2)}_{ij}}=h_i
+\qquad\Longrightarrow\qquad
+\boxed{ \frac{\partial L}{\partial w^{(2)}_{ij}} = h_i\,\delta_j } \]
+</div>
+<p>Every hidden activation multiplied by every output error — and "every row entry times every column entry" <em>is</em> the outer product \(h\delta^{T}\).</p>
+<h3>Spot-check one entry</h3>
+<div class="formula">
+\[ \frac{\partial L}{\partial w^{(2)}_{13}} = h_1\delta_3 = 0.462(-0.533) \approx -0.246 \;\checkmark \]
+</div>
+<p class="muted">It sits in row 1, column 3 of the matrix above. If you are ever unsure whether a gradient should be \(h\delta^{T}\) or \(\delta h^{T}\), compute one entry this way and see which orientation puts it in the right place — the answer must have the same shape as \(W^{(2)}\).</p>
+</section>
+
+<section class="card" id="checks">
+<h2 class="sec">Three free sanity checks</h2>
+<p>All three cost seconds and catch most arithmetic slips.</p>
+<h3>1. Softmax outputs sum to 1</h3>
+<div class="formula">\[ 0.238+0.295+0.467 = 1.000 \;\checkmark \]</div>
+<h3>2. The deltas sum to zero</h3>
+<p>Always true for Softmax + CCE with a one-hot target, since \(\sum_k\hat y_k=1\) and \(\sum_k y_k=1\):</p>
+<div class="formula">
+\[ \sum_k \delta^{(2)}_k = \sum_k\hat y_k-\sum_k y_k = 1-1 = 0 \]
+\[ 0.238+0.295-0.533 = 0 \;\checkmark \]
+</div>
+<h3>3. Every row of \(\nabla W^{(2)}\) sums to zero</h3>
+<p>This follows immediately from check 2, because row \(i\) is \(h_i\) times the delta vector:</p>
+<div class="formula">
+\[ \sum_j h_i\delta_j = h_i\sum_j\delta_j = h_i\cdot 0 = 0 \]
+\[ \text{Row 1: } 0.110+0.136-0.246 = 0 \;\checkmark \]
+\[ \text{Row 2: } -0.110-0.136+0.246 = 0 \;\checkmark \]
+\[ \text{Row 3: } 0.144+0.178-0.322 = 0 \;\checkmark \]
+</div>
+<p class="muted">If a row does not sum to zero, you have a slip in that row — and you know it is in the row, not in \(\delta\).</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Universal Approximation Theorem</h2>
+<h3>Statement</h3>
+<blockquote>A feed-forward neural network with <strong style="color:var(--text)">at least one hidden layer</strong> containing <strong style="color:var(--text)">sufficiently many neurons</strong>, and a <strong style="color:var(--text)">non-constant, bounded, continuous</strong> activation function such as Sigmoid or Tanh, can approximate <strong style="color:var(--text)">any continuous function on a compact subset of \(\mathbb{R}^n\)</strong> to arbitrary accuracy.</blockquote>
+<h3>What it guarantees</h3>
+<p>For any target accuracy \(\epsilon>0\) there <em>exists</em> a network \(F\) large enough that</p>
+<div class="formula">\[ |F(x)-f(x)|<\epsilon \quad\text{for all } x \text{ in the compact domain.} \]</div>
+<div class="result">\[ \boxed{ \text{A suitable network \textbf{exists} that approximates the target function arbitrarily well.} } \]</div>
+<h3>What it does <em>not</em> guarantee</h3>
+<table class="cmp">
+<tr><th>It does not say</th><th>Why that matters</th></tr>
+<tr><td><strong>How many neurons</strong> are required</td><td>The bound can be astronomically large; the theorem is silent on size.</td></tr>
+<tr><td>That <strong>training will find</strong> those weights</td><td>It is an existence result, not a statement about gradient descent. The weights exist; optimisation may never reach them.</td></tr>
+<tr><td>That the network will <strong>generalise</strong></td><td>Approximation is on the training domain. Nothing is promised about unseen data.</td></tr>
+<tr><td>That it holds for <strong>any</strong> activation</td><td>In the form stated here it needs a bounded, continuous, non-constant activation — a discontinuous step function is excluded.</td></tr>
+</table>
+<p class="muted">The one-line summary to write if you are short on time: <strong style="color:var(--text)">the theorem is about existence, not about learnability, size, or generalisation.</strong></p>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<h3>Forward pass</h3>
+<div class="formula">
+\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.50 \\ -0.50 \\ 0.70 \end{bmatrix} } \qquad
+\boxed{ h \approx \begin{bmatrix} 0.462 \\ -0.462 \\ 0.604 \end{bmatrix} } \]
+\[ \boxed{ z^{(2)} \approx \begin{bmatrix} -0.135 \\ 0.082 \\ 0.539 \end{bmatrix} } \qquad
+\boxed{ \hat y \approx \begin{bmatrix} 0.238 \\ 0.295 \\ 0.467 \end{bmatrix} } \qquad
+\boxed{ L \approx 0.762 } \]
+</div>
+<h3>Backward pass</h3>
+<div class="formula">
+\[ \boxed{ \delta^{(2)}=\hat y-y=\begin{bmatrix} 0.238 \\ 0.295 \\ -0.533 \end{bmatrix} } \]
+\[ \boxed{ \frac{\partial L}{\partial W^{(2)}} \approx
+\begin{bmatrix} 0.110 & 0.136 & -0.246 \\ -0.110 & -0.136 & 0.246 \\ 0.144 & 0.178 & -0.322 \end{bmatrix} }
+\qquad
+\boxed{ \frac{\partial L}{\partial b^{(2)}} = \begin{bmatrix} 0.238 \\ 0.295 \\ -0.533 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>The pattern, now complete</h3>
+<div class="result blue">
+\[ \boxed{ \text{Softmax + CCE} \;\Rightarrow\; \delta=\hat y-y \;\Rightarrow\; \nabla W=h\,\delta^{T}, \quad \nabla b=\delta } \]
+</div>
+<p>That closes the four exact ANN styles across the uploaded papers:</p>
+<table class="cmp">
+<tr><th>Page</th><th>Architecture</th><th>Output + loss</th><th>Output delta</th></tr>
+<tr><td><a href="ANN-1.html">ANN-1</a></td><td>3→2→1</td><td>Sigmoid + BCE</td><td>\(\hat y-y\)</td></tr>
+<tr><td><a href="ANN-2.html">ANN-2</a></td><td>3→2→2</td><td>Sigmoid + CCE</td><td>\(y_k(\hat y_k-1)\)</td></tr>
+<tr><td><a href="ANN-3.html">ANN-3</a></td><td>2→3→2</td><td>Softmax + CCE</td><td>— (forward only)</td></tr>
+<tr><td>ANN-4</td><td>3→3→3</td><td>Softmax + CCE</td><td>\(\hat y-y\)</td></tr>
+</table>
+<p class="muted">Read that table downwards before the exam. The forward pass barely changes; the <strong style="color:var(--text)">output delta</strong> is the only thing that depends on which activation/loss pair the paper specified.</p>
+</section>
+
+<footer>ANN-4 · Exact Retake · dark minimal notes</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-3 — Exact ANN Problem (Current In-Course)</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border)}
+table.cmp th{color:var(--faint);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+table.cmp td:first-child{color:var(--muted)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-3</div>
+<h1>Exact ANN Problem — Current In-Course, Question 1</h1>
+<p class="subtitle">Noticeably cleaner than the previous two, because it finally uses the standard multiclass combination: <strong style="color:var(--text)">Tanh hidden + Softmax output + categorical cross-entropy</strong>. The architecture is \(2\rightarrow3\rightarrow2\), and the paper asks only for the <strong style="color:var(--text)">forward pass and the loss</strong> — no backprop.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#shapes">Before solving: shapes and wiring</a></li>
+<li><a href="#a">(a) Hidden layer — \(z^{(1)}\) and \(h\)</a></li>
+<li><a href="#b">(b) Output layer — \(z^{(2)}\) and Softmax</a></li>
+<li><a href="#c">(c) Categorical cross-entropy</a></li>
+<li><a href="#d">(d) Loss if the true class were class 2</a></li>
+<li><a href="#compare">Comparing the two losses</a></li>
+<li><a href="#final">Final answer sheet</a></li></ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Current In-Course Exam · Question 1 · 2 → 3 → 2 network · forward pass only</div>
+<p>A feed-forward network has <strong style="color:var(--text)">2 inputs, 3 Tanh hidden neurons and 2 Softmax output neurons</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 1.0 \\ 0.5 \end{bmatrix}, \qquad y=\begin{bmatrix} 1 \\ 0 \end{bmatrix} \]
+\[ W^{(1)}=\begin{bmatrix} 0.3 & 0.6 & 0.2 \\ 0.4 & 0.2 & 0.8 \end{bmatrix} \qquad
+b^{(1)}=\begin{bmatrix} 0.1 \\ -0.2 \\ 0.1 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.5 & 0.3 \\ 0.4 & -0.2 \\ 0.3 & -0.4 \end{bmatrix} \qquad
+b^{(2)}=\begin{bmatrix} 0.1 \\ -0.1 \end{bmatrix} \]
+</div>
+<p>The paper explicitly says to use \((W^{(1)})^{T}\) and \((W^{(2)})^{T}\) when calculating the pre-activations.</p>
+<p class="muted">Answer the following:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Compute the hidden pre-activations \(z^{(1)}\) and the <strong>Tanh</strong> activations \(h\).</span></li>
+<li><span class="part">(b)</span><span>Compute the output pre-activations \(z^{(2)}\) and the <strong>Softmax</strong> probabilities \(\hat y\).</span></li>
+<li><span class="part">(c)</span><span>Compute the <strong>categorical cross-entropy</strong> loss.</span></li>
+<li><span class="part">(d)</span><span>If the true class were instead class 2, i.e. \(y=\begin{bmatrix}0\\1\end{bmatrix}\), compute the <strong>new loss</strong>.</span></li>
+</ul>
+<hr class="sep" />
+<p class="muted">Equations for this pairing:</p>
+<div class="formula">
+\[ z^{(1)}=(W^{(1)})^{T}x+b^{(1)} \qquad h=\tanh(z^{(1)}) \]
+\[ z^{(2)}=(W^{(2)})^{T}h+b^{(2)} \qquad \hat y_k=\frac{e^{z^{(2)}_k}}{\sum_j e^{z^{(2)}_j}} \]
+\[ L=-\sum_k y_k\ln\hat y_k \]
+</div>
+</section>
+
+<section class="card" id="shapes">
+<h2 class="sec">Before solving: shapes and wiring</h2>
+<p>\(W^{(1)}\in\mathbb{R}^{2\times3}\) (2 inputs → 3 hidden) and \(W^{(2)}\in\mathbb{R}^{3\times2}\) (3 hidden → 2 outputs). Both are stored <em>input-by-output</em>, so both get transposed in the forward pass — exactly as the paper instructs:</p>
+<div class="formula">
+\[ (W^{(1)})^{T}\in\mathbb{R}^{3\times2} \;\text{ times }\; x\in\mathbb{R}^{2} \;\Rightarrow\; z^{(1)}\in\mathbb{R}^{3} \;\checkmark \]
+\[ (W^{(2)})^{T}\in\mathbb{R}^{2\times3} \;\text{ times }\; h\in\mathbb{R}^{3} \;\Rightarrow\; z^{(2)}\in\mathbb{R}^{2} \;\checkmark \]
+</div>
+<pre class="diagram">    x (2)               h (3)                y^ (2)
+   ┌─────┐   W(1)ᵀ    ┌──────┐   W(2)ᵀ     ┌──────────┐
+   │ 1.0 │ ─────────► │ tanh │ ──────────► │          │ ─► y^₁ = 0.733
+   │ 0.5 │  + b(1)    │ tanh │   + b(2)    │ Softmax  │ ─► y^₂ = 0.267
+   └─────┘            │ tanh │             │ (shared  │
+                      └──────┘             │  denom.) │ ─► sums to 1
+        2×3                    3×2         └──────────┘
+                                                 │
+                                        y = [1,0]ᵀ ─► CCE ─► L</pre>
+<p class="muted">Two things separate this from <a href="ANN-2.html">ANN-2</a>: the hidden units are <strong style="color:var(--text)">tanh</strong> (output in \((-1,1)\), so they can be negative — no dead units), and the outputs share a <strong style="color:var(--text)">single denominator</strong>, so they are forced to sum to 1. That coupling is what makes Softmax the correct partner for categorical cross-entropy.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Hidden layer — pre-activations and Tanh</h2>
+<div class="formula">
+\[ \boxed{ z^{(1)}=(W^{(1)})^{T}x+b^{(1)} } \qquad
+(W^{(1)})^{T}=\begin{bmatrix} 0.3 & 0.4 \\ 0.6 & 0.2 \\ 0.2 & 0.8 \end{bmatrix} \]
+\[ z^{(1)}=\begin{bmatrix} 0.3 & 0.4 \\ 0.6 & 0.2 \\ 0.2 & 0.8 \end{bmatrix}
+\begin{bmatrix} 1.0 \\ 0.5 \end{bmatrix}+\begin{bmatrix} 0.1 \\ -0.2 \\ 0.1 \end{bmatrix} \]
+</div>
+<h3>Hidden neuron 1</h3>
+<div class="formula">
+\[ z^{(1)}_1 = 0.3(1.0)+0.4(0.5)+0.1 = 0.3+0.2+0.1 \qquad \boxed{ z^{(1)}_1 = 0.60 } \]
+</div>
+<h3>Hidden neuron 2</h3>
+<div class="formula">
+\[ z^{(1)}_2 = 0.6(1.0)+0.2(0.5)-0.2 = 0.6+0.1-0.2 \qquad \boxed{ z^{(1)}_2 = 0.50 } \]
+</div>
+<h3>Hidden neuron 3</h3>
+<div class="formula">
+\[ z^{(1)}_3 = 0.2(1.0)+0.8(0.5)+0.1 = 0.2+0.4+0.1 \qquad \boxed{ z^{(1)}_3 = 0.70 } \]
+</div>
+<div class="result">\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.60 \\ 0.50 \\ 0.70 \end{bmatrix} } \]</div>
+<hr class="sep" />
+<h3>Apply Tanh</h3>
+<div class="formula">
+\[ h=\tanh(z^{(1)}), \qquad \tanh(z)=\frac{e^{z}-e^{-z}}{e^{z}+e^{-z}} \]
+\[ h_1=\tanh(0.60)\approx 0.537 \qquad h_2=\tanh(0.50)\approx 0.462 \qquad h_3=\tanh(0.70)\approx 0.604 \]
+</div>
+<div class="result">\[ \boxed{ h \approx \begin{bmatrix} 0.537 \\ 0.462 \\ 0.604 \end{bmatrix} } \]</div>
+<p class="muted">All three are positive here only because all three pre-activations were positive. Unlike ReLU, tanh would have passed a negative \(z\) through as a <strong style="color:var(--text)">negative</strong> activation rather than zeroing it — so there is no "dead unit" case to check.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Output layer — logits and Softmax</h2>
+<div class="formula">
+\[ \boxed{ z^{(2)}=(W^{(2)})^{T}h+b^{(2)} } \qquad
+(W^{(2)})^{T}=\begin{bmatrix} 0.5 & 0.4 & 0.3 \\ 0.3 & -0.2 & -0.4 \end{bmatrix} \]
+\[ z^{(2)}=\begin{bmatrix} 0.5 & 0.4 & 0.3 \\ 0.3 & -0.2 & -0.4 \end{bmatrix}
+\begin{bmatrix} 0.537 \\ 0.462 \\ 0.604 \end{bmatrix}+\begin{bmatrix} 0.1 \\ -0.1 \end{bmatrix} \]
+</div>
+<h3>Output neuron 1</h3>
+<div class="formula">
+\[ 0.5(0.537)=0.2685 \qquad 0.4(0.462)=0.1848 \qquad 0.3(0.604)=0.1812 \]
+\[ z^{(2)}_1 = 0.2685+0.1848+0.1812+0.1 = 0.7345 \qquad \boxed{ z^{(2)}_1 \approx 0.735 } \]
+</div>
+<h3>Output neuron 2</h3>
+<div class="formula">
+\[ 0.3(0.537)=0.1611 \qquad -0.2(0.462)=-0.0924 \qquad -0.4(0.604)=-0.2416 \]
+\[ z^{(2)}_2 = 0.1611-0.0924-0.2416-0.1 = -0.2729 \qquad \boxed{ z^{(2)}_2 \approx -0.273 } \]
+</div>
+<div class="result">\[ \boxed{ z^{(2)} \approx \begin{bmatrix} 0.735 \\ -0.273 \end{bmatrix} } \]</div>
+<hr class="sep" />
+<h3>Apply Softmax</h3>
+<p>Turn the logits into class probabilities. For two classes:</p>
+<div class="formula">
+\[ \hat y_1=\frac{e^{z_1}}{e^{z_1}+e^{z_2}} \qquad \hat y_2=\frac{e^{z_2}}{e^{z_1}+e^{z_2}} \]
+</div>
+<div class="formula">
+\[ e^{0.735}\approx 2.085 \qquad e^{-0.273}\approx 0.761 \]
+\[ \text{denominator} = 2.085+0.761 = 2.846 \]
+</div>
+<div class="formula">
+\[ \hat y_1=\frac{2.085}{2.846}\approx 0.733 \qquad \hat y_2=\frac{0.761}{2.846}\approx 0.267 \]
+</div>
+<div class="result">\[ \boxed{ \hat y \approx \begin{bmatrix} 0.733 \\ 0.267 \end{bmatrix} }, \qquad 0.733+0.267=1 \;\checkmark \]</div>
+<p class="muted">The sum-to-one check is free marks — and it is a genuine check, unlike in <a href="ANN-2.html">ANN-2</a> where independent sigmoids summed to \(1.0218\). If your Softmax outputs do not sum to 1, you have an arithmetic error.</p>
+<blockquote><strong style="color:var(--text)">Exam tip.</strong> Softmax is unchanged if you subtract the same constant from every logit: \(\dfrac{e^{z_k-c}}{\sum_j e^{z_j-c}}=\dfrac{e^{z_k}}{\sum_j e^{z_j}}\). Taking \(c=\max_j z_j\) keeps the exponentials small and easy to handle by hand. Here \(c=0.735\) would give \(e^{0}=1\) and \(e^{-1.008}\approx0.365\), and \(1/1.365\approx0.733\) — same answer, easier arithmetic.</blockquote>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Categorical cross-entropy loss</h2>
+<div class="formula">\[ L=-\sum_k y_k\ln\hat y_k, \qquad y=\begin{bmatrix} 1 \\ 0 \end{bmatrix} \]</div>
+<p>The one-hot target zeroes out every term except the true class:</p>
+<div class="formula">
+\[ L = -\big[\,1\cdot\ln(0.733)+0\cdot\ln(0.267)\,\big] = -\ln(0.733) \]
+</div>
+<div class="result">\[ \boxed{ L \approx 0.311 } \]</div>
+<h3>Why is this loss fairly small?</h3>
+<p>Because the correct class is class 1, and the network assigned it \(\boxed{73.3\%}\) probability. Cross-entropy is just the negative log of the probability given to the <strong style="color:var(--text)">right</strong> answer, so more confidence in the correct class means a lower loss:</p>
+<div class="formula">
+\[ \hat y_{\text{correct}}=1.0 \;\Rightarrow\; L=0 \qquad
+\hat y_{\text{correct}}=0.733 \;\Rightarrow\; L=0.311 \qquad
+\hat y_{\text{correct}}=0.5 \;\Rightarrow\; L=0.693 \]
+</div>
+<p class="muted">\(0.693=\ln 2\) is the loss of a coin flip on two classes — a useful reference point. Anything below it means the network is doing better than guessing on this example.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Suppose the true class is class 2</h2>
+<div class="formula">\[ y=\begin{bmatrix} 0 \\ 1 \end{bmatrix} \]</div>
+<p>Importantly, <strong style="color:var(--text)">do not redo the forward pass</strong>. The weights, the input and therefore the predictions are all unchanged — only the label changed:</p>
+<div class="formula">\[ \hat y = \begin{bmatrix} 0.733 \\ 0.267 \end{bmatrix} \quad\text{(same as before)} \]</div>
+<div class="formula">
+\[ L' = -\big[\,0\cdot\ln(0.733)+1\cdot\ln(0.267)\,\big] = -\ln(0.267) \]
+</div>
+<div class="result">\[ \boxed{ L' \approx 1.322 } \]</div>
+<p class="muted">On rounding: the model answer quotes \(\approx1.322\). Taking \(-\ln(0.267)\) literally gives \(1.3205\), and carrying full precision through the whole forward pass gives \(1.3189\). All three agree to 2 decimal places — if you get \(1.32\), you are right, and it is worth writing which rounding you carried.</p>
+</section>
+
+<section class="card" id="compare">
+<h2 class="sec">Comparing the two losses</h2>
+<table class="cmp">
+<tr><th>True class</th><th>Target \(y\)</th><th>Probability given to it</th><th>Loss</th></tr>
+<tr><td>Class 1</td><td>\([1,0]^{T}\)</td><td>\(0.733\)</td><td>\(L=-\ln(0.733)\approx 0.311\)</td></tr>
+<tr><td>Class 2</td><td>\([0,1]^{T}\)</td><td>\(0.267\)</td><td>\(L'=-\ln(0.267)\approx 1.322\)</td></tr>
+</table>
+<p>The loss more than quadruples. The reason is that the network predicted \(P(\text{class }1)=0.733\) but only \(P(\text{class }2)=0.267\) — so if class 2 were truly correct, the model would be badly wrong, and cross-entropy punishes confident mistakes steeply.</p>
+<div class="result blue">
+\[ \boxed{ L=-\ln\big(\text{probability assigned to the correct class}\big) } \]
+</div>
+<p class="muted">Both answers come from the <strong style="color:var(--text)">same</strong> \(\hat y\). Part (d) is testing whether you realise the forward pass does not depend on the label at all — the label only enters at the loss.</p>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<div class="formula">
+\[ \textbf{Hidden pre-activation: }\; \boxed{ z^{(1)}=\begin{bmatrix} 0.60 \\ 0.50 \\ 0.70 \end{bmatrix} } \]
+\[ \textbf{Tanh activation: }\; \boxed{ h \approx \begin{bmatrix} 0.537 \\ 0.462 \\ 0.604 \end{bmatrix} } \]
+\[ \textbf{Output logits: }\; \boxed{ z^{(2)} \approx \begin{bmatrix} 0.735 \\ -0.273 \end{bmatrix} } \]
+\[ \textbf{Softmax: }\; \boxed{ \hat y \approx \begin{bmatrix} 0.733 \\ 0.267 \end{bmatrix} } \]
+\[ \textbf{Loss for } y=[1,0]^{T}: \; \boxed{ L \approx 0.311 }
+\qquad \textbf{Loss for } y=[0,1]^{T}: \; \boxed{ L' \approx 1.322 } \]
+</div>
+<hr class="sep" />
+<h3>The new pattern to memorize</h3>
+<div class="result blue">
+\[ \boxed{ x \rightarrow z^{(1)} \rightarrow \tanh \rightarrow z^{(2)} \rightarrow \text{Softmax} \rightarrow \text{CCE} } \]
+</div>
+<p>And for a one-hot target, categorical cross-entropy collapses to a single logarithm:</p>
+<div class="formula">
+\[ \boxed{ L=-\ln\big(\text{probability assigned to the correct class}\big) } \]
+\[ \hat y_{\text{correct}}=0.733 \;\Rightarrow\; L=-\ln(0.733)\approx0.311 \]
+\[ \hat y_{\text{correct}}=0.267 \;\Rightarrow\; L=-\ln(0.267)\approx1.322 \]
+</div>
+<hr class="sep" />
+<p class="muted">Next is the retake \(3\rightarrow3\rightarrow3\) problem. It uses this same Tanh + Softmax + CCE forward pass, but adds the multiclass backprop result — and because the pairing is now the standard one, the clean shortcut is finally justified:</p>
+<div class="result">\[ \boxed{ \delta^{(2)}=\hat y-y } \]</div>
+<p class="muted">Contrast with <a href="ANN-2.html">ANN-2</a>, where Sigmoid + CCE forced \(\delta^{(2)}_k=y_k(\hat y_k-1)\) instead. Identify the activation and the loss first, then pick the formula.</p>
+</section>
+
+<footer>ANN-3 · Exact Current In-Course · dark minimal notes</footer>
+</div>
+</body>
+</html>

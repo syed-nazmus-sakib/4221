@@ -40,14 +40,60 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <p class="subtitle">Two fresh full LSTM problems, both following the exact exam template: separate \(W^{(h)}\) and \(W^{(x)}\), then compute \(f_t\rightarrow i_t\rightarrow \tilde C_t\rightarrow C_t\rightarrow o_t\rightarrow h_t\).</p>
 </header>
 <nav class="toc"><h2>Contents</h2><ol>
-<li><a href="#fp1">Fresh Problem 1 — same matrices, new state</a></li>
-<li><a href="#fp2">Fresh Problem 2 — new matrices + new state</a></li>
-<li><a href="#wrap">LSTM wrapped</a></li>
-<li><a href="#solution-architecture">Interactive solution architecture</a></li></ol></nav>
+<li><a href="#question">The full question</a></li>
+<li><a href="#cell">Before solving: read the cell</a></li>
+<li><a href="#fp1">Problem 1 — same matrices, new state</a></li>
+<li><a href="#fp2">Problem 2 — new matrices + new state</a></li>
+<li><a href="#wrap">LSTM wrapped</a></li></ol></nav>
 
 
 
 
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">two full LSTM problems in the exact exam format</div>
+<p>Both problems use an LSTM cell of <strong style="color:var(--text)">hidden-state dimension 2</strong>, with \(h_{t-1}\) and \(x_t\) <strong style="color:var(--text)">not concatenated</strong> — every gate has its own \(W^{(h)}\), \(W^{(x)}\) and \(b\).</p>
+<h3>Problem 1</h3>
+<div class="formula">
+\[ h_{t-1} = \begin{bmatrix} 0.2 \\ -0.4 \end{bmatrix},\quad
+C_{t-1} = \begin{bmatrix} 0.25 \\ -0.15 \end{bmatrix},\quad
+x_t = \begin{bmatrix} 0.6 \\ 0.5 \end{bmatrix}, \]
+</div>
+<p class="muted">with the <strong style="color:var(--text)">standard exam weight matrices</strong> (listed in full at the start of Problem 1 below).</p>
+<h3>Problem 2</h3>
+<div class="formula">
+\[ h_{t-1} = \begin{bmatrix} 0.25 \\ 0.15 \end{bmatrix},\quad
+C_{t-1} = \begin{bmatrix} -0.2 \\ 0.35 \end{bmatrix},\quad
+x_t = \begin{bmatrix} 0.4 \\ -0.3 \end{bmatrix}, \]
+</div>
+<p class="muted">with a <strong style="color:var(--text)">completely new set of weight matrices</strong> (listed in full at the start of Problem 2 below), so no intermediate value can be recalled from memory.</p>
+<hr class="sep" />
+<p class="muted">For <strong style="color:var(--text)">each</strong> problem, compute:</p>
+<ul class="question-list">
+<li><span class="part">(i)</span><span>the <strong>forget gate</strong> \(f_t\)</span></li>
+<li><span class="part">(ii)</span><span>the <strong>input gate</strong> \(i_t\)</span></li>
+<li><span class="part">(iii)</span><span>the <strong>candidate cell state</strong> \(\tilde C_t\)</span></li>
+<li><span class="part">(iv)</span><span>the <strong>updated cell state</strong> \(C_t\)</span></li>
+<li><span class="part">(v)</span><span>the <strong>output gate</strong> \(o_t\) and the <strong>hidden state</strong> \(h_t\)</span></li>
+</ul>
+<hr class="sep" />
+<p class="muted">Equations, with \(\odot\) = element-wise multiplication:</p>
+<div class="formula">
+\[ f_t=\sigma(W_f^{(h)}h_{t-1}+W_f^{(x)}x_t+b_f) \qquad
+i_t=\sigma(W_i^{(h)}h_{t-1}+W_i^{(x)}x_t+b_i) \]
+\[ \tilde C_t=\tanh(W_c^{(h)}h_{t-1}+W_c^{(x)}x_t+b_c) \qquad
+C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t \]
+\[ o_t=\sigma(W_o^{(h)}h_{t-1}+W_o^{(x)}x_t+b_o) \qquad
+h_t=o_t\odot\tanh(C_t) \]
+</div>
+</section>
+
+<section class="card" id="cell">
+<h2 class="sec">Before solving: read the cell once</h2>
+<p>Every step below is one region of this single picture, walked left to right. Fix the geography before touching the arithmetic:</p>
+<div class="lstm-visual" data-stage="all" data-label="The complete LSTM cell"></div>
+<p class="muted">The <strong style="color:var(--text)">top line carries memory</strong> (\(C_{t-1}\) in, \(C_t\) out) and is touched exactly twice — once by \(\times\) (forget) and once by \(+\) (write). The <strong style="color:var(--text)">bottom line carries the inputs</strong> \(h_{t-1},x_t\) into all four boxes. Three boxes are \(\sigma\) valves; only \(\tilde C_t\) is \(\tanh\) content.</p>
+</section>
 
 <section class="card hero" id="fp1">
 <h2 class="sec">Fresh Problem 1</h2><div class="meta">same exam matrices · h=[0.2,-0.4] · C=[0.25,-0.15] · x=[0.6,0.5]</div>
@@ -69,7 +115,8 @@ W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\;
 b_o = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}. \]
 </div>
 <p>Compute \(f_t,i_t,\tilde C_t,C_t,o_t,h_t\).</p>
-<div id="solution-architecture" class="lstm-visual"></div>
+<p class="muted">Where this lives in the cell — the \(f_t\) box and the \(\times\) it drives on the memory line:</p>
+<div class="lstm-visual" data-stage="forget" data-label="Problem 1 · Forget gate — path in use"></div>
 <h3>Forget gate</h3>
 <div class="formula">
 \[ W_f^{(h)}h_{t-1} = \begin{bmatrix} 0.48 \\ -0.14 \end{bmatrix} \qquad
@@ -78,6 +125,8 @@ W_f^{(x)}x_t = \begin{bmatrix} 0.60 \\ 0.33 \end{bmatrix}. \]
 = \begin{bmatrix} 1.28 \\ 0.09 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ f_t = \begin{bmatrix} 0.7825 \\ 0.5225 \end{bmatrix}} \]</div>
+<p class="muted">Same input line, different box: \(i_t\) feeds the middle \(\times\), the one that gates the new content.</p>
+<div class="lstm-visual" data-stage="input" data-label="Problem 1 · Input gate — path in use"></div>
 <h3>Input gate</h3>
 <div class="formula">
 \[ W_i^{(h)}h_{t-1} = \begin{bmatrix} 0.20 \\ -0.12 \end{bmatrix} \qquad
@@ -85,6 +134,8 @@ W_i^{(x)}x_t = \begin{bmatrix} 0.26 \\ 0.13 \end{bmatrix} \]
 \[ z_i = \begin{bmatrix} 0.46 \\ 0.11 \end{bmatrix} \]
 </div>
 <div class="result">\[ \boxed{ i_t = \begin{bmatrix} 0.6130 \\ 0.5275 \end{bmatrix}} \]</div>
+<p class="muted">The other half of that \(\times\): the only <strong style="color:var(--text)">tanh</strong> box on the input side — the content being proposed.</p>
+<div class="lstm-visual" data-stage="candidate" data-label="Problem 1 · Candidate — path in use"></div>
 <h3>Candidate</h3>
 <div class="formula">
 \[ W_c^{(h)}h_{t-1} = \begin{bmatrix} 0.14 \\ -0.12 \end{bmatrix} \qquad
@@ -92,6 +143,8 @@ W_c^{(x)}x_t = \begin{bmatrix} 0.35 \\ 0.27 \end{bmatrix} \]
 \[ z_c = \begin{bmatrix} 0.49 \\ 0.20 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ \tilde C_t = \begin{bmatrix} 0.4542 \\ 0.1974 \end{bmatrix}} \]</div>
+<p class="muted">The two streams meet: kept old memory from the forget \(\times\), new content from the middle \(\times\), merged by the \(+\) into \(C_t\).</p>
+<div class="lstm-visual" data-stage="cell" data-label="Problem 1 · Cell state — path in use"></div>
 <h3>Cell state</h3>
 <div class="formula">
 \[ f_t\odot C_{t-1} = \begin{bmatrix} 0.7825 \\ 0.5225 \end{bmatrix} \odot \begin{bmatrix} 0.25 \\ -0.15 \end{bmatrix}
@@ -100,6 +153,8 @@ W_c^{(x)}x_t = \begin{bmatrix} 0.35 \\ 0.27 \end{bmatrix} \]
 \approx \begin{bmatrix} 0.2784 \\ 0.1041 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ C_t \approx \begin{bmatrix} 0.4741 \\ 0.0257 \end{bmatrix}} \]</div>
+<p class="muted">Last valve on the input line. It reads \(h_{t-1},x_t\) — <em>not</em> \(C_t\) — and feeds the right-hand \(\times\).</p>
+<div class="lstm-visual" data-stage="output" data-label="Problem 1 · Output gate — path in use"></div>
 <h3>Output gate + hidden</h3>
 <div class="formula">
 \[ W_o^{(h)}h_{t-1} = \begin{bmatrix} 0.18 \\ -0.28 \end{bmatrix} \qquad
@@ -107,6 +162,8 @@ W_o^{(x)}x_t = \begin{bmatrix} 0.53 \\ 0.25 \end{bmatrix}. \]
 \[ z_o = \begin{bmatrix} 0.71 \\ 0.02 \end{bmatrix} \]
 </div>
 <div class="result">\[ \boxed{ o_t = \begin{bmatrix} 0.6704 \\ 0.5050 \end{bmatrix}} \]</div>
+<p class="muted">The last stretch: \(C_t\) is tapped off the memory line, squashed by \(\tanh\), multiplied by \(o_t\), and leaves as \(h_t\).</p>
+<div class="lstm-visual" data-stage="hidden" data-label="Problem 1 · Hidden state — path in use"></div>
 <div class="formula">\[ \tanh(C_t) \approx \begin{bmatrix} 0.4414 \\ 0.0257 \end{bmatrix}. \]</div>
 <div class="result gold">\[ \boxed{ h_t \approx \begin{bmatrix} 0.2960 \\ 0.0130 \end{bmatrix}} \]</div>
 <div class="formula">
@@ -134,7 +191,8 @@ b_c = \begin{bmatrix} 0.05 \\ -0.05 \end{bmatrix} \]
 W_o^{(x)} = \begin{bmatrix} 0.2 & 0.6 \\ -0.4 & 0.3 \end{bmatrix},\;
 b_o = \begin{bmatrix} 0.05 \\ 0 \end{bmatrix}. \]
 </div>
-<div class="lstm-visual"></div>
+<p class="muted">Where this lives in the cell — the \(f_t\) box and the \(\times\) it drives on the memory line:</p>
+<div class="lstm-visual" data-stage="forget" data-label="Problem 2 · Forget gate — path in use"></div>
 <h3>Forget gate</h3>
 <div class="formula">
 \[ W_f^{(h)}h_{t-1} = \begin{bmatrix} 0 \\ 0.11 \end{bmatrix} \qquad
@@ -143,6 +201,8 @@ W_f^{(x)}x_t = \begin{bmatrix} 0.18 \\ -0.19 \end{bmatrix}. \]
 = \begin{bmatrix} 0.28 \\ -0.13 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ f_t \approx \begin{bmatrix} 0.5695 \\ 0.4675 \end{bmatrix}} \]</div>
+<p class="muted">Same input line, different box: \(i_t\) feeds the middle \(\times\), the one that gates the new content.</p>
+<div class="lstm-visual" data-stage="input" data-label="Problem 2 · Input gate — path in use"></div>
 <h3>Input gate</h3>
 <div class="formula">
 \[ W_i^{(h)}h_{t-1} = \begin{bmatrix} 0.14 \\ -0.005 \end{bmatrix} \qquad
@@ -150,6 +210,8 @@ W_i^{(x)}x_t = \begin{bmatrix} 0.20 \\ 0.21 \end{bmatrix} \]
 \[ z_i = \begin{bmatrix} 0.34 \\ 0.255 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ i_t \approx \begin{bmatrix} 0.5842 \\ 0.5634 \end{bmatrix}} \]</div>
+<p class="muted">The other half of that \(\times\): the only <strong style="color:var(--text)">tanh</strong> box on the input side — the content being proposed.</p>
+<div class="lstm-visual" data-stage="candidate" data-label="Problem 2 · Candidate — path in use"></div>
 <h3>Candidate</h3>
 <div class="formula">
 \[ W_c^{(h)}h_{t-1} = \begin{bmatrix} 0.11 \\ -0.045 \end{bmatrix} \qquad
@@ -158,6 +220,8 @@ W_c^{(x)}x_t = \begin{bmatrix} 0.26 \\ -0.08 \end{bmatrix}. \]
 = \begin{bmatrix} 0.42 \\ -0.175 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ \tilde C_t \approx \begin{bmatrix} 0.3969 \\ -0.1732 \end{bmatrix}} \]</div>
+<p class="muted">The two streams meet: kept old memory from the forget \(\times\), new content from the middle \(\times\), merged by the \(+\) into \(C_t\).</p>
+<div class="lstm-visual" data-stage="cell" data-label="Problem 2 · Cell state — path in use"></div>
 <h3>Cell state</h3>
 <div class="formula">
 \[ f_t\odot C_{t-1} \approx \begin{bmatrix} 0.5695 \\ 0.4675 \end{bmatrix} \odot \begin{bmatrix} -0.2 \\ 0.35 \end{bmatrix}
@@ -166,6 +230,8 @@ W_c^{(x)}x_t = \begin{bmatrix} 0.26 \\ -0.08 \end{bmatrix}. \]
 = \begin{bmatrix} 0.2319 \\ -0.0976 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ C_t \approx \begin{bmatrix} 0.1180 \\ 0.0660 \end{bmatrix}} \]</div>
+<p class="muted">Last valve on the input line. It reads \(h_{t-1},x_t\) — <em>not</em> \(C_t\) — and feeds the right-hand \(\times\).</p>
+<div class="lstm-visual" data-stage="output" data-label="Problem 2 · Output gate — path in use"></div>
 <h3>Output gate + hidden</h3>
 <div class="formula">
 \[ W_o^{(h)}h_{t-1} = \begin{bmatrix} 0.085 \\ 0.15 \end{bmatrix} \qquad
@@ -174,6 +240,8 @@ W_o^{(x)}x_t = \begin{bmatrix} -0.10 \\ -0.25 \end{bmatrix}. \]
 = \begin{bmatrix} 0.035 \\ -0.10 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ o_t \approx \begin{bmatrix} 0.5087 \\ 0.4750 \end{bmatrix}} \]</div>
+<p class="muted">The last stretch: \(C_t\) is tapped off the memory line, squashed by \(\tanh\), multiplied by \(o_t\), and leaves as \(h_t\).</p>
+<div class="lstm-visual" data-stage="hidden" data-label="Problem 2 · Hidden state — path in use"></div>
 <div class="formula">\[ \tanh(C_t) \approx \begin{bmatrix} 0.1174 \\ 0.0659 \end{bmatrix} \]</div>
 <div class="result gold">\[ \boxed{ h_t \approx \begin{bmatrix} 0.0597 \\ 0.0313 \end{bmatrix}} \]</div>
 <div class="formula">

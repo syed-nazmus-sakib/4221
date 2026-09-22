@@ -24,6 +24,7 @@ p{margin:10px 0}.muted{color:var(--muted)}
 .formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
 .result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
 .result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
 hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
 footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
@@ -40,31 +41,74 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <p class="subtitle">Almost the same structure as the in-course problem — same gate-matrix style, different \(h_{t-1}, C_{t-1}, x_t\), plus RNN theory and diagram. Sequence is always \(\boxed{f_t\rightarrow i_t\rightarrow \tilde C_t\rightarrow C_t\rightarrow o_t\rightarrow h_t}\).</p>
 </header>
 <nav class="toc"><h2>Contents</h2><ol>
-<li><a href="#given">Given</a></li>
-<li><a href="#theory">RNN types + cell diagram</a></li>
-<li><a href="#c">Forget gate</a></li>
-<li><a href="#d">Input gate</a></li>
-<li><a href="#e">Candidate</a></li>
-<li><a href="#f">Cell state</a></li>
-<li><a href="#g">Output gate + hidden</a></li>
-<li><a href="#final">Final values</a></li>
-<li><a href="#solution-architecture">Interactive solution architecture</a></li></ol></nav>
+<li><a href="#question">The full question</a></li>
+<li><a href="#cell">Before solving: read the cell</a></li>
+<li><a href="#a">(a) RNN sequence types</a></li>
+<li><a href="#b">(b) LSTM cell diagram</a></li>
+<li><a href="#c">(c) Forget gate</a></li>
+<li><a href="#d">(d) Input gate</a></li>
+<li><a href="#e">(e) Candidate</a></li>
+<li><a href="#f">(f) Cell state</a></li>
+<li><a href="#g">(g) Output gate + hidden</a></li>
+<li><a href="#final">Final values</a></li></ol></nav>
 
-
-
-
-
-<section class="card hero" id="given">
-<h2 class="sec">Given</h2><div class="meta">separate W(h), W(x) · same template as in-course</div>
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Previous Final Exam · RNN theory + LSTM cell calculation</div>
+<p>An LSTM cell has <strong style="color:var(--text)">hidden-state dimension 2</strong>. At time step \(t\):</p>
 <div class="formula">
 \[ h_{t-1} = \begin{bmatrix} 0.5 \\ -0.2 \end{bmatrix}, \qquad
 C_{t-1} = \begin{bmatrix} 0.3 \\ -0.4 \end{bmatrix}, \qquad
 x_t = \begin{bmatrix} 0.7 \\ 0.3 \end{bmatrix}. \]
 </div>
-<p>The final asks for the RNN sequence types, an LSTM-cell diagram, and then the full numerical chain \(f_t,i_t,\tilde C_t,C_t,o_t,h_t\).</p>
+<p>As in the in-course paper, \(h_{t-1}\) and \(x_t\) are <strong style="color:var(--text)">not concatenated</strong> — each gate has its own \(W^{(h)}\) and \(W^{(x)}\):</p>
+<div class="formula">
+\[ \textbf{Forget: }\;
+W_f^{(h)} = \begin{bmatrix} 0.4 & -1.0 \\ -0.3 & 0.2 \end{bmatrix},\;
+W_f^{(x)} = \begin{bmatrix} 0.5 & 0.6 \\ 0.8 & -0.3 \end{bmatrix},\;
+b_f = \begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix} \]
+\[ \textbf{Input: }\;
+W_i^{(h)} = \begin{bmatrix} 0.4 & -0.3 \\ 0.2 & 0.4 \end{bmatrix},\;
+W_i^{(x)} = \begin{bmatrix} 0.1 & 0.4 \\ -0.2 & 0.5 \end{bmatrix},\;
+b_i = \begin{bmatrix} 0 \\ 0.1 \end{bmatrix} \]
+\[ \textbf{Candidate: }\;
+W_c^{(h)} = \begin{bmatrix} 0.3 & -0.2 \\ -0.4 & 0.1 \end{bmatrix},\;
+W_c^{(x)} = \begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix},\;
+b_c = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix} \]
+\[ \textbf{Output: }\;
+W_o^{(h)} = \begin{bmatrix} 0.5 & -0.2 \\ -0.6 & 0.4 \end{bmatrix},\;
+W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\;
+b_o = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix} \]
+</div>
+<p class="muted">Answer the following:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Describe the <strong>types of RNN</strong> based on input–output sequence structure, with an example of each.</span></li>
+<li><span class="part">(b)</span><span><strong>Draw the LSTM cell diagram</strong>, showing the forget path, the new-memory path, the cell state and the output gate.</span></li>
+<li><span class="part">(c)</span><span>Compute the <strong>forget gate</strong> \(f_t\).</span></li>
+<li><span class="part">(d)</span><span>Compute the <strong>input gate</strong> \(i_t\).</span></li>
+<li><span class="part">(e)</span><span>Compute the <strong>candidate cell state</strong> \(\tilde C_t\).</span></li>
+<li><span class="part">(f)</span><span>Compute the <strong>updated cell state</strong> \(C_t\).</span></li>
+<li><span class="part">(g)</span><span>Compute the <strong>output gate</strong> \(o_t\) and the <strong>hidden state</strong> \(h_t\).</span></li>
+</ul>
+<hr class="sep" />
+<p class="muted">Equations used throughout, with \(\odot\) = element-wise multiplication:</p>
+<div class="formula">
+\[ f_t=\sigma(W_f^{(h)}h_{t-1}+W_f^{(x)}x_t+b_f) \qquad
+i_t=\sigma(W_i^{(h)}h_{t-1}+W_i^{(x)}x_t+b_i) \]
+\[ \tilde C_t=\tanh(W_c^{(h)}h_{t-1}+W_c^{(x)}x_t+b_c) \qquad
+C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t \]
+\[ o_t=\sigma(W_o^{(h)}h_{t-1}+W_o^{(x)}x_t+b_o) \qquad
+h_t=o_t\odot\tanh(C_t) \]
+</div>
 </section>
 
-<section class="card" id="theory">
+<section class="card" id="cell">
+<h2 class="sec">Before solving: read the cell once</h2>
+<p>Parts (c)–(g) are just five regions of this one picture, walked left to right. Fix the geography now:</p>
+<div class="lstm-visual" data-stage="all" data-label="The complete LSTM cell"></div>
+<p class="muted">The <strong style="color:var(--text)">top line carries memory</strong> (\(C_{t-1}\) in, \(C_t\) out) and is touched exactly twice — once by \(\times\) (forget) and once by \(+\) (write). The <strong style="color:var(--text)">bottom line carries the inputs</strong> \(h_{t-1},x_t\) into all four boxes. Three boxes are \(\sigma\) valves; only \(\tilde C_t\) is \(\tanh\) content.</p>
+</section>
+
+<section class="card" id="a">
 <h2 class="sec">(a) RNN types based on input-output sequence structure</h2>
 <ol>
 <li><strong>One-to-one</strong> — One input → one output. Example: image classification.</li>
@@ -72,18 +116,33 @@ x_t = \begin{bmatrix} 0.7 \\ 0.3 \end{bmatrix}. \]
 <li><strong>Many-to-one</strong> — Sequence input → one output. Example: sentiment classification.</li>
 <li><strong>Many-to-many</strong> — Sequence input → sequence output. Example: machine translation.</li>
 </ol>
-<h3>(b) LSTM cell diagram</h3>
+<p class="muted">This part is pure theory — no cell arithmetic, so no highlighted path.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) LSTM cell diagram</h2>
+<p class="muted">This part <em>is</em> the diagram, so every path is live. Reproduce these pieces and the two lines they sit between:</p>
+<div class="lstm-visual" data-stage="all" data-label="(b) What you must be able to draw"></div>
 <div class="formula">
 \[ f_t=\sigma(\cdots) \qquad i_t=\sigma(\cdots) \qquad \tilde C_t=\tanh(\cdots) \]
 \[ C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t \qquad o_t=\sigma(\cdots) \qquad h_t=o_t\odot\tanh(C_t). \]
 </div>
-<p class="muted">Show the <strong style="color:var(--text)">forget path</strong>, <strong style="color:var(--text)">new-memory path</strong>, <strong style="color:var(--text)">cell state</strong>, and <strong style="color:var(--text)">output gate</strong>.</p>
+<p>A hand-drawable version for the script:</p>
+<pre class="diagram">                 ┌──────── f_t ────────┐
+C_(t-1) ─────────────── × ─────────────┐
+                                       │
+                                       + ─────── C_t ── tanh ── × ── h_t
+                                       │                    ↑
+                 ┌──── i_t ──┐         │                    │
+h_(t-1), x_t ────┤            ×────────┘                   o_t
+                 └─ C~_t ────┘</pre>
+<p class="muted">Show the <strong style="color:var(--text)">forget path</strong>, <strong style="color:var(--text)">new-memory path</strong>, <strong style="color:var(--text)">cell state</strong>, and <strong style="color:var(--text)">output gate</strong> — those four labels are what the marks are for.</p>
 </section>
-
-<section class="card" id="solution-architecture"><h2 class="sec">Start the solution: follow the cell</h2><p class="muted">The diagram connects each calculation to its location in the LSTM cell. Its highlight follows the solution.</p><div class="lstm-visual"></div></section>
 
 <section class="card" id="c">
 <h2 class="sec">(c) Forget gate \(f_t\)</h2>
+<p class="muted">Where this lives in the cell — the \(f_t\) box and the \(\times\) it drives on the memory line:</p>
+<div class="lstm-visual" data-stage="forget" data-label="(c) Forget gate — path in use"></div>
 <div class="formula">
 \[ W_f^{(h)} = \begin{bmatrix} 0.4 & -1.0 \\ -0.3 & 0.2 \end{bmatrix},\quad
 W_f^{(x)} = \begin{bmatrix} 0.5 & 0.6 \\ 0.8 & -0.3 \end{bmatrix},\quad
@@ -98,10 +157,13 @@ b_f = \begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix}. \]
 = \boxed{ \begin{bmatrix} 1.13 \\ 0.18 \end{bmatrix}}. \]
 </div>
 <div class="result">\[ f_t = \begin{bmatrix} \sigma(1.13) \\ \sigma(0.18) \end{bmatrix} \quad \boxed{ f_t \approx \begin{bmatrix} 0.7558 \\ 0.5449 \end{bmatrix}} \]</div>
+<p class="muted">On the diagram: unit 1 keeps ≈76% of its old memory, unit 2 keeps ≈54%. Nothing has been written yet.</p>
 </section>
 
 <section class="card" id="d">
 <h2 class="sec">(d) Input gate \(i_t\)</h2>
+<p class="muted">Same input line, different box: \(i_t\) feeds the middle \(\times\), the one that gates the new content.</p>
+<div class="lstm-visual" data-stage="input" data-label="(d) Input gate — path in use"></div>
 <div class="formula">
 \[ W_i^{(h)} = \begin{bmatrix} 0.4 & -0.3 \\ 0.2 & 0.4 \end{bmatrix},\quad
 W_i^{(x)} = \begin{bmatrix} 0.1 & 0.4 \\ -0.2 & 0.5 \end{bmatrix},\quad
@@ -112,10 +174,13 @@ W_i^{(x)}x_t = \begin{bmatrix} 0.19 \\ 0.01 \end{bmatrix}. \]
 = \boxed{ \begin{bmatrix} 0.45 \\ 0.13 \end{bmatrix}}. \]
 </div>
 <div class="result">\[ \boxed{ i_t \approx \begin{bmatrix} 0.6106 \\ 0.5325 \end{bmatrix}} \]</div>
+<p class="muted">A valve, not content — it cannot change memory until multiplied by \(\tilde C_t\) at that \(\times\).</p>
 </section>
 
 <section class="card" id="e">
 <h2 class="sec">(e) Candidate cell state \(\tilde C_t\)</h2>
+<p class="muted">The other half of that \(\times\): the only <strong style="color:var(--text)">tanh</strong> box on the input side — the content being proposed.</p>
+<div class="lstm-visual" data-stage="candidate" data-label="(e) Candidate — path in use"></div>
 <div class="formula">
 \[ W_c^{(h)} = \begin{bmatrix} 0.3 & -0.2 \\ -0.4 & 0.1 \end{bmatrix} \quad
 W_c^{(x)} = \begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix} \quad
@@ -126,10 +191,13 @@ W_c^{(x)}x_t = \begin{bmatrix} 0.38 \\ 0.23 \end{bmatrix}. \]
 = \boxed{ \begin{bmatrix} 0.57 \\ 0.06 \end{bmatrix}}. \]
 </div>
 <div class="result">\[ \boxed{ \tilde C_t \approx \begin{bmatrix} 0.5154 \\ 0.0599 \end{bmatrix}} \]</div>
+<p class="muted">Use \(\tanh\) here, never \(\sigma\) — this is the most common lost mark on the paper.</p>
 </section>
 
 <section class="card" id="f">
 <h2 class="sec">(f) Updated cell state \(C_t\)</h2>
+<p class="muted">Now the two streams meet: kept old memory arrives from the forget \(\times\), new content from the middle \(\times\), and the \(+\) merges them into \(C_t\).</p>
+<div class="lstm-visual" data-stage="cell" data-label="(f) Cell state — path in use"></div>
 <div class="formula">\[ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t. \]</div>
 <div class="formula">
 \[ f_t\odot C_{t-1} = \begin{bmatrix} 0.7558 \\ 0.5449 \end{bmatrix} \odot \begin{bmatrix} 0.3 \\ -0.4 \end{bmatrix}
@@ -138,10 +206,13 @@ W_c^{(x)}x_t = \begin{bmatrix} 0.38 \\ 0.23 \end{bmatrix}. \]
 \approx \begin{bmatrix} 0.3147 \\ 0.0319 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ C_t \approx \begin{bmatrix} 0.5415 \\ -0.1860 \end{bmatrix}} \]</div>
+<p class="muted">\(C_t\) is final here and leaves along the top line <strong style="color:var(--text)">un-squashed</strong>. The \(\tanh\) in part (g) is applied to a copy of it.</p>
 </section>
 
 <section class="card" id="g">
 <h2 class="sec">(g) Output gate \(o_t\) + hidden \(h_t\)</h2>
+<p class="muted">Last valve on the input line. It reads \(h_{t-1},x_t\) — <em>not</em> \(C_t\) — and feeds the right-hand \(\times\).</p>
+<div class="lstm-visual" data-stage="output" data-label="(g) Output gate — path in use"></div>
 <div class="formula">
 \[ W_o^{(h)} = \begin{bmatrix} 0.5 & -0.2 \\ -0.6 & 0.4 \end{bmatrix},\quad
 W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\quad
@@ -154,6 +225,8 @@ W_o^{(x)}x_t = \begin{bmatrix} 0.42 \\ 0.32 \end{bmatrix}. \]
 <div class="result">\[ \boxed{ o_t \approx \begin{bmatrix} 0.6704 \\ 0.4975 \end{bmatrix}} \]</div>
 <hr class="sep" />
 <h3>Final hidden state \(h_t\)</h3>
+<p class="muted">The last stretch: \(C_t\) is tapped off the memory line, squashed by \(\tanh\), multiplied by \(o_t\), and leaves as \(h_t\).</p>
+<div class="lstm-visual" data-stage="hidden" data-label="(g) Hidden state — path in use"></div>
 <div class="formula">
 \[ h_t = o_t\odot\tanh(C_t). \quad \tanh(C_t) = \tanh \begin{bmatrix} 0.5415 \\ -0.1860 \end{bmatrix}
 \approx \begin{bmatrix} 0.4941 \\ -0.1839 \end{bmatrix}. \]

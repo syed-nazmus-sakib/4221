@@ -42,29 +42,55 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <p class="subtitle">Same strategy as object detection: solve the <strong style="color:var(--text)">exact exam questions first</strong>. Two clear LSTM numerical questions exist — in-course (10-mark cell calculation) and final (same gate matrices, different \(h_{t-1}, C_{t-1}, x_t\)). This topic is even more repetitive than object detection.</p>
 </header>
 <nav class="toc"><h2>Contents</h2><ol>
-<li><a href="#given">Given + standard equations</a></li>
-<li><a href="#flow">0. LSTM flow</a></li>
-<li><a href="#draw">Draw the LSTM cell</a></li>
-<li><a href="#b">Forget gate \(f_t\)</a></li>
-<li><a href="#c">Input gate \(i_t\)</a></li>
-<li><a href="#d">Candidate \(\tilde C_t\)</a></li>
-<li><a href="#e">Updated cell \(C_t\)</a></li>
-<li><a href="#f">Output gate \(o_t\) + hidden \(h_t\)</a></li>
-<li><a href="#final">Final answer sheet</a></li>
-<li><a href="#solution-architecture">Interactive solution architecture</a></li></ol></nav>
+<li><a href="#question">The full question</a></li>
+<li><a href="#cell">Before solving: read the cell</a></li>
+<li><a href="#flow">The fixed solution order</a></li>
+<li><a href="#a">(a) Draw the LSTM cell</a></li>
+<li><a href="#b">(b) Forget gate \(f_t\)</a></li>
+<li><a href="#c">(c) Input gate \(i_t\)</a></li>
+<li><a href="#d">(d) Candidate \(\tilde C_t\)</a></li>
+<li><a href="#e">(e) Updated cell \(C_t\)</a></li>
+<li><a href="#f">(f) Output gate \(o_t\) + hidden \(h_t\)</a></li>
+<li><a href="#final">Final answer sheet</a></li></ol></nav>
 
-
-
-
-
-<section class="card hero" id="given">
-<h2 class="sec">Given</h2><div class="meta">hidden dim 2 · separate W(h) and W(x) · no concatenation</div>
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Previous In-Course Exam · LSTM cell calculation · 10 marks</div>
+<p>Consider an <strong style="color:var(--text)">LSTM cell with hidden-state dimension 2</strong>. At time step \(t\) you are given the previous hidden state, the previous cell state, and the current input:</p>
 <div class="formula">
 \[ h_{t-1} = \begin{bmatrix} 0.3 \\ -0.5 \end{bmatrix}, \qquad
 C_{t-1} = \begin{bmatrix} 0.1 \\ -0.3 \end{bmatrix}, \qquad
 x_t = \begin{bmatrix} 0.8 \\ 0.2 \end{bmatrix}. \]
 </div>
-<p>The question gives an LSTM with hidden-state dimension \(2\). It explicitly says the gates are computed <strong>without concatenating</strong> \(h_{t-1}\) and \(x_t\); instead, separate weight matrices are used. Tasks: draw the LSTM cell, then compute forget gate, input gate, candidate cell state, updated cell state, output gate, and final hidden state.</p>
+<p>The gates are computed <strong style="color:var(--text)">without concatenating</strong> \(h_{t-1}\) and \(x_t\). Instead, each gate has a <strong style="color:var(--text)">separate weight matrix for the hidden state and for the input</strong>, with the following values:</p>
+<div class="formula">
+\[ \textbf{Forget: }\;
+W_f^{(h)} = \begin{bmatrix} 0.4 & -1.0 \\ -0.3 & 0.2 \end{bmatrix},\;
+W_f^{(x)} = \begin{bmatrix} 0.5 & 0.6 \\ 0.8 & -0.3 \end{bmatrix},\;
+b_f = \begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix} \]
+\[ \textbf{Input: }\;
+W_i^{(h)} = \begin{bmatrix} 0.4 & -0.3 \\ 0.2 & 0.4 \end{bmatrix},\;
+W_i^{(x)} = \begin{bmatrix} 0.1 & 0.4 \\ -0.2 & 0.5 \end{bmatrix},\;
+b_i = \begin{bmatrix} 0 \\ 0.1 \end{bmatrix} \]
+\[ \textbf{Candidate: }\;
+W_c^{(h)} = \begin{bmatrix} 0.3 & -0.2 \\ -0.4 & 0.1 \end{bmatrix},\;
+W_c^{(x)} = \begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix},\;
+b_c = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix} \]
+\[ \textbf{Output: }\;
+W_o^{(h)} = \begin{bmatrix} 0.5 & -0.2 \\ -0.6 & 0.4 \end{bmatrix},\;
+W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\;
+b_o = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix} \]
+</div>
+<p class="muted">Answer the following:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span><strong>Draw the LSTM cell</strong>, labelling the forget gate, the input gate, the candidate cell state, the cell state and the output gate.</span></li>
+<li><span class="part">(b)</span><span>Compute the <strong>forget gate</strong> \(f_t\).</span></li>
+<li><span class="part">(c)</span><span>Compute the <strong>input gate</strong> \(i_t\).</span></li>
+<li><span class="part">(d)</span><span>Compute the <strong>candidate cell state</strong> \(\tilde C_t\).</span></li>
+<li><span class="part">(e)</span><span>Compute the <strong>updated cell state</strong> \(C_t\).</span></li>
+<li><span class="part">(f)</span><span>Compute the <strong>output gate</strong> \(o_t\) and the <strong>final hidden state</strong> \(h_t\).</span></li>
+</ul>
+<p class="muted">Use \(\sigma(z)=\dfrac{1}{1+e^{-z}}\) and \(\tanh\) where appropriate; round to 4 decimal places.</p>
+<hr class="sep" />
 <p class="muted">Standard equations implied by those gate names:</p>
 <div class="formula">
 \[ f_t=\sigma(W_f^{(h)}h_{t-1}+W_f^{(x)}x_t+b_f) \]
@@ -77,19 +103,34 @@ x_t = \begin{bmatrix} 0.8 \\ 0.2 \end{bmatrix}. \]
 <p class="muted">where \(\odot\) means <strong style="color:var(--text)">element-wise multiplication</strong>.</p>
 </section>
 
+<section class="card" id="cell">
+<h2 class="sec">Before solving: read the cell once</h2>
+<p>Every part below is one region of this single picture. Get the geography straight now and each calculation becomes a lookup rather than a memory test.</p>
+<div class="lstm-visual" data-stage="all" data-label="The complete LSTM cell"></div>
+<p>Three things to notice before any arithmetic:</p>
+<ol class="muted">
+<li>The <strong style="color:var(--text)">top line is memory</strong>. \(C_{t-1}\) enters at the top-left and \(C_t\) leaves at the top-right. It is only ever touched twice: once by a \(\times\) (forget) and once by a \(+\) (write).</li>
+<li>The <strong style="color:var(--text)">bottom line is inputs</strong>. \(h_{t-1}\) and \(x_t\) feed all four boxes — \(f_t, i_t, \tilde C_t, o_t\) — which is why all four have the same \(W^{(h)}(\cdot)+W^{(x)}(\cdot)+b\) shape and differ only in their weights.</li>
+<li>Three boxes use \(\sigma\) (they are <strong style="color:var(--text)">valves</strong>, output in \((0,1)\)); only \(\tilde C_t\) uses \(\tanh\) (it is <strong style="color:var(--text)">content</strong>, output in \((-1,1)\)).</li>
+</ol>
+</section>
+
 <section class="card" id="flow">
-<h2 class="sec">0. First understand the LSTM flow</h2>
+<h2 class="sec">The fixed solution order</h2>
 <p>Think of it as \(\boxed{h_{t-1},x_t}\) feeding four computations: \(f_t,\; i_t,\; \tilde C_t,\; o_t.\) Then:</p>
 <div class="formula">\[ \boxed{ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t } \]</div>
 <p>and finally:</p>
 <div class="formula">\[ \boxed{ h_t=o_t\odot\tanh(C_t) } \]</div>
 <p>So the entire numerical question always follows:</p>
 <div class="result blue">\[ \boxed{ f_t \rightarrow i_t \rightarrow \tilde C_t \rightarrow C_t \rightarrow o_t \rightarrow h_t } \]</div>
-<p class="muted">That order is worth memorizing.</p>
+<p class="muted">That order is worth memorizing — it is the order the diagram is wired in, left to right.</p>
 </section>
 
-<section class="card" id="draw">
+<section class="card" id="a">
 <h2 class="sec">(a) Draw the LSTM cell</h2>
+<p class="muted">This part <em>is</em> the diagram, so here is the whole cell again — every path live. In the exam, reproduce these five labelled pieces and the two lines they sit between.</p>
+<div class="lstm-visual" data-stage="all" data-label="(a) What you must be able to draw"></div>
+<p>A hand-drawable version of the same thing:</p>
 <pre class="diagram">                 ┌──────── f_t ────────┐
 C_(t-1) ─────────────── × ─────────────┐
                                        │
@@ -101,10 +142,10 @@ h_(t-1), x_t ────┤            ×────────┘           
 <p>Interpretation: \(f_t\) how much old memory to keep · \(i_t\) how much new candidate memory to write · \(\tilde C_t\) proposed new information · \(C_t\) updated memory · \(o_t\) how much memory to expose as hidden state.</p>
 </section>
 
-<section class="card" id="solution-architecture"><h2 class="sec">Start the solution: follow the cell</h2><p class="muted">Keep this architecture beside the equations. The highlighted path changes as you move through the solution.</p><div class="lstm-visual"></div></section>
-
 <section class="card" id="b">
 <h2 class="sec">(b) Forget gate \(f_t\)</h2>
+<p class="muted">Where this lives in the cell — the \(f_t\) box and the \(\times\) it drives on the memory line:</p>
+<div class="lstm-visual" data-stage="forget" data-label="(b) Forget gate — path in use"></div>
 <div class="formula">
 \[ W_f^{(h)} = \begin{bmatrix} 0.4 & -1.0 \\ -0.3 & 0.2 \end{bmatrix} \quad
 W_f^{(x)} = \begin{bmatrix} 0.5 & 0.6 \\ 0.8 & -0.3 \end{bmatrix} \quad
@@ -130,10 +171,13 @@ b_f = \begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix}. \]
 = \boxed{ \begin{bmatrix} 1.34 \\ 0.29 \end{bmatrix}} \]
 </div>
 <div class="result">\[ f_t = \sigma(z_f) \quad \boxed{ f_t \approx \begin{bmatrix} 0.7925 \\ 0.5720 \end{bmatrix}} \]</div>
+<p class="muted">Reading it back on the diagram: \(0.7925\) means unit 1 keeps about <strong style="color:var(--text)">79%</strong> of its old memory, unit 2 keeps about <strong style="color:var(--text)">57%</strong>. Nothing is written yet — that is parts (c) and (d).</p>
 </section>
 
 <section class="card" id="c">
 <h2 class="sec">(c) Input gate \(i_t\)</h2>
+<p class="muted">Same input line, different box: \(i_t\) feeds the middle \(\times\), the one that gates the new content.</p>
+<div class="lstm-visual" data-stage="input" data-label="(c) Input gate — path in use"></div>
 <div class="formula">
 \[ W_i^{(h)} = \begin{bmatrix} 0.4 & -0.3 \\ 0.2 & 0.4 \end{bmatrix},\quad
 W_i^{(x)} = \begin{bmatrix} 0.1 & 0.4 \\ -0.2 & 0.5 \end{bmatrix},\quad
@@ -145,10 +189,13 @@ b_i = \begin{bmatrix} 0 \\ 0.1 \end{bmatrix}. \]
 = \boxed{ \begin{bmatrix} 0.43 \\ -0.10 \end{bmatrix}} \]
 </div>
 <div class="result">\[ \boxed{ i_t = \begin{bmatrix} \sigma(0.43) \\ \sigma(-0.10) \end{bmatrix} \approx \begin{bmatrix} 0.6059 \\ 0.4750 \end{bmatrix}} \]</div>
+<p class="muted">Still a valve, not content — \(i_t\) alone cannot change memory until it is multiplied by \(\tilde C_t\) at that \(\times\).</p>
 </section>
 
 <section class="card" id="d">
 <h2 class="sec">(d) Candidate cell state \(\tilde C_t\)</h2>
+<p class="muted">The other half of that \(\times\): the only <strong style="color:var(--text)">tanh</strong> box on the input side — the content being proposed.</p>
+<div class="lstm-visual" data-stage="candidate" data-label="(d) Candidate — path in use"></div>
 <div class="formula">
 \[ W_c^{(h)} = \begin{bmatrix} 0.3 & -0.2 \\ -0.4 & 0.1 \end{bmatrix} \quad
 W_c^{(x)} = \begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix},\quad
@@ -161,26 +208,32 @@ b_c = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}. \]
 </div>
 <p>Candidate uses <strong>tanh</strong>, not sigmoid:</p>
 <div class="result">\[ \tilde C_t = \tanh(z_c) \quad \boxed{ \tilde C_t \approx \begin{bmatrix} 0.5441 \\ 0.0997 \end{bmatrix}} \]</div>
+<p class="muted">This is the single most common slip in the exam — using \(\sigma\) here would force the proposed content to be positive, which is wrong.</p>
 </section>
 
 <section class="card" id="e">
 <h2 class="sec">(e) Updated cell state \(C_t\)</h2>
+<p class="muted">Now the two streams meet: the kept old memory arrives from the forget \(\times\), the new content from the middle \(\times\), and the \(+\) merges them into \(C_t\).</p>
+<div class="lstm-visual" data-stage="cell" data-label="(e) Cell state — path in use"></div>
 <div class="formula">\[ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t. \]</div>
-<p>Retained old memory:</p>
+<p>Retained old memory (the \(\times\) on the top line):</p>
 <div class="formula">
 \[ f_t\odot C_{t-1} = \begin{bmatrix} 0.7925 \\ 0.5720 \end{bmatrix} \odot \begin{bmatrix} 0.1 \\ -0.3 \end{bmatrix}
 = \begin{bmatrix} 0.07925 \\ -0.17160 \end{bmatrix}. \]
 </div>
-<p>New memory:</p>
+<p>New memory (the middle \(\times\)):</p>
 <div class="formula">
 \[ i_t\odot\tilde C_t = \begin{bmatrix} 0.6059 \\ 0.4750 \end{bmatrix} \odot \begin{bmatrix} 0.5441 \\ 0.0997 \end{bmatrix}
 \approx \begin{bmatrix} 0.32967 \\ 0.04734 \end{bmatrix}. \]
 </div>
 <div class="result">\[ \boxed{ C_t \approx \begin{bmatrix} 0.4089 \\ -0.1243 \end{bmatrix}} \]</div>
+<p class="muted">\(C_t\) is final here — it leaves the cell along the top line <strong style="color:var(--text)">un-squashed</strong>. The \(\tanh\) in part (f) is applied to a copy of it, not to the memory itself.</p>
 </section>
 
 <section class="card" id="f">
 <h2 class="sec">(f) Output gate \(o_t\) + hidden \(h_t\)</h2>
+<p class="muted">Last valve on the input line. It reads \(h_{t-1},x_t\) — <em>not</em> \(C_t\) — and feeds the right-hand \(\times\).</p>
+<div class="lstm-visual" data-stage="output" data-label="(f) Output gate — path in use"></div>
 <div class="formula">
 \[ W_o^{(h)} = \begin{bmatrix} 0.5 & -0.2 \\ -0.6 & 0.4 \end{bmatrix} \quad
 W_o^{(x)} = \begin{bmatrix} 0.3 & 0.7 \\ 0.5 & -0.1 \end{bmatrix},\quad
@@ -194,9 +247,12 @@ b_o = \begin{bmatrix} 0 \\ 0.05 \end{bmatrix}. \]
 <div class="result">\[ \boxed{ o_t \approx \begin{bmatrix} 0.6525 \\ 0.5125 \end{bmatrix}} \]</div>
 <hr class="sep" />
 <h3>Final hidden state \(h_t\)</h3>
+<p class="muted">The last stretch of the diagram: \(C_t\) is tapped off the memory line, squashed by \(\tanh\), multiplied by \(o_t\), and leaves as \(h_t\).</p>
+<div class="lstm-visual" data-stage="hidden" data-label="(f) Hidden state — path in use"></div>
 <div class="formula">\[ h_t = o_t\odot\tanh(C_t). \quad C_t = \begin{bmatrix} 0.4089 \\ -0.1243 \end{bmatrix}. \]</div>
 <div class="formula">\[ \tanh(C_t) \approx \begin{bmatrix} 0.3876 \\ -0.1236 \end{bmatrix}. \]</div>
 <div class="result">\[ h_t = \begin{bmatrix} 0.6525 \\ 0.5125 \end{bmatrix} \odot \begin{bmatrix} 0.3876 \\ -0.1236 \end{bmatrix} \quad \boxed{ h_t \approx \begin{bmatrix} 0.2529 \\ -0.0634 \end{bmatrix}} \]</div>
+<p class="muted">Both outputs of the cell are now known: \(C_t\) leaves along the top, \(h_t\) leaves on the right. Together they are the state passed to \(t+1\).</p>
 </section>
 
 <section class="card" id="final">

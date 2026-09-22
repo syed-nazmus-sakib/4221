@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-2 — Exact ANN Problem (Previous In-Course)</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-2</div>
+<h1>Exact ANN Problem — Previous In-Course, Question 1</h1>
+<p class="subtitle">The architecture changes from \(3\rightarrow2\rightarrow1\) to <strong style="color:var(--text)">\(3\rightarrow2\rightarrow2\)</strong>: ReLU hidden units and <strong style="color:var(--text)">two Sigmoid outputs</strong>, scored with <strong style="color:var(--text)">categorical cross-entropy</strong>. That pairing is unusual, and it changes the output delta — this page solves the paper exactly as written rather than silently swapping in Softmax.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#shapes">Before solving: shapes and wiring</a></li>
+<li><a href="#a">(a) Hidden activations</a></li>
+<li><a href="#b">(b) Output activations</a></li>
+<li><a href="#c">(c) Categorical cross-entropy</a></li>
+<li><a href="#delta">The output delta — do not use \(\hat y-y\) here</a></li>
+<li><a href="#d">(d) Gradients for \(W^{(2)},b^{(2)}\)</a></li>
+<li><a href="#e">(e) Gradients for \(W^{(1)},b^{(1)}\)</a></li>
+<li><a href="#f">(f) Update \(W^{(2)},b^{(2)}\)</a></li>
+<li><a href="#g">(g) Update \(W^{(1)},b^{(1)}\)</a></li>
+<li><a href="#final">Final answer sheet</a></li></ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Previous In-Course Exam · Question 1 · 3 → 2 → 2 network</div>
+<p>A feed-forward network has <strong style="color:var(--text)">3 inputs, 2 hidden units and 2 outputs</strong>. The hidden layer uses <strong style="color:var(--text)">ReLU</strong>; both output units use <strong style="color:var(--text)">Sigmoid</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 0.6 \\ 0.9 \\ 0.4 \end{bmatrix} \qquad
+W^{(1)}=\begin{bmatrix} 0.4 & -0.3 \\ 0.2 & 0.5 \\ -0.6 & 0.1 \end{bmatrix} \qquad
+b^{(1)}=\begin{bmatrix} 0.1 \\ -0.2 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.5 & -0.4 \\ 0.7 & 0.3 \end{bmatrix} \qquad
+b^{(2)}=\begin{bmatrix} 0.05 \\ -0.1 \end{bmatrix} \]
+</div>
+<p>The target is \(y=\begin{bmatrix} 1 \\ 0 \end{bmatrix}\), the loss is <strong style="color:var(--text)">categorical cross-entropy</strong>, and the learning rate is \(\eta=0.1\).</p>
+<p class="muted">Answer the following:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Compute the <strong>hidden-layer activations</strong>.</span></li>
+<li><span class="part">(b)</span><span>Compute the <strong>output-layer activations</strong>.</span></li>
+<li><span class="part">(c)</span><span>Compute the <strong>categorical cross-entropy loss</strong>.</span></li>
+<li><span class="part">(d)</span><span>Compute the gradients with respect to <strong>\(W^{(2)}\) and \(b^{(2)}\)</strong>.</span></li>
+<li><span class="part">(e)</span><span>Compute the gradients with respect to <strong>\(W^{(1)}\) and \(b^{(1)}\)</strong>.</span></li>
+<li><span class="part">(f)</span><span>Update <strong>\(W^{(2)}\) and \(b^{(2)}\)</strong>.</span></li>
+<li><span class="part">(g)</span><span>Update <strong>\(W^{(1)}\) and \(b^{(1)}\)</strong>.</span></li>
+</ul>
+<hr class="sep" />
+<blockquote>One oddity in the paper, preserved here deliberately: it labels both outputs <strong style="color:var(--text)">Sigmoid</strong> yet calls the loss <strong style="color:var(--text)">categorical cross-entropy</strong>. Those two are not the standard pair. Everything below follows the paper literally — and section <a href="#delta">the output delta</a> shows exactly what that changes.</blockquote>
+</section>
+
+<section class="card" id="shapes">
+<h2 class="sec">Before solving: shapes and wiring</h2>
+<p>\(W^{(1)}\in\mathbb{R}^{3\times2}\) (3 inputs, 2 hidden) and now \(W^{(2)}\in\mathbb{R}^{2\times2}\) (2 hidden, 2 outputs). Both are stored <em>input-by-output</em>, so both need transposing in the forward pass:</p>
+<div class="formula">
+\[ \boxed{ z^{(1)}=(W^{(1)})^{T}x+b^{(1)} } \qquad \boxed{ h=\mathrm{ReLU}(z^{(1)}) } \]
+\[ \boxed{ z^{(2)}=(W^{(2)})^{T}h+b^{(2)} } \qquad \boxed{ \hat y_k=\sigma(z^{(2)}_k) } \]
+</div>
+<pre class="diagram">   x (3)              h (2)              y^ (2)
+  ┌─────┐   W(1)ᵀ    ┌──────┐   W(2)ᵀ   ┌─────┐
+  │ 0.6 │ ─────────► │ ReLU │ ────────► │  σ  │ ──► y^₁        y = [1, 0]ᵀ
+  │ 0.9 │  + b(1)    │ ReLU │  + b(2)   │  σ  │ ──► y^₂   ──►  CCE  ──► L
+  │ 0.4 │            └──────┘           └─────┘
+  └─────┘
+       3×2                   2×2            two INDEPENDENT sigmoids
+                                            (no shared normaliser)</pre>
+<p class="muted">The single structural difference from the \(3\rightarrow2\rightarrow1\) paper: the output layer is now a <strong style="color:var(--text)">matrix, not a vector</strong>, so \(\delta^{(2)}\) is a 2-vector and \(\partial L/\partial W^{(2)}\) is \(2\times2\).</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Hidden-layer activations</h2>
+<div class="formula">
+\[ (W^{(1)})^{T}=\begin{bmatrix} 0.4 & 0.2 & -0.6 \\ -0.3 & 0.5 & 0.1 \end{bmatrix} \]
+\[ z^{(1)}=\begin{bmatrix} 0.4 & 0.2 & -0.6 \\ -0.3 & 0.5 & 0.1 \end{bmatrix}
+\begin{bmatrix} 0.6 \\ 0.9 \\ 0.4 \end{bmatrix}+\begin{bmatrix} 0.1 \\ -0.2 \end{bmatrix} \]
+</div>
+<h3>Hidden neuron 1</h3>
+<div class="formula">
+\[ z^{(1)}_1 = 0.4(0.6)+0.2(0.9)-0.6(0.4)+0.1 \]
+\[ = 0.24+0.18-0.24+0.1 \qquad \boxed{ z^{(1)}_1 = 0.28 } \]
+</div>
+<h3>Hidden neuron 2</h3>
+<div class="formula">
+\[ z^{(1)}_2 = -0.3(0.6)+0.5(0.9)+0.1(0.4)-0.2 \]
+\[ = -0.18+0.45+0.04-0.2 \qquad \boxed{ z^{(1)}_2 = 0.11 } \]
+</div>
+<p>Apply ReLU. Both pre-activations are positive, so both pass through unchanged:</p>
+<div class="result">
+\[ z^{(1)}=\begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix} \quad\Longrightarrow\quad
+\boxed{ h=\begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix} } \]
+</div>
+<p class="muted">Note for part (e): no ReLU unit is dead, so \(\mathrm{ReLU}'(z^{(1)})=\begin{bmatrix}1\\1\end{bmatrix}\) later.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Output activations</h2>
+<div class="formula">
+\[ (W^{(2)})^{T}=\begin{bmatrix} 0.5 & 0.7 \\ -0.4 & 0.3 \end{bmatrix} \]
+\[ z^{(2)}=\begin{bmatrix} 0.5 & 0.7 \\ -0.4 & 0.3 \end{bmatrix}
+\begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix}+\begin{bmatrix} 0.05 \\ -0.1 \end{bmatrix} \]
+</div>
+<h3>Output 1</h3>
+<div class="formula">
+\[ z^{(2)}_1 = 0.5(0.28)+0.7(0.11)+0.05 = 0.14+0.077+0.05 \qquad \boxed{ z^{(2)}_1 = 0.267 } \]
+</div>
+<h3>Output 2</h3>
+<div class="formula">
+\[ z^{(2)}_2 = -0.4(0.28)+0.3(0.11)-0.1 = -0.112+0.033-0.1 \qquad \boxed{ z^{(2)}_2 = -0.179 } \]
+</div>
+<p>Apply the sigmoid to each output <strong style="color:var(--text)">independently</strong>:</p>
+<div class="result">
+\[ \hat y_1=\sigma(0.267)\approx 0.5664 \qquad \hat y_2=\sigma(-0.179)\approx 0.4554 \]
+\[ \boxed{ \hat y \approx \begin{bmatrix} 0.5664 \\ 0.4554 \end{bmatrix} } \]
+</div>
+<p>Notice that these do <strong style="color:var(--text)">not</strong> sum to 1:</p>
+<div class="formula">\[ 0.5664+0.4554 = 1.0218 \neq 1 \]</div>
+<p class="muted">That is not an arithmetic slip — it is the direct consequence of two independent sigmoids instead of a Softmax. Softmax divides by a shared normaliser, so its outputs are forced to sum to 1; sigmoids have no such coupling. Write this observation down in the exam: it shows you understand the difference rather than having mis-added.</p>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Categorical cross-entropy loss</h2>
+<div class="formula">\[ L = -\sum_k y_k\ln\hat y_k \]</div>
+<p>With \(y=\begin{bmatrix}1\\0\end{bmatrix}\), the second term is multiplied by zero and drops out:</p>
+<div class="formula">
+\[ L = -\big[\,1\cdot\ln(0.5664)+0\cdot\ln(0.4554)\,\big] = -\ln(0.5664) \]
+</div>
+<div class="result">\[ \boxed{ L \approx 0.5685 } \]</div>
+<p class="muted">Only the <strong style="color:var(--text)">target class</strong> contributes. Keep that in mind for the next section — it is precisely why the second output ends up with no gradient at all.</p>
+</section>
+
+<section class="card" id="delta">
+<h2 class="sec">The output delta — do <em>not</em> reach for \(\hat y-y\) here</h2>
+<p>In the \(3\rightarrow2\rightarrow1\) paper the output was <strong style="color:var(--text)">Sigmoid + BCE</strong>, and the two derivatives cancelled to give \(\delta^{(2)}=\hat y-y\). The same shortcut holds for <strong style="color:var(--text)">Softmax + CCE</strong>. This paper pairs <strong style="color:var(--text)">Sigmoid with CCE</strong>, which is neither, so the cancellation is only partial. Derive it:</p>
+<div class="formula">
+\[ L=-\sum_k y_k\ln\hat y_k, \qquad \hat y_k=\sigma(z_k), \qquad \sigma'(z_k)=\hat y_k(1-\hat y_k) \]
+</div>
+<p>By the chain rule, for one output \(k\):</p>
+<div class="formula">
+\[ \frac{\partial L}{\partial z_k}
+= \underbrace{-\frac{y_k}{\hat y_k}}_{\partial L/\partial\hat y_k}\cdot
+\underbrace{\hat y_k(1-\hat y_k)}_{\partial\hat y_k/\partial z_k} \]
+</div>
+<p>The \(\hat y_k\) cancels — but only one of them, leaving the \(y_k\) factor in place:</p>
+<div class="formula">
+\[ \frac{\partial L}{\partial z_k} = -y_k(1-\hat y_k)
+\qquad\Longleftrightarrow\qquad \boxed{ \delta^{(2)}_k = y_k(\hat y_k-1) } \]
+</div>
+<h3>Evaluate for both outputs</h3>
+<div class="formula">
+\[ \delta^{(2)}_1 = y_1(\hat y_1-1) = 1(0.5664-1) \qquad \boxed{ \delta^{(2)}_1 = -0.4336 } \]
+\[ \delta^{(2)}_2 = y_2(\hat y_2-1) = 0\cdot(0.4554-1) \qquad \boxed{ \delta^{(2)}_2 = 0 } \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(2)} = \begin{bmatrix} -0.4336 \\ 0 \end{bmatrix} } \]</div>
+<hr class="sep" />
+<p>Compare with the shortcut you were <em>not</em> allowed to use here:</p>
+<div class="formula">
+\[ \hat y - y = \begin{bmatrix} 0.5664-1 \\ 0.4554-0 \end{bmatrix} = \begin{bmatrix} -0.4336 \\ 0.4554 \end{bmatrix}
+\qquad\text{vs.}\qquad \delta^{(2)} = \begin{bmatrix} -0.4336 \\ 0 \end{bmatrix} \]
+</div>
+<p>The <strong style="color:var(--text)">target</strong> output happens to agree; the <strong style="color:var(--text)">non-target</strong> output does not. Under this literal reading, \(\delta^{(2)}_2=0\), which means the loss gives the network no instruction to push \(\hat y_2\) down — output 2 simply never learns. That dead gradient is exactly the defect Softmax + CCE exists to fix, because there the shared normaliser makes lowering \(\hat y_2\) part of raising \(\hat y_1\).</p>
+<div class="result blue">\[ \boxed{ \text{Identify the activation and the loss first. Only then pick the } \delta \text{ formula.} } \]</div>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Gradients of the output weights and bias</h2>
+<p>Since \(z^{(2)}_k=\sum_i W^{(2)}_{ik}h_i+b^{(2)}_k\), we get \(\partial z^{(2)}_k/\partial W^{(2)}_{ik}=h_i\), so the gradient is the outer product:</p>
+<div class="formula">
+\[ \boxed{ \frac{\partial L}{\partial W^{(2)}}=h\,(\delta^{(2)})^{T} }
+= \begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix}\begin{bmatrix} -0.4336 & 0 \end{bmatrix} \]
+</div>
+<div class="formula">
+\[ \text{Row 1: } 0.28(-0.4336)=-0.1214,\qquad 0.28(0)=0 \]
+\[ \text{Row 2: } 0.11(-0.4336)=-0.0477,\qquad 0.11(0)=0 \]
+</div>
+<div class="result">
+\[ \boxed{ \frac{\partial L}{\partial W^{(2)}} \approx \begin{bmatrix} -0.1214 & 0 \\ -0.0477 & 0 \end{bmatrix} }
+\qquad \boxed{ \frac{\partial L}{\partial b^{(2)}} = \delta^{(2)} = \begin{bmatrix} -0.4336 \\ 0 \end{bmatrix} } \]
+</div>
+<p class="muted">The <strong style="color:var(--text)">entire second column is zero</strong> — every weight feeding output 2, and its bias, receives nothing. That is the dead gradient from the previous section showing up in the numbers.</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Hidden-layer gradients</h2>
+<div class="formula">
+\[ \boxed{ \delta^{(1)}=\big(W^{(2)}\delta^{(2)}\big)\odot\mathrm{ReLU}'(z^{(1)}) } \]
+</div>
+<h3>Step 1 — the ReLU derivative</h3>
+<div class="formula">
+\[ z^{(1)}=\begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix} \text{ (both }>0)
+\qquad\Longrightarrow\qquad \mathrm{ReLU}'(z^{(1)})=\begin{bmatrix} 1 \\ 1 \end{bmatrix} \]
+</div>
+<h3>Step 2 — push the delta back through \(W^{(2)}\)</h3>
+<p>Note this uses \(W^{(2)}\) itself, <strong style="color:var(--text)">not</strong> its transpose — going backwards undoes the transpose taken in the forward pass:</p>
+<div class="formula">
+\[ W^{(2)}\delta^{(2)}=\begin{bmatrix} 0.5 & -0.4 \\ 0.7 & 0.3 \end{bmatrix}
+\begin{bmatrix} -0.4336 \\ 0 \end{bmatrix} \]
+\[ \text{Hidden 1: } 0.5(-0.4336)+(-0.4)(0) = -0.2168 \]
+\[ \text{Hidden 2: } 0.7(-0.4336)+0.3(0) = -0.3036 \]
+</div>
+<p>Element-wise multiply by \(\begin{bmatrix}1\\1\end{bmatrix}\), which changes nothing here:</p>
+<div class="result">\[ \boxed{ \delta^{(1)} \approx \begin{bmatrix} -0.2168 \\ -0.3036 \end{bmatrix} } \]</div>
+<hr class="sep" />
+<h3>Gradient of \(W^{(1)}\)</h3>
+<p>\(W^{(1)}\) is \(3\times2\), so the outer product is \(x\) (3×1) times \((\delta^{(1)})^{T}\) (1×2):</p>
+<div class="formula">
+\[ \boxed{ \frac{\partial L}{\partial W^{(1)}}=x\,(\delta^{(1)})^{T} }
+= \begin{bmatrix} 0.6 \\ 0.9 \\ 0.4 \end{bmatrix}\begin{bmatrix} -0.2168 & -0.3036 \end{bmatrix} \]
+</div>
+<div class="formula">
+\[ \text{Row 1: } 0.6(-0.2168)=-0.1301,\qquad 0.6(-0.3036)=-0.1821 \]
+\[ \text{Row 2: } 0.9(-0.2168)=-0.1951,\qquad 0.9(-0.3036)=-0.2732 \]
+\[ \text{Row 3: } 0.4(-0.2168)=-0.0867,\qquad 0.4(-0.3036)=-0.1214 \]
+</div>
+<div class="result">
+\[ \boxed{ \frac{\partial L}{\partial W^{(1)}} \approx
+\begin{bmatrix} -0.1301 & -0.1821 \\ -0.1951 & -0.2732 \\ -0.0867 & -0.1214 \end{bmatrix} }
+\qquad \boxed{ \frac{\partial L}{\partial b^{(1)}} = \delta^{(1)} \approx \begin{bmatrix} -0.2168 \\ -0.3036 \end{bmatrix} } \]
+</div>
+<p class="muted">Every entry is negative, so every hidden parameter will move <strong style="color:var(--text)">up</strong> — which raises \(h\), raises \(z^{(2)}_1\), and raises \(\hat y_1\) toward its target of 1. That is the right direction.</p>
+</section>
+
+<section class="card" id="f">
+<h2 class="sec">(f) Update the output-layer parameters</h2>
+<div class="formula">\[ \boxed{ \theta_{\text{new}}=\theta_{\text{old}}-\eta\frac{\partial L}{\partial\theta} },\qquad \eta=0.1 \]</div>
+<div class="formula">
+\[ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.5 & -0.4 \\ 0.7 & 0.3 \end{bmatrix}
+-0.1\begin{bmatrix} -0.1214 & 0 \\ -0.0477 & 0 \end{bmatrix} \]
+\[ = \begin{bmatrix} 0.5+0.01214 & -0.4-0 \\ 0.7+0.00477 & 0.3-0 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.5121 & -0.4000 \\ 0.7048 & 0.3000 \end{bmatrix} } \]
+</div>
+<div class="formula">
+\[ b^{(2)}_{\text{new}}=\begin{bmatrix} 0.05 \\ -0.1 \end{bmatrix}-0.1\begin{bmatrix} -0.4336 \\ 0 \end{bmatrix}
+=\begin{bmatrix} 0.05+0.04336 \\ -0.1-0 \end{bmatrix} \]
+</div>
+<div class="result">\[ \boxed{ b^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.0934 \\ -0.1000 \end{bmatrix} } \]</div>
+<p class="muted">Column 2 of \(W^{(2)}\) and \(b^{(2)}_2\) are <strong style="color:var(--text)">unchanged</strong> after a full training step. Write the unchanged values out anyway — they are part of the answer, and stating <em>why</em> they did not move is worth marks.</p>
+</section>
+
+<section class="card" id="g">
+<h2 class="sec">(g) Update the hidden-layer parameters</h2>
+<p>Scale the \(W^{(1)}\) gradient by \(\eta=0.1\):</p>
+<div class="formula">
+\[ 0.1\frac{\partial L}{\partial W^{(1)}}=
+\begin{bmatrix} -0.01301 & -0.01821 \\ -0.01951 & -0.02732 \\ -0.00867 & -0.01214 \end{bmatrix} \]
+</div>
+<p>Subtract from \(W^{(1)}\) — subtracting a negative means every entry increases:</p>
+<div class="formula">
+\[ W^{(1)}_{\text{new}}=
+\begin{bmatrix} 0.4+0.01301 & -0.3+0.01821 \\ 0.2+0.01951 & 0.5+0.02732 \\ -0.6+0.00867 & 0.1+0.01214 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(1)}_{\text{new}} \approx
+\begin{bmatrix} 0.4130 & -0.2818 \\ 0.2195 & 0.5273 \\ -0.5913 & 0.1121 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>Hidden bias</h3>
+<div class="formula">
+\[ b^{(1)}_{\text{new}}=\begin{bmatrix} 0.1 \\ -0.2 \end{bmatrix}-0.1\begin{bmatrix} -0.2168 \\ -0.3036 \end{bmatrix}
+=\begin{bmatrix} 0.1+0.02168 \\ -0.2+0.03036 \end{bmatrix} \]
+</div>
+<div class="result">\[ \boxed{ b^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.1217 \\ -0.1696 \end{bmatrix} } \]</div>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<h3>Forward pass</h3>
+<div class="formula">
+\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix} } \qquad
+\boxed{ h=\begin{bmatrix} 0.28 \\ 0.11 \end{bmatrix} } \qquad
+\boxed{ z^{(2)}=\begin{bmatrix} 0.267 \\ -0.179 \end{bmatrix} } \]
+\[ \boxed{ \hat y \approx \begin{bmatrix} 0.5664 \\ 0.4554 \end{bmatrix} } \qquad \boxed{ L \approx 0.5685 } \]
+</div>
+<h3>Backward pass</h3>
+<div class="formula">
+\[ \boxed{ \delta^{(2)} \approx \begin{bmatrix} -0.4336 \\ 0 \end{bmatrix} } \qquad
+\boxed{ \frac{\partial L}{\partial W^{(2)}} \approx \begin{bmatrix} -0.1214 & 0 \\ -0.0477 & 0 \end{bmatrix} } \qquad
+\boxed{ \frac{\partial L}{\partial b^{(2)}} \approx \begin{bmatrix} -0.4336 \\ 0 \end{bmatrix} } \]
+\[ \boxed{ \delta^{(1)} \approx \begin{bmatrix} -0.2168 \\ -0.3036 \end{bmatrix} } \qquad
+\boxed{ \frac{\partial L}{\partial W^{(1)}} \approx \begin{bmatrix} -0.1301 & -0.1821 \\ -0.1951 & -0.2732 \\ -0.0867 & -0.1214 \end{bmatrix} } \qquad
+\boxed{ \frac{\partial L}{\partial b^{(1)}} \approx \begin{bmatrix} -0.2168 \\ -0.3036 \end{bmatrix} } \]
+</div>
+<h3>Updated parameters</h3>
+<div class="formula">
+\[ \boxed{ W^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.5121 & -0.4000 \\ 0.7048 & 0.3000 \end{bmatrix} } \qquad
+\boxed{ b^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.0934 \\ -0.1000 \end{bmatrix} } \]
+\[ \boxed{ W^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.4130 & -0.2818 \\ 0.2195 & 0.5273 \\ -0.5913 & 0.1121 \end{bmatrix} } \qquad
+\boxed{ b^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.1217 \\ -0.1696 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>What this problem is actually testing</h3>
+<p>The pipeline is unchanged from <a href="ANN-1.html">ANN-1</a>:</p>
+<div class="result blue">
+\[ \boxed{ \text{Forward}\rightarrow\hat y\rightarrow L\rightarrow\delta^{(2)}\rightarrow\nabla W^{(2)}\rightarrow\delta^{(1)}\rightarrow\nabla W^{(1)}\rightarrow\text{update} } \]
+</div>
+<p>What changes is the single step in the middle. You <strong style="color:var(--text)">cannot blindly use \(\delta=\hat y-y\) for every output/loss pair</strong> — first identify the activation and the loss, then pick the formula:</p>
+<div class="formula">
+\[ \text{Sigmoid + BCE} \;\Rightarrow\; \delta^{(2)}=\hat y-y \]
+\[ \text{Softmax + CCE} \;\Rightarrow\; \delta^{(2)}=\hat y-y \]
+\[ \text{Sigmoid + CCE (this paper)} \;\Rightarrow\; \delta^{(2)}_k=y_k(\hat y_k-1) \]
+</div>
+<p class="muted">The next ANN questions switch to the clean pairing <strong style="color:var(--text)">tanh hidden + Softmax output + CCE</strong>, where the shortcut \(\delta^{(2)}=\hat y-y\) is back and fully justified.</p>
+</section>
+
+<footer>ANN-2 · Exact Previous In-Course · dark minimal notes</footer>
+</div>
+</body>
+</html>
