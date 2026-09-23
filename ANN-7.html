@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-7 — Regression 3 — Tanh Hidden + Linear Output</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.cmp th{color:var(--faint);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
+<script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-7</div>
+<h1>Regression Problem 3 — Tanh Hidden, Linear Output</h1>
+<p class="subtitle">\(2\rightarrow3\rightarrow1\) with <strong style="color:var(--text)">tanh</strong> hidden units and a linear output, scored with \(\tfrac12(\hat y-y)^{2}\). The output side is unchanged from <a href="ANN-6.html">ANN-6</a>; the new machinery is the single extra backward factor \(1-h^{2}\).</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#shapes">Before solving: what tanh changes</a></li>
+<li><a href="#a">(a) Forward pass</a></li>
+<li><a href="#b">(b) Loss</a></li>
+<li><a href="#c">(c) Output delta and gradients</a></li>
+<li><a href="#d">(d) The tanh derivative</a></li>
+<li><a href="#e">(e) Hidden delta and first-layer gradients</a></li>
+<li><a href="#f">(f) Updated parameters</a></li>
+<li><a href="#final">Final answer sheet</a></li>
+</ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh regression practice · Problem 3 · 2 → 3 → 1 · tanh hidden, linear output</div>
+<p>Consider a network <strong style="color:var(--text)">\(2\rightarrow3\rightarrow1\)</strong> with <strong style="color:var(--text)">Tanh hidden units</strong> and a <strong style="color:var(--text)">linear output</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 1 \\ 1 \end{bmatrix}, \qquad y=0.8 \]
+\[ W^{(1)}=\begin{bmatrix} 0.3 & 0.4 & -0.2 \\ 0.2 & -0.1 & -0.3 \end{bmatrix}, \qquad
+b^{(1)}=\begin{bmatrix} 0 \\ 0.2 \\ 0 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.5 \\ -0.4 \\ 0.2 \end{bmatrix}, \qquad b^{(2)}=0.1, \qquad \eta=0.1 \]
+</div>
+<p>with the loss</p>
+<div class="formula">\[ \boxed{ L=\tfrac12(\hat y-y)^{2} } \]</div>
+<p class="muted">Compute:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>The complete <strong>forward pass</strong> — \(z^{(1)}\), \(h\) and \(\hat y\).</span></li>
+<li><span class="part">(b)</span><span>The <strong>loss</strong>.</span></li>
+<li><span class="part">(c)</span><span>The <strong>output delta</strong> and the gradients of \(W^{(2)},b^{(2)}\).</span></li>
+<li><span class="part">(d)</span><span>The <strong>tanh derivative</strong> at each hidden unit.</span></li>
+<li><span class="part">(e)</span><span>The <strong>hidden delta</strong> and the gradients of \(W^{(1)},b^{(1)}\).</span></li>
+<li><span class="part">(f)</span><span>The <strong>updated parameters</strong>.</span></li>
+</ul>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="2,3,1" data-act="tanh|linear" data-loss="½(ŷ−y)²"></div>
+</section>
+
+<section class="card" id="shapes">
+<h2 class="sec">Before solving: what tanh changes</h2>
+<p>The output side is identical to <a href="ANN-6.html">ANN-6</a> — linear output, \(\tfrac12\) loss — so \(\delta^{(2)}=\hat y-y\) again. The only new machinery is the hidden activation:</p>
+<div class="formula">
+\[ \boxed{ \tanh'(z)=1-\tanh^{2}(z)=1-h^{2} } \]
+</div>
+<p>Two practical consequences, both different from ReLU:</p>
+<ul class="muted">
+<li>Tanh <strong style="color:var(--text)">never dies</strong>. A negative pre-activation gives a negative activation, not a zero — so every hidden unit keeps learning.</li>
+<li>But the derivative is <strong style="color:var(--text)">always less than 1</strong> (it peaks at 1 when \(z=0\)), so every layer it passes through <em>shrinks</em> the gradient. That is the vanishing-gradient problem in miniature.</li>
+</ul>
+<pre class="diagram">   x (2)             h (3)              y^ (1)
+  ┌─────┐  W(1)ᵀ    ┌──────┐   W(2)ᵀ   ┌────────┐
+  │  1  │ ────────► │ tanh │ ────────► │ linear │ ──► y^ ──► ½(y^ − y)² ──► L
+  │  1  │  + b(1)   │ tanh │   + b(2)  └────────┘         y = 0.8
+  └─────┘           │ tanh │
+                    └──────┘
+       2×3                  3×1     backward: multiply by (1 − h²)</pre>
+<p class="muted">Because \(h=\tanh(z)\) is already computed in the forward pass, use \(1-h^{2}\) rather than recomputing \(\tanh\) — it is the same number and far less work.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Forward pass</h2>
+<div class="formula">
+\[ (W^{(1)})^{T}=\begin{bmatrix} 0.3 & 0.2 \\ 0.4 & -0.1 \\ -0.2 & -0.3 \end{bmatrix} \qquad
+z^{(1)}=(W^{(1)})^{T}x+b^{(1)} \]
+</div>
+<p>With \(x=\begin{bmatrix}1\\1\end{bmatrix}\) each pre-activation is simply the <strong style="color:var(--text)">sum of a column of \(W^{(1)}\)</strong> plus the bias:</p>
+<div class="formula">
+\[ z^{(1)}_1 = 0.3+0.2+0 \qquad \boxed{ z^{(1)}_1 = 0.5 } \]
+\[ z^{(1)}_2 = 0.4-0.1+0.2 \qquad \boxed{ z^{(1)}_2 = 0.5 } \]
+\[ z^{(1)}_3 = -0.2-0.3+0 \qquad \boxed{ z^{(1)}_3 = -0.5 } \]
+</div>
+<div class="formula">\[ z^{(1)}=\begin{bmatrix} 0.5 \\ 0.5 \\ -0.5 \end{bmatrix} \]</div>
+<h3>Apply tanh</h3>
+<p>Tanh is an <strong style="color:var(--text)">odd</strong> function, \(\tanh(-z)=-\tanh(z)\), so one evaluation covers all three:</p>
+<div class="formula">
+\[ \tanh(0.5)\approx 0.4621, \qquad \tanh(-0.5)\approx -0.4621 \]
+</div>
+<div class="result">\[ \boxed{ h=\begin{bmatrix} 0.4621 \\ 0.4621 \\ -0.4621 \end{bmatrix} } \]</div>
+<h3>Linear output</h3>
+<div class="formula">
+\[ \hat y = 0.5(0.4621)-0.4(0.4621)+0.2(-0.4621)+0.1 \]
+\[ = 0.4621\,(0.5-0.4-0.2)+0.1 = 0.4621(-0.1)+0.1 = -0.04621+0.1 \]
+</div>
+<div class="result">\[ \boxed{ \hat y \approx 0.05379 } \]</div>
+<p class="muted">Factoring out the shared \(0.4621\) turns three multiplications into one — worth doing whenever the activations repeat.</p>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Loss</h2>
+<div class="formula">
+\[ L=\tfrac12(0.05379-0.8)^{2}=\tfrac12(-0.74621)^{2}=\tfrac12(0.55683) \]
+</div>
+<div class="result">\[ \boxed{ L \approx 0.27842 } \]</div>
+<p class="muted">The prediction \(0.054\) is a long way below the target \(0.8\), so expect a large delta.</p>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Output delta and output gradients</h2>
+<p>Linear output, \(\tfrac12\) loss — the same clean case as <a href="ANN-6.html">ANN-6</a>:</p>
+<div class="formula">
+\[ \boxed{ \delta^{(2)}=\hat y-y } = 0.05379-0.8 \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(2)} \approx -0.74621 } \]</div>
+<div class="formula">
+\[ \nabla W^{(2)}=h\,\delta^{(2)}
+=\begin{bmatrix} 0.4621 \\ 0.4621 \\ -0.4621 \end{bmatrix}(-0.74621) \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(2)} \approx \begin{bmatrix} -0.34484 \\ -0.34484 \\ 0.34484 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(2)} = \delta^{(2)} \approx -0.74621 } \]
+</div>
+<p class="muted">All three magnitudes are equal because all three \(|h_i|\) are equal; only the third sign flips, because \(h_3\) is negative.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) The tanh derivative</h2>
+<div class="formula">\[ \boxed{ \tanh'(z)=1-\tanh^{2}(z)=1-h^{2} } \]</div>
+<p>Every \(|h_i|\approx0.4621\), and squaring kills the sign, so all three derivatives are identical:</p>
+<div class="formula">
+\[ 1-(0.4621)^{2} = 1-0.21355 \]
+</div>
+<div class="result">
+\[ \boxed{ \tanh'(z^{(1)}) \approx \begin{bmatrix} 0.78645 \\ 0.78645 \\ 0.78645 \end{bmatrix} } \]
+</div>
+<p class="muted">Note it is \(<1\): this factor <strong style="color:var(--text)">shrinks</strong> every gradient that passes back through the hidden layer by about \(21\%\). Stack many tanh layers and the gradient vanishes — the reason ReLU became the default.</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Hidden delta and first-layer gradients</h2>
+<p>First push the error back through \(W^{(2)}\):</p>
+<div class="formula">
+\[ W^{(2)}\delta^{(2)}=\begin{bmatrix} 0.5 \\ -0.4 \\ 0.2 \end{bmatrix}(-0.74621)
+\approx \begin{bmatrix} -0.37311 \\ 0.29848 \\ -0.14924 \end{bmatrix} \]
+</div>
+<p>Then multiply element-wise by the tanh derivative:</p>
+<div class="formula">
+\[ \delta^{(1)}=\begin{bmatrix} -0.37311 \\ 0.29848 \\ -0.14924 \end{bmatrix}\odot
+\begin{bmatrix} 0.78645 \\ 0.78645 \\ 0.78645 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ \delta^{(1)} \approx \begin{bmatrix} -0.29343 \\ 0.23474 \\ -0.11737 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>First-layer gradients</h3>
+<div class="formula">
+\[ \nabla W^{(1)}=x\,(\delta^{(1)})^{T},
+\qquad x=\begin{bmatrix} 1 \\ 1 \end{bmatrix} \]
+</div>
+<p>Both input components are 1, so <strong style="color:var(--text)">both rows are copies of \((\delta^{(1)})^{T}\)</strong>:</p>
+<div class="result">
+\[ \boxed{ \nabla W^{(1)} \approx
+\begin{bmatrix} -0.29343 & 0.23474 & -0.11737 \\ -0.29343 & 0.23474 & -0.11737 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(1)} = \delta^{(1)} \approx \begin{bmatrix} -0.29343 \\ 0.23474 \\ -0.11737 \end{bmatrix} } \]
+</div>
+</section>
+
+<section class="card" id="f">
+<h2 class="sec">(f) Updated parameters</h2>
+<div class="formula">\[ \theta_{\text{new}}=\theta_{\text{old}}-\eta\nabla\theta, \qquad \eta=0.1 \]</div>
+<h3>Output layer</h3>
+<div class="formula">
+\[ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.5+0.034484 \\ -0.4+0.034484 \\ 0.2-0.034484 \end{bmatrix}
+\qquad b^{(2)}_{\text{new}}=0.1+0.074621 \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.53448 \\ -0.36552 \\ 0.16552 \end{bmatrix} }
+\qquad \boxed{ b^{(2)}_{\text{new}} \approx 0.17462 } \]
+</div>
+<h3>Hidden layer</h3>
+<div class="formula">
+\[ W^{(1)}_{\text{new}}=\begin{bmatrix}
+0.3+0.029343 & 0.4-0.023474 & -0.2+0.011737 \\
+0.2+0.029343 & -0.1-0.023474 & -0.3+0.011737 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(1)}_{\text{new}} \approx
+\begin{bmatrix} 0.32934 & 0.37653 & -0.18826 \\ 0.22934 & -0.12347 & -0.28826 \end{bmatrix} }
+\qquad \boxed{ b^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.02934 \\ 0.17653 \\ 0.01174 \end{bmatrix} } \]
+</div>
+<p class="muted">Every parameter moved, unlike <a href="ANN-6.html">ANN-6</a> where the dead ReLU unit froze a whole column. This is tanh's advantage.</p>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<div class="formula">
+\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.5 \\ 0.5 \\ -0.5 \end{bmatrix} } \qquad
+\boxed{ h \approx \begin{bmatrix} 0.4621 \\ 0.4621 \\ -0.4621 \end{bmatrix} } \qquad
+\boxed{ \hat y \approx 0.05379 } \qquad \boxed{ L \approx 0.27842 } \]
+\[ \boxed{ \delta^{(2)} \approx -0.74621 } \qquad
+\boxed{ \nabla W^{(2)} \approx \begin{bmatrix} -0.34484 \\ -0.34484 \\ 0.34484 \end{bmatrix} } \qquad
+\boxed{ \nabla b^{(2)} \approx -0.74621 } \]
+\[ \boxed{ \tanh' \approx 0.78645 \text{ (all three)} } \qquad
+\boxed{ \delta^{(1)} \approx \begin{bmatrix} -0.29343 \\ 0.23474 \\ -0.11737 \end{bmatrix} } \]
+\[ \boxed{ \nabla W^{(1)} \approx \begin{bmatrix} -0.29343 & 0.23474 & -0.11737 \\ -0.29343 & 0.23474 & -0.11737 \end{bmatrix} } \qquad
+\boxed{ \nabla b^{(1)} \approx \begin{bmatrix} -0.29343 \\ 0.23474 \\ -0.11737 \end{bmatrix} } \]
+\[ \boxed{ W^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.53448 \\ -0.36552 \\ 0.16552 \end{bmatrix} } \quad
+\boxed{ b^{(2)}_{\text{new}} \approx 0.17462 } \]
+\[ \boxed{ W^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.32934 & 0.37653 & -0.18826 \\ 0.22934 & -0.12347 & -0.28826 \end{bmatrix} } \quad
+\boxed{ b^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.02934 \\ 0.17653 \\ 0.01174 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>The one extra factor</h3>
+<div class="result blue">\[ \boxed{ \text{Backpropagating through tanh multiplies by } 1-h^{2} } \]</div>
+<p class="muted">Next: <a href="ANN-8.html">ANN-8</a> is the one that breaks the pattern — it puts a <strong style="color:var(--text)">Sigmoid on the output</strong> with a plain MSE loss, so \(\delta^{(2)}\) is no longer \(\hat y-y\) or \(2(\hat y-y)\), and you must apply the chain rule by hand.</p>
+</section>
+
+<footer>ANN-7 · Fresh regression practice · tanh + linear · dark minimal notes</footer>
+</div>
+</body>
+</html>

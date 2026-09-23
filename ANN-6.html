@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-6 — Regression 2 — ReLU Hidden + Linear Output</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.cmp th{color:var(--faint);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
+<script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-6</div>
+<h1>Regression Problem 2 — ReLU Hidden, Linear Output</h1>
+<p class="subtitle">\(2\rightarrow2\rightarrow1\) with <strong style="color:var(--text)">ReLU</strong> hidden units and a linear output, scored with \(\tfrac12(\hat y-y)^{2}\). Two lessons: the \(\tfrac12\) changes \(\delta^{(2)}\), and one hidden unit is <strong style="color:var(--text)">dead</strong> — so part of the network learns nothing. Ends with a second forward pass showing the loss actually fall.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#trap">Before solving: the \(\tfrac12\) trap</a></li>
+<li><a href="#a">(a) Forward pass</a></li>
+<li><a href="#b">(b) Loss</a></li>
+<li><a href="#c">(c) Backpropagation</a></li>
+<li><a href="#d">(d) Update every parameter</a></li>
+<li><a href="#e">(e) A second forward pass</a></li>
+<li><a href="#final">Final answer sheet</a></li>
+</ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh regression practice · Problem 2 · 2 → 2 → 1 · ReLU hidden, linear output</div>
+<p>Consider a network <strong style="color:var(--text)">\(2\rightarrow2\rightarrow1\)</strong> with <strong style="color:var(--text)">ReLU hidden units</strong> and a <strong style="color:var(--text)">linear output</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 1 \\ -2 \end{bmatrix}, \qquad y=1 \]
+\[ W^{(1)}=\begin{bmatrix} 0.5 & -0.4 \\ 0.2 & 0.3 \end{bmatrix}, \qquad
+b^{(1)}=\begin{bmatrix} 0.1 \\ 0.2 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.7 \\ -0.5 \end{bmatrix}, \qquad b^{(2)}=0.1, \qquad \eta=0.1 \]
+</div>
+<p>Use the loss</p>
+<div class="formula">\[ \boxed{ L=\tfrac12(\hat y-y)^{2} } \]</div>
+<p class="muted">Compute:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>The complete <strong>forward pass</strong> — \(z^{(1)}\), \(h\) and \(\hat y\).</span></li>
+<li><span class="part">(b)</span><span>The <strong>loss</strong>.</span></li>
+<li><span class="part">(c)</span><span>The full <strong>backpropagation</strong> — both deltas and all four gradients.</span></li>
+<li><span class="part">(d)</span><span><strong>Update</strong> every parameter.</span></li>
+<li><span class="part">(e)</span><span>Perform <strong>one new forward pass</strong> and compare the loss.</span></li>
+</ul>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="2,2,1" data-act="ReLU|linear" data-loss="½(ŷ−y)²"></div>
+</section>
+
+<section class="card" id="trap">
+<h2 class="sec">Before solving: the \(\tfrac12\) trap</h2>
+<p><a href="ANN-5.html">ANN-5</a> used \(L=(\hat y-y)^{2}\). This one uses \(L=\tfrac12(\hat y-y)^{2}\). That single factor changes the output delta:</p>
+<table class="cmp">
+<tr><th>Loss as written</th><th>\(\partial L/\partial\hat y\)</th><th>Where you saw it</th></tr>
+<tr><td>\(L=(\hat y-y)^{2}\)</td><td>\(2(\hat y-y)\)</td><td><a href="ANN-5.html">ANN-5</a></td></tr>
+<tr><td>\(L=\tfrac12(\hat y-y)^{2}\)</td><td>\(\hat y-y\)</td><td>this page</td></tr>
+</table>
+<p>The \(\tfrac12\) exists purely so that the 2 from the power rule cancels and the delta comes out clean. Both conventions are common, so <strong style="color:var(--text)">read the loss as printed on the paper</strong> — a factor of 2 in every gradient is a whole question's worth of marks.</p>
+<pre class="diagram">   x (2)             h (2)              y^ (1)
+  ┌─────┐  W(1)ᵀ    ┌──────┐   W(2)ᵀ   ┌────────┐
+  │  1  │ ────────► │ ReLU │ ────────► │ linear │ ──► y^ ──► ½(y^ − y)² ──► L
+  │ -2  │  + b(1)   │ ReLU │   + b(2)  └────────┘         y = 1
+  └─────┘           └──────┘
+       2×2                  2×1        watch for a dead ReLU unit</pre>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Forward pass</h2>
+<div class="formula">
+\[ (W^{(1)})^{T}=\begin{bmatrix} 0.5 & 0.2 \\ -0.4 & 0.3 \end{bmatrix} \qquad
+z^{(1)}=(W^{(1)})^{T}x+b^{(1)} \]
+</div>
+<h3>First neuron</h3>
+<div class="formula">\[ 0.5(1)+0.2(-2)+0.1 = 0.5-0.4+0.1 \qquad \boxed{ z^{(1)}_1 = 0.2 } \]</div>
+<h3>Second neuron</h3>
+<div class="formula">\[ -0.4(1)+0.3(-2)+0.2 = -0.4-0.6+0.2 \qquad \boxed{ z^{(1)}_2 = -0.8 } \]</div>
+<div class="formula">\[ z^{(1)}=\begin{bmatrix} 0.2 \\ -0.8 \end{bmatrix} \]</div>
+<h3>Apply ReLU</h3>
+<p>\(\mathrm{ReLU}(z)=\max(0,z)\). The second pre-activation is negative, so it is clipped to zero:</p>
+<div class="result">\[ \boxed{ h=\begin{bmatrix} 0.2 \\ 0 \end{bmatrix} } \]</div>
+<p class="muted">The <strong style="color:var(--text)">second hidden neuron is inactive</strong>. Remember this — it will zero out a whole slice of the gradients in part (c).</p>
+<h3>Linear output</h3>
+<div class="formula">\[ \hat y = 0.7(0.2)-0.5(0)+0.1 = 0.14+0.1 \]</div>
+<div class="result">\[ \boxed{ \hat y = 0.24 } \]</div>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Loss</h2>
+<div class="formula">
+\[ L=\tfrac12(0.24-1)^{2}=\tfrac12(-0.76)^{2}=\tfrac12(0.5776) \]
+</div>
+<div class="result">\[ \boxed{ L = 0.2888 } \]</div>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Backpropagation</h2>
+<h3>Output delta</h3>
+<p>With the \(\tfrac12\) in front, the 2 from the power rule cancels, and the linear output contributes a derivative of 1:</p>
+<div class="formula">
+\[ L=\tfrac12(\hat y-y)^{2} \qquad\Longrightarrow\qquad \boxed{ \delta^{(2)}=\hat y-y } \]
+\[ \delta^{(2)}=0.24-1 \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(2)} = -0.76 } \]</div>
+<div class="result blue">
+\[ (\hat y-y)^{2} \;\Rightarrow\; 2(\hat y-y) \qquad\text{but}\qquad \tfrac12(\hat y-y)^{2} \;\Rightarrow\; (\hat y-y) \]
+</div>
+<hr class="sep" />
+<h3>Output gradients</h3>
+<div class="formula">
+\[ \nabla W^{(2)}=h\,\delta^{(2)}=\begin{bmatrix} 0.2 \\ 0 \end{bmatrix}(-0.76) \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(2)}=\begin{bmatrix} -0.152 \\ 0 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(2)}=-0.76 } \]
+</div>
+<p class="muted">The second entry is zero because \(h_2=0\) — a dead unit sends nothing forward, so the weight reading from it learns nothing.</p>
+<hr class="sep" />
+<h3>Hidden delta</h3>
+<p>First push the error back through \(W^{(2)}\):</p>
+<div class="formula">
+\[ W^{(2)}\delta^{(2)}=\begin{bmatrix} 0.7 \\ -0.5 \end{bmatrix}(-0.76)
+=\begin{bmatrix} -0.532 \\ 0.380 \end{bmatrix} \]
+</div>
+<p>Then apply the ReLU derivative, which is 1 where \(z>0\) and 0 where \(z<0\):</p>
+<div class="formula">
+\[ z^{(1)}=\begin{bmatrix} 0.2 \\ -0.8 \end{bmatrix} \;\Rightarrow\;
+\mathrm{ReLU}'(z^{(1)})=\begin{bmatrix} 1 \\ 0 \end{bmatrix} \]
+\[ \delta^{(1)}=\begin{bmatrix} -0.532 \\ 0.380 \end{bmatrix}\odot\begin{bmatrix} 1 \\ 0 \end{bmatrix} \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(1)}=\begin{bmatrix} -0.532 \\ 0 \end{bmatrix} } \]</div>
+<p class="muted">The \(0.380\) is computed and then <strong style="color:var(--text)">thrown away</strong>. The second hidden neuron receives zero gradient in both directions — it neither contributed to the prediction nor learns from the error.</p>
+<hr class="sep" />
+<h3>First-layer gradients</h3>
+<div class="formula">
+\[ \nabla W^{(1)}=x\,(\delta^{(1)})^{T}
+=\begin{bmatrix} 1 \\ -2 \end{bmatrix}\begin{bmatrix} -0.532 & 0 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(1)}=\begin{bmatrix} -0.532 & 0 \\ 1.064 & 0 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(1)}=\begin{bmatrix} -0.532 \\ 0 \end{bmatrix} } \]
+</div>
+<p class="muted">Note \(1.064\) is <strong style="color:var(--text)">positive</strong>: \(x_2=-2\) flips the sign of the delta.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Update every parameter</h2>
+<div class="formula">\[ \theta_{\text{new}}=\theta_{\text{old}}-\eta\nabla\theta, \qquad \eta=0.1 \]</div>
+<div class="formula">
+\[ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.7+0.0152 \\ -0.5-0 \end{bmatrix} \qquad
+b^{(2)}_{\text{new}}=0.1+0.076 \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.7152 \\ -0.5 \end{bmatrix} }
+\qquad \boxed{ b^{(2)}_{\text{new}}=0.176 } \]
+</div>
+<div class="formula">
+\[ W^{(1)}_{\text{new}}=\begin{bmatrix} 0.5+0.0532 & -0.4 \\ 0.2-0.1064 & 0.3 \end{bmatrix} \qquad
+b^{(1)}_{\text{new}}=\begin{bmatrix} 0.1+0.0532 \\ 0.2 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(1)}_{\text{new}}=\begin{bmatrix} 0.5532 & -0.4 \\ 0.0936 & 0.3 \end{bmatrix} }
+\qquad \boxed{ b^{(1)}_{\text{new}}=\begin{bmatrix} 0.1532 \\ 0.2 \end{bmatrix} } \]
+</div>
+<p class="muted">Every parameter attached to the dead unit — column 2 of \(W^{(1)}\), \(b^{(1)}_2\), and \(W^{(2)}_2\) — is <strong style="color:var(--text)">unchanged</strong>. Write the unchanged values out anyway; they are part of the answer.</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) A second forward pass</h2>
+<p>Re-run the network with the updated parameters and the same input.</p>
+<div class="formula">
+\[ z'^{(1)}_1 = 0.5532(1)+0.0936(-2)+0.1532 = 0.5532-0.1872+0.1532 \qquad \boxed{ z'^{(1)}_1=0.5192 } \]
+\[ z'^{(1)}_2 = -0.4(1)+0.3(-2)+0.2 \qquad \boxed{ z'^{(1)}_2=-0.8 } \]
+</div>
+<p>The second unit is still negative, so it stays clipped:</p>
+<div class="formula">\[ h'=\begin{bmatrix} 0.5192 \\ 0 \end{bmatrix} \]</div>
+<div class="formula">\[ \hat y' = 0.7152(0.5192)+0.176 = 0.37133+0.176 \]</div>
+<div class="result">\[ \boxed{ \hat y' \approx 0.5473 } \]</div>
+<div class="formula">\[ L'=\tfrac12(0.5473-1)^{2}=\tfrac12(-0.4527)^{2} \]</div>
+<div class="result gold">\[ \boxed{ L' \approx 0.1025 } \]</div>
+<h3>Did it learn?</h3>
+<table class="cmp">
+<tr><th></th><th>Prediction \(\hat y\)</th><th>Loss</th></tr>
+<tr><td>Before the step</td><td>\(0.24\)</td><td>\(0.2888\)</td></tr>
+<tr><td>After one step</td><td>\(0.5473\)</td><td>\(0.1025\)</td></tr>
+</table>
+<p>The prediction moved from \(0.24\) toward the target of \(1\), and the loss fell by about \(65\%\) in a single step. That is the sanity check to state in an exam: <strong style="color:var(--text)">after one gradient step the loss must not increase</strong> (for a small enough \(\eta\)). If yours goes up, you have a sign error.</p>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<div class="formula">
+\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.2 \\ -0.8 \end{bmatrix} } \quad
+\boxed{ h=\begin{bmatrix} 0.2 \\ 0 \end{bmatrix} } \quad
+\boxed{ \hat y=0.24 } \quad \boxed{ L=0.2888 } \quad \boxed{ \delta^{(2)}=-0.76 } \]
+\[ \boxed{ \nabla W^{(2)}=\begin{bmatrix} -0.152 \\ 0 \end{bmatrix} } \quad
+\boxed{ \nabla b^{(2)}=-0.76 } \quad
+\boxed{ \delta^{(1)}=\begin{bmatrix} -0.532 \\ 0 \end{bmatrix} } \]
+\[ \boxed{ \nabla W^{(1)}=\begin{bmatrix} -0.532 & 0 \\ 1.064 & 0 \end{bmatrix} } \quad
+\boxed{ \nabla b^{(1)}=\begin{bmatrix} -0.532 \\ 0 \end{bmatrix} } \]
+\[ \boxed{ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.7152 \\ -0.5 \end{bmatrix} } \quad
+\boxed{ b^{(2)}_{\text{new}}=0.176 } \quad
+\boxed{ W^{(1)}_{\text{new}}=\begin{bmatrix} 0.5532 & -0.4 \\ 0.0936 & 0.3 \end{bmatrix} } \quad
+\boxed{ b^{(1)}_{\text{new}}=\begin{bmatrix} 0.1532 \\ 0.2 \end{bmatrix} } \]
+\[ \boxed{ \hat y'\approx0.5473 } \qquad \boxed{ L'\approx0.1025 } \]
+</div>
+<hr class="sep" />
+<h3>Two things to carry forward</h3>
+<div class="result blue">\[ \boxed{ \text{Linear output} + \tfrac12(\hat y-y)^{2} \;\Longrightarrow\; \delta^{(2)}=\hat y-y } \]</div>
+<div class="result">\[ \boxed{ \text{A ReLU unit with } z<0 \text{ gets zero gradient — its weights do not move.} } \]</div>
+<p class="muted">Next: <a href="ANN-7.html">ANN-7</a> keeps the linear output and the \(\tfrac12\) loss but swaps ReLU for <strong style="color:var(--text)">tanh</strong>, which never dies — instead it contributes a factor of \(1-h^{2}\).</p>
+</section>
+
+<footer>ANN-6 · Fresh regression practice · ReLU + linear · dark minimal notes</footer>
+</div>
+</body>
+</html>

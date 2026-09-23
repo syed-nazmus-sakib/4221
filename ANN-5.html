@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-5 — Regression 1 — All-Linear + MSE</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.cmp th{color:var(--faint);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
+<script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-5</div>
+<h1>Regression Problem 1 — All-Linear Network</h1>
+<p class="subtitle">The simplest possible backprop: \(2\rightarrow2\rightarrow1\) with <strong style="color:var(--text)">no activation anywhere</strong>, squared-error loss written <em>without</em> a \(\tfrac12\). That last detail is the whole point — it makes \(\delta^{(2)}=2(\hat y-y)\) rather than \(\hat y-y\).</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#shapes">Before solving: a linear net is one affine map</a></li>
+<li><a href="#a">(a) Hidden layer \(z^{(1)}\) and \(h\)</a></li>
+<li><a href="#b">(b) Output \(\hat y\)</a></li>
+<li><a href="#c">(c) Loss \(L\)</a></li>
+<li><a href="#d">(d) Output delta \(\delta^{(2)}\)</a></li>
+<li><a href="#e">(e) Gradients of \(W^{(2)},b^{(2)}\)</a></li>
+<li><a href="#f">(f) Hidden-layer delta</a></li>
+<li><a href="#g">(g) Gradients of \(W^{(1)},b^{(1)}\)</a></li>
+<li><a href="#h">(h) Updated parameters</a></li>
+<li><a href="#final">Final answer sheet</a></li>
+</ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh regression practice · Problem 1 · 2 → 2 → 1 · no activations</div>
+<p>Consider a network <strong style="color:var(--text)">\(2\rightarrow2\rightarrow1\)</strong> with <strong style="color:var(--text)">no activation function in either layer</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 1 \\ 2 \end{bmatrix}, \qquad y=1.5 \]
+\[ W^{(1)}=\begin{bmatrix} 0.5 & -0.3 \\ 0.2 & 0.4 \end{bmatrix}, \qquad
+b^{(1)}=\begin{bmatrix} 0.1 \\ -0.2 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.6 \\ -0.5 \end{bmatrix}, \qquad b^{(2)}=0.2, \qquad \eta=0.1 \]
+</div>
+<p>Use \( z^{(1)}=(W^{(1)})^{T}x+b^{(1)} \) and, because the hidden layer is linear, \( h=z^{(1)} \). The output is \( \hat y=(W^{(2)})^{T}h+b^{(2)} \). The loss is</p>
+<div class="formula">\[ \boxed{ L=(\hat y-y)^{2} } \]</div>
+<p class="muted">Compute:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>\(z^{(1)}\) and \(h\)</span></li>
+<li><span class="part">(b)</span><span>\(\hat y\)</span></li>
+<li><span class="part">(c)</span><span>\(L\)</span></li>
+<li><span class="part">(d)</span><span>\(\delta^{(2)}=\partial L/\partial\hat y\)</span></li>
+<li><span class="part">(e)</span><span>Gradients of \(W^{(2)},b^{(2)}\)</span></li>
+<li><span class="part">(f)</span><span>The hidden-layer delta</span></li>
+<li><span class="part">(g)</span><span>Gradients of \(W^{(1)},b^{(1)}\)</span></li>
+<li><span class="part">(h)</span><span>The updated parameters</span></li>
+</ul>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="2,2,1" data-act="linear|linear" data-loss="(ŷ−y)²"></div>
+</section>
+
+<section class="card" id="shapes">
+<h2 class="sec">Before solving: a linear net is one affine map</h2>
+<p>Worth noticing before any arithmetic. Substituting the hidden layer into the output:</p>
+<div class="formula">
+\[ \hat y=(W^{(2)})^{T}\big((W^{(1)})^{T}x+b^{(1)}\big)+b^{(2)}
+= \underbrace{(W^{(2)})^{T}(W^{(1)})^{T}}_{\text{one } 1\times2 \text{ row}}x + \text{const} \]
+</div>
+<p>So this two-layer network computes exactly what a <strong style="color:var(--text)">single linear unit</strong> could. Stacking linear layers buys no extra expressive power — <em>that is the whole reason activation functions exist</em>. It is still a perfectly good backprop exercise, and it is the cleanest possible place to see the chain rule, because nothing is hidden behind an activation derivative.</p>
+<pre class="diagram">   x (2)              h (2)             y^ (1)
+  ┌─────┐  W(1)ᵀ     ┌────────┐  W(2)ᵀ  ┌────────┐
+  │  1  │ ─────────► │ linear │ ──────► │ linear │ ──► y^ ──► (y^ − y)²  ──► L
+  │  2  │  + b(1)    │ linear │  + b(2) └────────┘        y = 1.5
+  └─────┘            └────────┘
+       2×2                   2×1        no activation anywhere</pre>
+<p class="muted">Because \(h=z^{(1)}\), the hidden "activation derivative" is \(1\) — so in part (f) there is simply nothing to multiply by.</p>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Hidden layer</h2>
+<div class="formula">
+\[ (W^{(1)})^{T}=\begin{bmatrix} 0.5 & 0.2 \\ -0.3 & 0.4 \end{bmatrix} \]
+\[ z^{(1)}=\begin{bmatrix} 0.5 & 0.2 \\ -0.3 & 0.4 \end{bmatrix}\begin{bmatrix} 1 \\ 2 \end{bmatrix}
++\begin{bmatrix} 0.1 \\ -0.2 \end{bmatrix} \]
+</div>
+<h3>First neuron</h3>
+<div class="formula">\[ 0.5(1)+0.2(2)+0.1 = 0.5+0.4+0.1 \qquad \boxed{ z^{(1)}_1 = 1.0 } \]</div>
+<h3>Second neuron</h3>
+<div class="formula">\[ -0.3(1)+0.4(2)-0.2 = -0.3+0.8-0.2 \qquad \boxed{ z^{(1)}_2 = 0.3 } \]</div>
+<p>The layer is linear, so the activation is the identity and \(h=z^{(1)}\):</p>
+<div class="result">\[ \boxed{ h=z^{(1)}=\begin{bmatrix} 1.0 \\ 0.3 \end{bmatrix} } \]</div>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Output</h2>
+<div class="formula">
+\[ \hat y=(W^{(2)})^{T}h+b^{(2)} = 0.6(1.0)-0.5(0.3)+0.2 \]
+\[ = 0.6-0.15+0.2 \]
+</div>
+<div class="result">\[ \boxed{ \hat y = 0.65 } \]</div>
+<p class="muted">The target is \(1.5\), so the network is currently <strong style="color:var(--text)">under</strong>-predicting by \(0.85\). Expect every gradient below to push the prediction up.</p>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Loss</h2>
+<div class="formula">
+\[ L=(\hat y-y)^{2}=(0.65-1.5)^{2}=(-0.85)^{2} \]
+</div>
+<div class="result">\[ \boxed{ L = 0.7225 } \]</div>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Output delta</h2>
+<p>The loss is written <strong style="color:var(--text)">without</strong> a \(\tfrac12\), so differentiating brings the 2 down and nothing cancels it:</p>
+<div class="formula">
+\[ L=(\hat y-y)^{2} \qquad\Longrightarrow\qquad \frac{\partial L}{\partial\hat y}=2(\hat y-y) \]
+</div>
+<p>The output layer is linear, so \(\partial\hat y/\partial z^{(2)}=1\) and the delta is just this derivative:</p>
+<div class="formula">\[ \delta^{(2)}=2(0.65-1.5)=2(-0.85) \]</div>
+<div class="result">\[ \boxed{ \delta^{(2)} = -1.7 } \]</div>
+<div class="result blue">\[ \boxed{ \text{Linear output} + (\hat y-y)^{2} \;\Rightarrow\; \delta^{(2)}=2(\hat y-y) } \]</div>
+<p class="muted">The sign is negative because \(\hat y<y\). Gradient descent subtracts the gradient, so a negative delta will <strong style="color:var(--text)">raise</strong> the weights and hence the prediction — exactly what we want.</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Gradients of the output layer</h2>
+<div class="formula">
+\[ \boxed{ \frac{\partial L}{\partial W^{(2)}}=h\,\delta^{(2)} }
+= \begin{bmatrix} 1.0 \\ 0.3 \end{bmatrix}(-1.7) \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(2)}=\begin{bmatrix} -1.7 \\ -0.51 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(2)}=\delta^{(2)}=-1.7 } \]
+</div>
+<p class="muted">With a single output neuron, \(\delta^{(2)}\) is a scalar, so the "outer product" is just a scaled copy of \(h\).</p>
+</section>
+
+<section class="card" id="f">
+<h2 class="sec">(f) Hidden-layer delta</h2>
+<p>Normally this step is \(\delta^{(1)}=\big(W^{(2)}\delta^{(2)}\big)\odot g'(z^{(1)})\). Here the hidden layer is linear, so \(g'(z)=1\) and <strong style="color:var(--text)">there is no activation derivative to apply</strong>:</p>
+<div class="formula">
+\[ \delta^{(1)}=W^{(2)}\delta^{(2)}=\begin{bmatrix} 0.6 \\ -0.5 \end{bmatrix}(-1.7) \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(1)}=\begin{bmatrix} -1.02 \\ 0.85 \end{bmatrix} } \]</div>
+<p class="muted">Note the second entry flips sign: its weight \(-0.5\) is negative, so raising that hidden unit would <em>lower</em> the prediction.</p>
+</section>
+
+<section class="card" id="g">
+<h2 class="sec">(g) Gradients of the first layer</h2>
+<div class="formula">
+\[ \boxed{ \nabla W^{(1)}=x\,(\delta^{(1)})^{T} }
+= \begin{bmatrix} 1 \\ 2 \end{bmatrix}\begin{bmatrix} -1.02 & 0.85 \end{bmatrix} \]
+</div>
+<div class="formula">
+\[ \text{Row 1: } 1(-1.02)=-1.02,\qquad 1(0.85)=0.85 \]
+\[ \text{Row 2: } 2(-1.02)=-2.04,\qquad 2(0.85)=1.70 \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(1)}=\begin{bmatrix} -1.02 & 0.85 \\ -2.04 & 1.70 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(1)}=\delta^{(1)}=\begin{bmatrix} -1.02 \\ 0.85 \end{bmatrix} } \]
+</div>
+<p class="muted">Row 2 is exactly twice row 1, because \(x_2=2x_1\). A useful check whenever the input has a simple ratio.</p>
+</section>
+
+<section class="card" id="h">
+<h2 class="sec">(h) Updated parameters</h2>
+<div class="formula">\[ \boxed{ \theta_{\text{new}}=\theta_{\text{old}}-\eta\nabla\theta },\qquad \eta=0.1 \]</div>
+<h3>Output layer</h3>
+<div class="formula">
+\[ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.6 \\ -0.5 \end{bmatrix}-0.1\begin{bmatrix} -1.7 \\ -0.51 \end{bmatrix}
+=\begin{bmatrix} 0.6+0.17 \\ -0.5+0.051 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.77 \\ -0.449 \end{bmatrix} }
+\qquad b^{(2)}_{\text{new}}=0.2-0.1(-1.7) \quad \boxed{ b^{(2)}_{\text{new}}=0.37 } \]
+</div>
+<h3>Hidden layer</h3>
+<div class="formula">
+\[ W^{(1)}_{\text{new}}=\begin{bmatrix} 0.5+0.102 & -0.3-0.085 \\ 0.2+0.204 & 0.4-0.170 \end{bmatrix} \]
+</div>
+<div class="result">
+\[ \boxed{ W^{(1)}_{\text{new}}=\begin{bmatrix} 0.602 & -0.385 \\ 0.404 & 0.230 \end{bmatrix} }
+\qquad \boxed{ b^{(1)}_{\text{new}}=\begin{bmatrix} 0.202 \\ -0.285 \end{bmatrix} } \]
+</div>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<div class="formula">
+\[ \boxed{ h=z^{(1)}=\begin{bmatrix} 1.0 \\ 0.3 \end{bmatrix} } \qquad
+\boxed{ \hat y=0.65 } \qquad \boxed{ L=0.7225 } \qquad \boxed{ \delta^{(2)}=-1.7 } \]
+\[ \boxed{ \nabla W^{(2)}=\begin{bmatrix} -1.7 \\ -0.51 \end{bmatrix} } \qquad
+\boxed{ \nabla b^{(2)}=-1.7 } \qquad
+\boxed{ \delta^{(1)}=\begin{bmatrix} -1.02 \\ 0.85 \end{bmatrix} } \]
+\[ \boxed{ \nabla W^{(1)}=\begin{bmatrix} -1.02 & 0.85 \\ -2.04 & 1.70 \end{bmatrix} } \qquad
+\boxed{ \nabla b^{(1)}=\begin{bmatrix} -1.02 \\ 0.85 \end{bmatrix} } \]
+\[ \boxed{ W^{(2)}_{\text{new}}=\begin{bmatrix} 0.77 \\ -0.449 \end{bmatrix} } \quad
+\boxed{ b^{(2)}_{\text{new}}=0.37 } \quad
+\boxed{ W^{(1)}_{\text{new}}=\begin{bmatrix} 0.602 & -0.385 \\ 0.404 & 0.230 \end{bmatrix} } \quad
+\boxed{ b^{(1)}_{\text{new}}=\begin{bmatrix} 0.202 \\ -0.285 \end{bmatrix} } \]
+</div>
+<hr class="sep" />
+<h3>Pattern to remember</h3>
+<div class="result blue">\[ \boxed{ \text{Linear output} + L=(\hat y-y)^{2} \;\Longrightarrow\; \delta^{(2)}=2(\hat y-y) } \]</div>
+<p>There is <strong style="color:var(--text)">no output activation derivative</strong>, and with a linear hidden layer there is no hidden activation derivative either. Every other regression problem in this set adds exactly one of those factors back.</p>
+<p class="muted">Next: <a href="ANN-6.html">ANN-6</a> keeps the linear output but puts <strong style="color:var(--text)">ReLU</strong> in the hidden layer — and changes the loss to \(\tfrac12(\hat y-y)^{2}\), which changes \(\delta^{(2)}\).</p>
+</section>
+
+<footer>ANN-5 · Fresh regression practice · linear + MSE · dark minimal notes</footer>
+</div>
+</body>
+</html>

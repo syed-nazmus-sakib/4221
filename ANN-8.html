@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANN-8 — Regression 4 — ReLU Hidden + Sigmoid Output</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.cmp th{color:var(--faint);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
+<script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">ANN-8</div>
+<h1>Regression Problem 4 — Bounded Regression: ReLU + Sigmoid + MSE</h1>
+<p class="subtitle">\(2\rightarrow2\rightarrow1\) with ReLU hidden units and a <strong style="color:var(--text)">Sigmoid output</strong> scored by plain MSE. This is the one where \(\delta^{(2)}=\hat y-y\) is <strong style="color:var(--text)">wrong</strong> — the sigmoid derivative does not cancel, so the chain rule has to be applied by hand. Ends with a summary of all four regression patterns.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
+<li><a href="#shapes">Before solving: why this one is different</a></li>
+<li><a href="#a">(a) Forward pass</a></li>
+<li><a href="#b">(b) Loss</a></li>
+<li><a href="#c">(c) Output delta — chain rule by hand</a></li>
+<li><a href="#d">(d) Output gradients</a></li>
+<li><a href="#e">(e) Hidden delta</a></li>
+<li><a href="#f">(f) First-layer gradients</a></li>
+<li><a href="#extra">If you were also asked to update</a></li>
+<li><a href="#final">Final answer sheet</a></li>
+<li><a href="#patterns">All four regression patterns</a></li>
+</ol></nav>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh regression practice · Problem 4 · 2 → 2 → 1 · ReLU hidden, Sigmoid output</div>
+<p>Consider a network <strong style="color:var(--text)">\(2\rightarrow2\rightarrow1\)</strong> with <strong style="color:var(--text)">ReLU hidden units</strong> and a <strong style="color:var(--text)">Sigmoid output</strong>. Given:</p>
+<div class="formula">
+\[ x=\begin{bmatrix} 1 \\ 0.5 \end{bmatrix}, \qquad y=0.8 \]
+\[ W^{(1)}=\begin{bmatrix} 0.4 & -0.2 \\ 0.6 & 0.4 \end{bmatrix}, \qquad
+b^{(1)}=\begin{bmatrix} 0.1 \\ -0.1 \end{bmatrix} \]
+\[ W^{(2)}=\begin{bmatrix} 0.5 \\ -0.3 \end{bmatrix}, \qquad b^{(2)}=0.1, \qquad \eta=0.2 \]
+</div>
+<p>with the loss</p>
+<div class="formula">\[ \boxed{ L=(\hat y-y)^{2} } \]</div>
+<p class="muted">Compute the complete forward pass and backpropagation:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>The <strong>forward pass</strong> — \(z^{(1)}\), \(h\), \(z^{(2)}\) and \(\hat y\).</span></li>
+<li><span class="part">(b)</span><span>The <strong>loss</strong>.</span></li>
+<li><span class="part">(c)</span><span>The <strong>output delta</strong> \(\delta^{(2)}\).</span></li>
+<li><span class="part">(d)</span><span>The gradients of <strong>\(W^{(2)},b^{(2)}\)</strong>.</span></li>
+<li><span class="part">(e)</span><span>The <strong>hidden delta</strong> \(\delta^{(1)}\).</span></li>
+<li><span class="part">(f)</span><span>The gradients of <strong>\(W^{(1)},b^{(1)}\)</strong>.</span></li>
+</ul>
+<blockquote>A sigmoid output only makes sense for regression when the target is <strong style="color:var(--text)">bounded in \([0,1]\)</strong> — which \(y=0.8\) is. Note also that \(\eta=0.2\) is given but the question stops at the gradients, so no update is required; see <a href="#extra">the optional section</a> if you want it anyway.</blockquote>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="2,2,1" data-act="ReLU|Sigmoid" data-loss="(ŷ−y)²"></div>
+</section>
+
+<section class="card" id="shapes">
+<h2 class="sec">Before solving: why this one is different</h2>
+<p>In <a href="ANN-5.html">ANN-5</a>, <a href="ANN-6.html">ANN-6</a> and <a href="ANN-7.html">ANN-7</a> the output was <strong style="color:var(--text)">linear</strong>, so \(\partial\hat y/\partial z^{(2)}=1\) and the output delta was just the loss derivative. Here the output passes through a sigmoid, so that factor is no longer 1:</p>
+<div class="formula">
+\[ \delta^{(2)}=\underbrace{\frac{\partial L}{\partial\hat y}}_{2(\hat y-y)}\cdot
+\underbrace{\frac{\partial\hat y}{\partial z^{(2)}}}_{\hat y(1-\hat y)} \]
+</div>
+<div class="result gold">
+\[ \boxed{ \text{You may \textbf{not} write } \delta^{(2)}=\hat y-y \text{ here.} } \]
+</div>
+<p>That shortcut is only valid for <strong style="color:var(--text)">Sigmoid + BCE</strong> (see <a href="ANN-1.html">ANN-1</a>) or <strong style="color:var(--text)">Softmax + CCE</strong> (see <a href="ANN-4.html">ANN-4</a>), where the loss is chosen precisely so that \(\sigma'\) cancels. Pair a sigmoid with an ordinary squared error and nothing cancels — you carry both factors.</p>
+<pre class="diagram">   x (2)             h (2)              y^ (1)
+  ┌─────┐  W(1)ᵀ    ┌──────┐   W(2)ᵀ   ┌─────────┐
+  │  1  │ ────────► │ ReLU │ ────────► │ Sigmoid │ ─► y^ ─► (y^ − y)² ─► L
+  │ 0.5 │  + b(1)   │ ReLU │   + b(2)  └─────────┘        y = 0.8
+  └─────┘           └──────┘
+       2×2                  2×1     backward: × σ'(z) AND × ReLU'(z)</pre>
+</section>
+
+<section class="card" id="a">
+<h2 class="sec">(a) Forward pass</h2>
+<div class="formula">
+\[ (W^{(1)})^{T}=\begin{bmatrix} 0.4 & 0.6 \\ -0.2 & 0.4 \end{bmatrix} \qquad
+z^{(1)}=(W^{(1)})^{T}x+b^{(1)} \]
+</div>
+<h3>Hidden pre-activations</h3>
+<div class="formula">
+\[ z^{(1)}_1 = 0.4(1)+0.6(0.5)+0.1 = 0.4+0.3+0.1 \qquad \boxed{ z^{(1)}_1=0.8 } \]
+\[ z^{(1)}_2 = -0.2(1)+0.4(0.5)-0.1 = -0.2+0.2-0.1 \qquad \boxed{ z^{(1)}_2=-0.1 } \]
+</div>
+<p>Apply ReLU — the second unit is negative and gets clipped:</p>
+<div class="result">\[ \boxed{ h=\begin{bmatrix} 0.8 \\ 0 \end{bmatrix} } \]</div>
+<h3>Output pre-activation</h3>
+<div class="formula">
+\[ z^{(2)} = 0.5(0.8)-0.3(0)+0.1 = 0.4+0.1 \qquad \boxed{ z^{(2)}=0.5 } \]
+</div>
+<p>Unlike the previous three problems, this is <strong style="color:var(--text)">not</strong> the prediction. Apply the sigmoid:</p>
+<div class="formula">\[ \hat y=\sigma(0.5)=\frac{1}{1+e^{-0.5}} \]</div>
+<div class="result">\[ \boxed{ \hat y \approx 0.62246 } \]</div>
+</section>
+
+<section class="card" id="b">
+<h2 class="sec">(b) Loss</h2>
+<p>Note there is <strong style="color:var(--text)">no \(\tfrac12\)</strong> on this loss:</p>
+<div class="formula">
+\[ L=(\hat y-y)^{2}=(0.62246-0.8)^{2}=(-0.17754)^{2} \]
+</div>
+<div class="result">\[ \boxed{ L \approx 0.03152 } \]</div>
+</section>
+
+<section class="card" id="c">
+<h2 class="sec">(c) Output delta — chain rule by hand</h2>
+<p>This is the main lesson of the page. Two factors, neither of which cancels:</p>
+<div class="formula">
+\[ \delta^{(2)}=\frac{\partial L}{\partial\hat y}\cdot\frac{\partial\hat y}{\partial z^{(2)}} \]
+</div>
+<h3>Factor 1 — the loss derivative</h3>
+<div class="formula">
+\[ \frac{\partial L}{\partial\hat y}=2(\hat y-y)=2(0.62246-0.8) \qquad \approx -0.35508 \]
+</div>
+<h3>Factor 2 — the sigmoid derivative</h3>
+<p>Use the activation you already computed; no need to touch \(z^{(2)}\) again:</p>
+<div class="formula">
+\[ \sigma'(z^{(2)})=\hat y(1-\hat y)=0.62246(1-0.62246)=0.62246(0.37754) \qquad \approx 0.23500 \]
+</div>
+<h3>Multiply them</h3>
+<div class="formula">\[ \delta^{(2)}=(-0.35508)(0.23500) \]</div>
+<div class="result">\[ \boxed{ \delta^{(2)} \approx -0.08345 } \]</div>
+<hr class="sep" />
+<h3>Why this matters beyond the arithmetic</h3>
+<p>Compare the two factors. The raw error is \(-0.355\), but the sigmoid derivative shrinks it to \(-0.083\) — a <strong style="color:var(--text)">factor of four smaller</strong>. And \(\sigma'\) peaks at only \(0.25\), so <em>every</em> sigmoid output damps the gradient by at least \(4\times\). If the output saturates (\(\hat y\) near 0 or 1), \(\sigma'\to0\) and learning stalls <strong style="color:var(--text)">even when the prediction is badly wrong</strong>.</p>
+<div class="result blue">
+\[ \text{Sigmoid + BCE:}\;\; \delta^{(2)}=\hat y-y \quad\text{(the } \sigma' \text{ cancels)} \]
+\[ \text{Sigmoid + MSE:}\;\; \delta^{(2)}=2(\hat y-y)\,\hat y(1-\hat y) \quad\text{(it does not)} \]
+</div>
+<p class="muted">That is exactly why classification uses cross-entropy rather than squared error — not tradition, but to remove this \(\sigma'\) factor and keep the gradient alive.</p>
+</section>
+
+<section class="card" id="d">
+<h2 class="sec">(d) Output gradients</h2>
+<div class="formula">
+\[ \nabla W^{(2)}=h\,\delta^{(2)}=\begin{bmatrix} 0.8 \\ 0 \end{bmatrix}(-0.08345) \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(2)} \approx \begin{bmatrix} -0.06676 \\ 0 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(2)} = \delta^{(2)} \approx -0.08345 } \]
+</div>
+<p class="muted">Second entry zero again — the dead ReLU unit contributes nothing, same as <a href="ANN-6.html">ANN-6</a>.</p>
+</section>
+
+<section class="card" id="e">
+<h2 class="sec">(e) Hidden delta</h2>
+<div class="formula">
+\[ W^{(2)}\delta^{(2)}=\begin{bmatrix} 0.5 \\ -0.3 \end{bmatrix}(-0.08345)
+\approx \begin{bmatrix} -0.04172 \\ 0.02503 \end{bmatrix} \]
+</div>
+<p>Apply the ReLU derivative — 1 where \(z^{(1)}>0\), 0 where \(z^{(1)}<0\):</p>
+<div class="formula">
+\[ z^{(1)}=\begin{bmatrix} 0.8 \\ -0.1 \end{bmatrix} \;\Rightarrow\;
+\mathrm{ReLU}'(z^{(1)})=\begin{bmatrix} 1 \\ 0 \end{bmatrix} \]
+\[ \delta^{(1)}=\begin{bmatrix} -0.04172 \\ 0.02503 \end{bmatrix}\odot\begin{bmatrix} 1 \\ 0 \end{bmatrix} \]
+</div>
+<div class="result">\[ \boxed{ \delta^{(1)} \approx \begin{bmatrix} -0.04172 \\ 0 \end{bmatrix} } \]</div>
+<p class="muted">Note how small this is — the sigmoid already shrank the signal by \(4\times\) before it even reached the hidden layer.</p>
+</section>
+
+<section class="card" id="f">
+<h2 class="sec">(f) First-layer gradients</h2>
+<div class="formula">
+\[ \nabla W^{(1)}=x\,(\delta^{(1)})^{T}
+=\begin{bmatrix} 1 \\ 0.5 \end{bmatrix}\begin{bmatrix} -0.04172 & 0 \end{bmatrix} \]
+</div>
+<div class="formula">
+\[ \text{Row 1: } 1(-0.04172)=-0.04172,\qquad 1(0)=0 \]
+\[ \text{Row 2: } 0.5(-0.04172)=-0.02086,\qquad 0.5(0)=0 \]
+</div>
+<div class="result">
+\[ \boxed{ \nabla W^{(1)} \approx \begin{bmatrix} -0.04172 & 0 \\ -0.02086 & 0 \end{bmatrix} }
+\qquad \boxed{ \nabla b^{(1)} = \delta^{(1)} \approx \begin{bmatrix} -0.04172 \\ 0 \end{bmatrix} } \]
+</div>
+<p class="muted">Row 2 is exactly half of row 1, because \(x_2=0.5x_1\).</p>
+</section>
+
+<section class="card" id="extra">
+<h2 class="sec">If you were also asked to update</h2>
+<p>The question stops at the gradients, so <strong style="color:var(--text)">\(\eta=0.2\) is never used</strong> — do not invent an update step in the exam. But for completeness, \(\theta_{\text{new}}=\theta_{\text{old}}-0.2\nabla\theta\) gives:</p>
+<div class="formula">
+\[ W^{(2)}_{\text{new}} \approx \begin{bmatrix} 0.51335 \\ -0.3 \end{bmatrix} \qquad
+b^{(2)}_{\text{new}} \approx 0.11669 \]
+\[ W^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.40834 & -0.2 \\ 0.60417 & 0.4 \end{bmatrix} \qquad
+b^{(1)}_{\text{new}} \approx \begin{bmatrix} 0.10834 \\ -0.1 \end{bmatrix} \]
+</div>
+<p class="muted">The changes are tiny — fourth decimal place — precisely because the sigmoid throttled the gradient.</p>
+</section>
+
+<section class="card" id="final">
+<h2 class="sec">Final answer sheet</h2>
+<div class="formula">
+\[ \boxed{ z^{(1)}=\begin{bmatrix} 0.8 \\ -0.1 \end{bmatrix} } \quad
+\boxed{ h=\begin{bmatrix} 0.8 \\ 0 \end{bmatrix} } \quad
+\boxed{ z^{(2)}=0.5 } \quad \boxed{ \hat y \approx 0.62246 } \quad \boxed{ L \approx 0.03152 } \]
+\[ \boxed{ \frac{\partial L}{\partial\hat y} \approx -0.35508 } \quad
+\boxed{ \sigma' \approx 0.23500 } \quad
+\boxed{ \delta^{(2)} \approx -0.08345 } \]
+\[ \boxed{ \nabla W^{(2)} \approx \begin{bmatrix} -0.06676 \\ 0 \end{bmatrix} } \quad
+\boxed{ \nabla b^{(2)} \approx -0.08345 } \quad
+\boxed{ \delta^{(1)} \approx \begin{bmatrix} -0.04172 \\ 0 \end{bmatrix} } \]
+\[ \boxed{ \nabla W^{(1)} \approx \begin{bmatrix} -0.04172 & 0 \\ -0.02086 & 0 \end{bmatrix} } \quad
+\boxed{ \nabla b^{(1)} \approx \begin{bmatrix} -0.04172 \\ 0 \end{bmatrix} } \]
+</div>
+</section>
+
+<section class="card" id="patterns">
+<h2 class="sec">All four regression patterns</h2>
+<p>These four pages exist to make one point, and it is the opposite of the reflex you built on the classification problems:</p>
+<div class="result gold">
+\[ \boxed{ \text{Regression does \textbf{not} automatically mean } \delta^{(2)}=\hat y-y. } \]
+</div>
+<p>You have to read <strong style="color:var(--text)">both</strong> the output activation and the exact printed form of the loss.</p>
+<h3>Output deltas</h3>
+<table class="cmp">
+<tr><th>Output</th><th>Loss as written</th><th>Output delta \(\delta^{(2)}\)</th><th>Page</th></tr>
+<tr><td>Linear</td><td>\(L=(\hat y-y)^{2}\)</td><td>\(2(\hat y-y)\)</td><td><a href="ANN-5.html">ANN-5</a></td></tr>
+<tr><td>Linear</td><td>\(L=\tfrac12(\hat y-y)^{2}\)</td><td>\(\hat y-y\)</td><td><a href="ANN-6.html">ANN-6</a>, <a href="ANN-7.html">ANN-7</a></td></tr>
+<tr><td>Sigmoid</td><td>\(L=(\hat y-y)^{2}\)</td><td>\(2(\hat y-y)\,\hat y(1-\hat y)\)</td><td>ANN-8</td></tr>
+</table>
+<h3>Hidden-layer factors</h3>
+<table class="cmp">
+<tr><th>Hidden activation</th><th>Multiply \(\delta^{(1)}\) by</th><th>Failure mode</th></tr>
+<tr><td>Linear</td><td>\(1\) — nothing to apply</td><td>No expressive power; the net collapses to one affine map</td></tr>
+<tr><td>ReLU</td><td>\(\mathrm{ReLU}'(z)\), i.e. 1 or 0</td><td>Dead units: \(z<0\) means zero gradient forever</td></tr>
+<tr><td>Tanh</td><td>\(1-h^{2}\)</td><td>Always \(<1\), so gradients shrink through depth</td></tr>
+</table>
+<hr class="sep" />
+<h3>The standard setup</h3>
+<p>For the most common regression network:</p>
+<div class="result blue">
+\[ \boxed{ \text{Hidden activation} \rightarrow \text{Linear output} \rightarrow \text{MSE} } \]
+</div>
+<p>the hidden activation can be ReLU, tanh, or even linear — and because the output is linear, the output delta is always just the loss derivative, with <strong style="color:var(--text)">no activation factor</strong>. A non-linear output (like ANN-8's sigmoid) is the exception, and it is the case that needs the chain rule spelled out.</p>
+<h3>Compare with the classification pages</h3>
+<table class="cmp">
+<tr><th>Page</th><th>Task</th><th>Output + loss</th><th>Output delta</th></tr>
+<tr><td><a href="ANN-1.html">ANN-1</a></td><td>Classification</td><td>Sigmoid + BCE</td><td>\(\hat y-y\)</td></tr>
+<tr><td><a href="ANN-2.html">ANN-2</a></td><td>Classification</td><td>Sigmoid + CCE</td><td>\(y_k(\hat y_k-1)\)</td></tr>
+<tr><td><a href="ANN-4.html">ANN-4</a></td><td>Classification</td><td>Softmax + CCE</td><td>\(\hat y-y\)</td></tr>
+<tr><td><a href="ANN-5.html">ANN-5</a>–ANN-8</td><td>Regression</td><td>Linear or Sigmoid + MSE</td><td>see the table above</td></tr>
+</table>
+<p class="muted">Seven different questions, seven readings of the same chain rule. Identify the activation and the loss first; the formula follows.</p>
+</section>
+
+<footer>ANN-8 · Fresh regression practice · ReLU + sigmoid + MSE · dark minimal notes</footer>
+</div>
+</body>
+</html>
