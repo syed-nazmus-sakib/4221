@@ -42,7 +42,35 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <h1>Fresh CNN Problem 3 — Full Mixed Final Boss</h1>
 <p class="subtitle">Combines nearly everything: output dims, standard / DW / PW params, flatten + FC, DS comparison, MACs, and receptive field.</p>
 </header>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh CNN Problem 3 · the final boss · shapes + params + MACs + receptive field</div>
+<p>Consider the network</p>
+<table>
+<tr><th>Layer</th><th>Configuration</th></tr>
+<tr><td>Input</td><td>\(128\times128\times3\)</td></tr>
+<tr><td>Conv1</td><td>Standard conv, 32 filters, \(5\times5\), \(p=2\), stride 2</td></tr>
+<tr><td>Pool1</td><td>MaxPool \(3\times3\), valid, stride 2</td></tr>
+<tr><td>Conv2-DW</td><td>Depthwise \(3\times3\), same, stride 1</td></tr>
+<tr><td>Conv2-PW</td><td>Pointwise, 64 filters, \(1\times1\), stride 1</td></tr>
+<tr><td>Conv3</td><td>Standard conv, 128 filters, \(3\times3\), valid, stride 2</td></tr>
+<tr><td>Pool2</td><td>MaxPool \(2\times2\), valid, stride 2</td></tr>
+<tr><td>Flatten</td><td>—</td></tr>
+<tr><td>FC1</td><td>64 neurons</td></tr>
+<tr><td>FC2</td><td>8 neurons</td></tr>
+</table>
+<p>Every convolutional filter and FC neuron has <strong style="color:var(--text)">one bias</strong>. For computational-cost questions, count <strong style="color:var(--text)">MACs</strong> and ignore bias operations.</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Determine the <strong>output shape after every layer</strong> and the <strong>flatten size</strong>.</span></li>
+<li><span class="part">(b)</span><span>Calculate the trainable parameters in <strong>every trainable layer</strong> and the <strong>network total</strong>.</span></li>
+<li><span class="part">(c)</span><span>Replace Conv3 with a <strong>depthwise-separable \(3\times3\) block</strong> that still produces 128 output channels. Calculate the parameters of the replacement and compare them with the original Conv3.</span></li>
+<li><span class="part">(d)</span><span>Calculate and compare the <strong>MACs</strong> of the original Conv3 and its depthwise-separable replacement. Determine the <strong>computational reduction</strong>.</span></li>
+<li><span class="part">(e)</span><span>Determine the <strong>receptive field</strong> of one output element immediately after Pool2, tracking both <strong>receptive field</strong> and <strong>effective jump</strong> through Conv1, Pool1, Conv2-DW, Conv2-PW, Conv3 and Pool2.</span></li>
+</ul>
+</section>
+
 <nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
 <li><a href="#given">Given + Questions</a></li>
 <li><a href="#a">Output dimensions</a></li>
 <li><a href="#b">Parameters + total</a></li>
@@ -51,7 +79,7 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <li><a href="#e">Receptive field + sheet</a></li>
 </ol></nav>
 
-<section class="card hero" id="given">
+<section class="card" id="given">
 <h2 class="sec">Given</h2>
 <table><tr><th>Layer</th><th>Configuration</th></tr>
 <tr><td>Input</td><td>\(128\times128\times3\)</td></tr>
@@ -63,7 +91,6 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <tr><td>Pool2</td><td>MaxPool \(2\times2\), valid, s=2</td></tr>
 <tr><td>FC1 / FC2</td><td>64 / 8 neurons</td></tr></table>
 <p class="muted">One bias per filter / neuron. MACs ignore bias.</p>
-<p><strong>(a)</strong> Shapes. <strong>(b)</strong> Params + total. <strong>(c)</strong> Conv3 → DS-128. <strong>(d)</strong> MACs. <strong>(e)</strong> RF after Pool2.</p>
 </section>
 
 <section class="card" id="a">
@@ -100,19 +127,19 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <div class="result">\[ (75+1)\times32 = 76\times32 \quad \boxed{2432} \]</div>
 <h3>Pool1</h3><div class="result">\[ \boxed{0} \]</div>
 <h3>DW — 10×32</h3><div class="result">\[ \boxed{320} \]</div>
-<h3>PW — 33×64</h3><div class="result">\[ \boxed{2112} \quad 320+2112 = \boxed{2432}} \]</div>
+<h3>PW — 33×64</h3><div class="result">\[ \boxed{2112} \quad 320+2112 = \boxed{2432} \]</div>
 <p class="muted">Coincidence: Conv2 block equals Conv1 here.</p>
 <h3>Conv3 — 577×128</h3>
-<div class="formula">\[ 3\times3\times64 = 576.+1 = 577. \]</div>
+<div class="formula">\[ 3\times3\times64 = 576,\quad 576+1 = 577 \]</div>
 <div class="result">\[ \boxed{73{,}856} \]</div>
 <h3>Pool2</h3><div class="result">\[ \boxed{0} \]</div>
 <h3>FC1 — 6272→64</h3>
-<div class="formula">\[ 6272\times64 = 401{,}408.+64 \]</div>
+<div class="formula">\[ 6272\times64 = 401{,}408,\quad {+}\,64 \]</div>
 <div class="result">\[ \boxed{ P_{FC1}=401{,}472 } \]</div>
 <h3>FC2 — 64→8</h3>
-<div class="result">\[ 64\times8=512.+8 \quad \boxed{520} \]</div>
+<div class="result">\[ 64\times8=512,\quad {+}\,8 \quad \boxed{520} \]</div>
 <h3>Total</h3>
-<div class="result gold">\[ 2432+320=2752,\;2752+2112=4864,\;4864+73{,}856=78{,}720,\;78{,}720+401{,}472=480{,}192 \quad \boxed{480{,}712} \]</div>
+<div class="result gold">\[ 2432+320=2752,\;2752+2112=4864,\;4864+73{,}856=78{,}720,\;78{,}720+401{,}472=480{,}192,\;480{,}192+520 \quad \boxed{480{,}712} \]</div>
 <table><tr><th>Layer</th><th style="text-align:right">Params</th></tr>
 <tr><td>Conv1</td><td class="num" style="text-align:right">2,432</td></tr>
 <tr><td>DW</td><td class="num" style="text-align:right">320</td></tr>

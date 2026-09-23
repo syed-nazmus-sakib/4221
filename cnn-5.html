@@ -25,6 +25,9 @@ p{margin:10px 0}.muted{color:var(--muted)}
 .result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
 .result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
 blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
 hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
 footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
@@ -38,7 +41,31 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <h1>Fresh CNN Problem 2 — Computation + Efficiency + RF</h1>
 <p class="subtitle">Targets the two easily confused skills: <strong style="color:var(--text)">computational cost</strong> (previous final) and <strong style="color:var(--text)">receptive field</strong> (retake, \(r_l,j_l\) notation).</p>
 </header>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh CNN Problem 2 · standard vs depthwise-separable + receptive field</div>
+<p>An input feature map has size</p>
+<div class="formula">\[ 56\times56\times48 \]</div>
+<p>and the desired output has <strong style="color:var(--text)">96 channels</strong>.</p>
+<table>
+<tr><th>Design</th><th>Configuration</th></tr>
+<tr><td><strong>Design A</strong></td><td>Standard \(3\times3\) convolution, 96 filters, same padding, stride 1.</td></tr>
+<tr><td><strong>Design B</strong></td><td>\(3\times3\) depthwise convolution, same padding, stride 1, followed by a \(1\times1\) pointwise convolution producing 96 channels.</td></tr>
+</table>
+<p>Every convolutional filter has <strong style="color:var(--text)">one bias</strong>. For computational cost, <strong style="color:var(--text)">ignore bias operations</strong>.</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Determine all <strong>output shapes</strong> for Design A and Design B.</span></li>
+<li><span class="part">(b)</span><span>Calculate the trainable parameters for the <strong>standard convolution</strong>, the <strong>depthwise stage</strong>, the <strong>pointwise stage</strong>, and the <strong>total depthwise-separable block</strong>. Calculate the <strong>parameter ratio</strong> and <strong>percentage saving</strong>.</span></li>
+<li><span class="part">(c)</span><span>Calculate the <strong>MACs</strong> required by the standard convolution.</span></li>
+<li><span class="part">(d)</span><span>Calculate the <strong>MACs</strong> required by the depthwise and pointwise stages and their total. Compare the two designs and calculate the <strong>computational saving</strong>.</span></li>
+<li><span class="part">(e)</span><span>Determine the <strong>receptive field</strong> after \(3\times3\) Conv \(\rightarrow\) \(3\times3\) Conv \(\rightarrow\) \(5\times5\) Conv, where all convolutions have stride 1.</span></li>
+<li><span class="part">(f)</span><span>Repeat the receptive-field calculation when a \(2\times2\), \(s=2\) max-pooling layer is inserted <strong>between the first and second convolution</strong>.</span></li>
+</ul>
+<p class="muted">Section map: parts <strong style="color:var(--text)">(c)</strong> and <strong style="color:var(--text)">(d)</strong> are answered together in <a href="#c">Computational cost (MACs)</a>; part <strong style="color:var(--text)">(e)</strong> is <a href="#d">Receptive field — no pooling</a> and part <strong style="color:var(--text)">(f)</strong> is <a href="#e">Insert MaxPool</a>.</p>
+</section>
+
 <nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
 <li><a href="#given">Given designs A / B</a></li>
 <li><a href="#a">Output shapes</a></li>
 <li><a href="#b">Parameters + ratio</a></li>
@@ -47,11 +74,10 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <li><a href="#e">RF with pooling + sheet</a></li>
 </ol></nav>
 
-<section class="card hero" id="given">
+<section class="card" id="given">
 <h2 class="sec">Given</h2>
 <div class="formula">\[ \boxed{56\times56\times48} \rightarrow 96\text{ output channels}. \]</div>
 <p><strong>Design A:</strong> \(3\times3\), 96 filters, same, s=1. <strong>Design B:</strong> DW \(3\times3\) same s=1 + PW \(1\times1\) 96 filters. Every filter has one bias. For MACs, ignore bias, count MACs.</p>
-<p><strong>(a)</strong> Output shapes. <strong>(b)</strong> Params + ratio + saving. <strong>(c)</strong> MACs + compare. <strong>(d)</strong> RF of \(3\rightarrow3\rightarrow5\) all s=1. <strong>(e)</strong> RF with \(2\times2\) Pool s=2 inserted.</p>
 </section>
 
 <section class="card" id="a">

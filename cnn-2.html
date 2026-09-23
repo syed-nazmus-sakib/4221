@@ -25,6 +25,9 @@ p{margin:10px 0}.muted{color:var(--muted)}
 .result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
 .result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
 blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
 hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
 footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
@@ -38,21 +41,44 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <h1>Question 2 — In-Course Exam, Q2</h1>
 <p class="subtitle">Standard 5×5 Conv + Depthwise + Pointwise + pooling + FC. Intermediate sizes 224→112→56 given; every filter / neuron has one bias.</p>
 </header>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Current In-Course Exam · CNN · Question 2</div>
+<p>Consider the following network. All convolutions use <strong style="color:var(--text)">stride 1</strong>, and every filter / FC neuron has <strong style="color:var(--text)">one bias</strong>.</p>
+<table>
+<tr><th>Layer</th><th>Configuration</th><th>Output</th></tr>
+<tr><td>Input</td><td>—</td><td>\(224\times224\times3\)</td></tr>
+<tr><td>Conv1</td><td>Standard, 20 filters, \(5\times5\), same</td><td>\(224\times224\times20\)</td></tr>
+<tr><td>Pool1</td><td>\(2\times2\), stride 2</td><td>\(112\times112\times20\)</td></tr>
+<tr><td>Conv2-DW</td><td>Depthwise \(3\times3\), same</td><td>\(112\times112\times20\)</td></tr>
+<tr><td>Conv2-PW</td><td>40 filters, \(1\times1\)</td><td>\(112\times112\times40\)</td></tr>
+<tr><td>Pool2</td><td>\(2\times2\), stride 2</td><td>\(56\times56\times40\)</td></tr>
+<tr><td>Flatten</td><td>—</td><td>\(125440\)</td></tr>
+<tr><td>FC1</td><td>100 neurons</td><td>100</td></tr>
+<tr><td>FC2</td><td>5 neurons</td><td>5</td></tr>
+</table>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Calculate the trainable parameters in <strong>Conv1, Conv2-DW, Conv2-PW, FC1, FC2</strong>, and the <strong>network total</strong>.</span></li>
+<li><span class="part">(b)</span><span>Replace Conv2-DW + Conv2-PW with <strong>one standard \(3\times3\) convolution producing 40 channels</strong>. Calculate its parameter count and the <strong>parameter reduction</strong> achieved by the depthwise-separable design.</span></li>
+<li><span class="part">(c)</span><span>Conv1 currently uses <strong>same</strong> padding. If it instead used <strong>valid</strong> padding, determine its output spatial dimensions.</span></li>
+</ul>
+</section>
+
 <nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
 <li><a href="#arch">Architecture + tasks</a></li>
 <li><a href="#qa">Q2(a) — Parameter count</a></li>
 <li><a href="#qb">Q2(b) — Replace DS with standard</a></li>
 <li><a href="#qc">Q2(c) — Same → valid padding</a></li>
 </ol></nav>
 
-<section class="card hero" id="arch">
+<section class="card" id="arch">
 <h2 class="sec">Architecture</h2>
 <div class="formula">
 \[ 224\times224\times3 \rightarrow \text{Standard }5\times5\text{ Conv, 20 filters} \rightarrow 2\times2\text{ MaxPool} \]
 \[ \rightarrow 3\times3\text{ Depthwise Conv} \rightarrow 1\times1\text{ Pointwise Conv, 40 filters} \]
 \[ \rightarrow 2\times2\text{ MaxPool} \rightarrow \text{Flatten} \rightarrow \text{FC }100 \rightarrow \text{FC }5. \]
 </div>
-<p><strong>(a)</strong> Parameters in Conv1, Conv2-DW, Conv2-PW, FC1 and FC2, and total. <strong>(b)</strong> Replace Conv2 with one standard \(3\times3\) convolution producing 40 maps. Its parameters + reduction by DS version. <strong>(c)</strong> If Conv1 changed from same to valid padding, its output spatial size.</p>
 </section>
 
 <section class="card" id="qa">

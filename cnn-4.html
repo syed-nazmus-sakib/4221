@@ -42,7 +42,30 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <h1>Fresh CNN Problem 1 — Full Architecture + DS Conv</h1>
 <p class="subtitle">New practice, same style as in-course and retake — full tracking, stride/padding, depthwise + pointwise, flattening, standard comparison.</p>
 </header>
+
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Fresh CNN Problem 1 · full architecture + depthwise-separable convolution</div>
+<p>Consider the network</p>
+<div class="formula">
+\[ 96\times96\times3 \]
+\[ \rightarrow \text{Conv1: 24 filters, }5\times5,\ p=2,\ s=2 \]
+\[ \rightarrow \text{Pool1: }3\times3,\text{ valid},\ s=2 \]
+\[ \rightarrow \text{Conv2-DW: }3\times3,\text{ same},\ s=1 \]
+\[ \rightarrow \text{Conv2-PW: 48 filters, }1\times1 \]
+\[ \rightarrow \text{Conv3: 96 filters, }3\times3,\text{ valid},\ s=2 \]
+\[ \rightarrow \text{Flatten} \rightarrow FC(50) \rightarrow FC(6). \]
+</div>
+<p>Assume every filter and FC neuron has <strong style="color:var(--text)">one bias</strong>.</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Determine the <strong>output shape after every layer</strong> and the <strong>flatten size</strong>.</span></li>
+<li><span class="part">(b)</span><span>Calculate the number of trainable parameters in <strong>every trainable layer</strong> and the <strong>total</strong>.</span></li>
+<li><span class="part">(c)</span><span>Replace Conv2-DW + Conv2-PW with a <strong>standard \(3\times3\) convolution producing 48 channels</strong>. Calculate its parameters.</span></li>
+<li><span class="part">(d)</span><span><strong>Compare</strong> the parameter counts of the standard and depthwise-separable Conv2 blocks, and calculate the <strong>reduction ratio / percentage saving</strong>.</span></li>
+</ul>
+</section>
+
 <nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
 <li><a href="#given">Given + Questions</a></li>
 <li><a href="#a">Output shapes</a></li>
 <li><a href="#b">Parameter counts + total</a></li>
@@ -50,7 +73,7 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <li><a href="#d">Ratio + saving + traps</a></li>
 </ol></nav>
 
-<section class="card hero" id="given">
+<section class="card" id="given">
 <h2 class="sec">Given</h2>
 <table><tr><th>Layer</th><th>Configuration</th></tr>
 <tr><td>Input</td><td>\(96\times96\times3\)</td></tr>
@@ -63,7 +86,6 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <tr><td>FC1</td><td>50 neurons</td></tr>
 <tr><td>FC2</td><td>6 neurons</td></tr></table>
 <p class="muted">Every filter / neuron has one bias.</p>
-<p><strong>(a)</strong> Output shape after every layer. <strong>(b)</strong> Parameters in Conv1, DW, PW, Conv3, FC1, FC2 + total. <strong>(c)</strong> Replace DW+PW with single standard \(3\times3\) → 48 ch. <strong>(d)</strong> Ratio + % saving.</p>
 <div class="formula">
 \[ \boxed{ n_{out} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1 } \quad
 \boxed{ P_{\text{standard}} =(K^2C_{in}+1)C_{out} } \]

@@ -43,7 +43,39 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <p class="subtitle">DenseNet vs ResNet, output size + computational cost, and a complete CNN parameter count. Keep these six formulas beside you — almost the entire numerical CNN portion reduces to them.</p>
 </header>
 
-<section class="card hero">
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">Previous Final 2025 · CNN · Question 6</div>
+
+<h3>(a) ResNet vs DenseNet</h3>
+<p>Compare <strong style="color:var(--text)">ResNet</strong> and <strong style="color:var(--text)">DenseNet</strong>. Explain how their skip / dense connections differ, and which architecture preserves and reuses previous feature maps more explicitly.</p>
+
+<h3>(b) Standard vs depthwise-separable convolution</h3>
+<p>An input feature map has size</p>
+<div class="formula">\[ 64\times64\times128. \]</div>
+<p>A standard convolution uses <strong style="color:var(--text)">64 filters of size \(5\times5\)</strong>, stride 1, valid padding.</p>
+<ul class="question-list">
+<li><span class="part">i</span><span>Determine the <strong>output feature-map size</strong>.</span></li>
+<li><span class="part">ii</span><span>Calculate the <strong>computational cost</strong> of the standard convolution.</span></li>
+<li><span class="part">iii</span><span>Replace it with a <strong>depthwise separable convolution</strong>: a \(5\times5\) depthwise convolution followed by a \(1\times1\) pointwise convolution producing 64 channels.</span></li>
+<li><span class="part">iv</span><span>Calculate the computational cost of the <strong>depthwise</strong> and <strong>pointwise</strong> stages.</span></li>
+<li><span class="part">v</span><span><strong>Compare</strong> the computational cost of the standard and depthwise-separable convolutions.</span></li>
+</ul>
+
+<h3>(c) Complete parameter count</h3>
+<p>Consider the network</p>
+<div class="formula">
+\[ 224\times224\times3 \]
+\[ \rightarrow \text{Conv1: 20 filters, }5\times5,\text{ same} \]
+\[ \rightarrow \text{MaxPool }2\times2,\ s=2 \]
+\[ \rightarrow \text{Conv2: 40 filters, }7\times7,\text{ same} \]
+\[ \rightarrow \text{MaxPool }2\times2,\ s=2 \]
+\[ \rightarrow \text{Flatten} \rightarrow FC(100) \rightarrow FC(5). \]
+</div>
+<p>Every convolutional filter and FC neuron has <strong style="color:var(--text)">one bias</strong>. Calculate the number of trainable parameters in <strong style="color:var(--text)">every layer</strong> and the <strong style="color:var(--text)">total</strong> network parameters.</p>
+</section>
+
+
+<section class="card">
 <h2 class="sec">Core formulas</h2>
 <div class="formula">
 \[ \boxed{ n_{\text{out}} = \left\lfloor \frac{n+2p-k}{s} \right\rfloor+1 } \]
@@ -56,6 +88,7 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 </section>
 
 <nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#question">The full question</a></li>
 <li><a href="#a">Q6(a) — DenseNet vs ResNet</a></li>
 <li><a href="#b">Q6(b) — Output size + MAC cost + DS cost</a></li>
 <li><a href="#c">Q6(c) — Complete CNN parameter count</a></li>
