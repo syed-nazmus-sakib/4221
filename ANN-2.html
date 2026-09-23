@@ -31,7 +31,9 @@ footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid 
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
 </style>
 <link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
 <script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -75,6 +77,9 @@ b^{(2)}=\begin{bmatrix} 0.05 \\ -0.1 \end{bmatrix} \]
 </ul>
 <hr class="sep" />
 <blockquote>One oddity in the paper, preserved here deliberately: it labels both outputs <strong style="color:var(--text)">Sigmoid</strong> yet calls the loss <strong style="color:var(--text)">categorical cross-entropy</strong>. Those two are not the standard pair. Everything below follows the paper literally — and section <a href="#delta">the output delta</a> shows exactly what that changes.</blockquote>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="3,2,2" data-act="ReLU|Sigmoid" data-loss="CCE"></div>
 </section>
 
 <section class="card" id="shapes">

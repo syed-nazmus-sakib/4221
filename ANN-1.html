@@ -31,7 +31,9 @@ footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid 
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
 </style>
 <link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
 <script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -40,7 +42,7 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <p class="subtitle">A \(3\rightarrow2\rightarrow1\) network with <strong style="color:var(--text)">ReLU</strong> in the hidden layer and <strong style="color:var(--text)">Sigmoid</strong> at the output. Forward pass, BCE loss for \(y=0\), full gradients for both layers, then one gradient-descent update with \(\eta=0.1\).</p>
 </header>
 <nav class="toc"><h2>Contents</h2><ol>
-<li><a href="#given">Given + setup</a></li>
+<li><a href="#question">The full question</a></li>
 <li><a href="#shapes">First: the matrix direction</a></li>
 <li><a href="#a">(a) Hidden-layer activations</a></li>
 <li><a href="#b">(b) Output activation</a></li>
@@ -52,8 +54,8 @@ a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{fo
 <li><a href="#g">(g) Update \(W^{(1)},b^{(1)}\)</a></li>
 <li><a href="#final">Final answer sheet</a></li></ol></nav>
 
-<section class="card hero" id="given">
-<h2 class="sec">Given</h2><div class="meta">3 inputs · 2 hidden (ReLU) · 1 output (Sigmoid) · BCE loss · y = 0 · η = 0.1</div>
+<section class="card hero" id="question">
+<h2 class="sec">The full question</h2><div class="meta">3 inputs · 2 hidden (ReLU) · 1 output (Sigmoid) · BCE loss · y = 0 · η = 0.1</div>
 <div class="formula">
 \[ x=\begin{bmatrix} 0.6 \\ 0.9 \\ 0.4 \end{bmatrix} \qquad
 W^{(1)}=\begin{bmatrix} 0.3 & -0.4 \\ 0.8 & 0.3 \\ -0.3 & 0.2 \end{bmatrix} \qquad
@@ -61,16 +63,19 @@ b^{(1)}=\begin{bmatrix} 0.2 \\ -0.1 \end{bmatrix} \]
 \[ W^{(2)}=\begin{bmatrix} 0.3 \\ 0.4 \end{bmatrix} \qquad b^{(2)}=-0.05 \]
 </div>
 <p>Hidden activation: <strong style="color:var(--text)">ReLU</strong>. Output activation: <strong style="color:var(--text)">Sigmoid</strong>. Target: \(y=0\). Learning rate: \(\eta=0.1\).</p>
-<p class="muted">The question asks for:</p>
-<ol class="muted">
-<li>(a) hidden-layer activations</li>
-<li>(b) output-layer activation</li>
-<li>(c) BCE loss</li>
-<li>(d) gradients w.r.t. \(W^{(2)}\) and \(b^{(2)}\)</li>
-<li>(e) gradients w.r.t. \(W^{(1)}\) and \(b^{(1)}\)</li>
-<li>(f) update \(W^{(2)},b^{(2)}\)</li>
-<li>(g) update \(W^{(1)},b^{(1)}\)</li>
-</ol>
+<p class="muted">Answer the following:</p>
+<ul class="question-list">
+<li><span class="part">(a)</span><span>Compute the <strong>hidden-layer activations</strong>.</span></li>
+<li><span class="part">(b)</span><span>Compute the <strong>output-layer activation</strong>.</span></li>
+<li><span class="part">(c)</span><span>Compute the <strong>BCE loss</strong>.</span></li>
+<li><span class="part">(d)</span><span>Compute the gradients with respect to <strong>\(W^{(2)}\) and \(b^{(2)}\)</strong>.</span></li>
+<li><span class="part">(e)</span><span>Compute the gradients with respect to <strong>\(W^{(1)}\) and \(b^{(1)}\)</strong>.</span></li>
+<li><span class="part">(f)</span><span>Update <strong>\(W^{(2)}\) and \(b^{(2)}\)</strong>.</span></li>
+<li><span class="part">(g)</span><span>Update <strong>\(W^{(1)}\) and \(b^{(1)}\)</strong>.</span></li>
+</ul>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="3,2,1" data-act="ReLU|Sigmoid" data-loss="BCE"></div>
 </section>
 
 <section class="card" id="shapes">

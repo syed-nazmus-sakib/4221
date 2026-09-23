@@ -34,7 +34,9 @@ footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid 
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
 </style>
 <link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
 <script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -77,6 +79,9 @@ b^{(2)}=\begin{bmatrix} 0 \\ 0.1 \\ -0.1 \end{bmatrix} \]
 <blockquote>Note that \(\eta=0.3\) is given but <strong style="color:var(--text)">never used</strong> — the question stops at the gradients and never asks for a weight update. Do not invent an update step; compute what is asked. (If you want the update anyway as practice, it is \(\theta-0.3\nabla\theta\).)</blockquote>
 <p class="muted">The shortcut the paper supplies for this pairing:</p>
 <div class="formula">\[ \boxed{ \frac{\partial L}{\partial z^{(2)}_k}=\hat y_k-y_k } \]</div>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="3,3,3" data-act="tanh|Softmax" data-loss="CCE"></div>
 </section>
 
 <section class="card" id="shapes">

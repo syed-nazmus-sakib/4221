@@ -35,7 +35,9 @@ footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid 
 a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
 </style>
 <link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="ann-diagram.css" />
 <script src="study-nav.js" defer></script>
+<script src="ann-diagram.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -78,6 +80,9 @@ b^{(2)}=\begin{bmatrix} 0.1 \\ -0.1 \end{bmatrix} \]
 \[ z^{(2)}=(W^{(2)})^{T}h+b^{(2)} \qquad \hat y_k=\frac{e^{z^{(2)}_k}}{\sum_j e^{z^{(2)}_j}} \]
 \[ L=-\sum_k y_k\ln\hat y_k \]
 </div>
+<hr class="sep" />
+<h3>The network at a glance</h3>
+<div class="ann-net" data-layers="2,3,2" data-act="tanh|Softmax" data-loss="CCE"></div>
 </section>
 
 <section class="card" id="shapes">

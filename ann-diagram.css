@@ -1,0 +1,14 @@
+.ann-net{margin:18px 0 2px;padding:14px 12px 10px;background:#0b1017;border:1px solid var(--border,#232c3a);border-radius:10px;overflow-x:auto}
+.ann-net svg{display:block;width:100%;height:auto;max-width:640px;margin:0 auto;min-width:470px}
+.ann-net .edge{stroke:#3d4b61;stroke-width:1.2}
+.ann-net .edge.out{stroke:#55637a;stroke-width:2}
+.ann-net .node{fill:#141d2b;stroke:#44546f;stroke-width:1.8}
+.ann-net .node.in{fill:#111923;stroke:#3a475e}
+.ann-net text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.ann-net .nlabel{fill:var(--text,#e6e9ef);font-size:15px}
+.ann-net .title{fill:var(--muted,#9aa4b5);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.ann-net .sub{fill:var(--faint,#6b7688);font-size:12.5px}
+.ann-net .wlabel{fill:var(--accent,#8ab4ff);font-size:12.5px;font-family:var(--mono,monospace)}
+.ann-net .lossL{fill:var(--text,#e6e9ef);font-size:16px}
+.ann-net-cap{margin:6px 0 0;color:var(--muted,#9aa4b5);font-size:13px;line-height:1.55;text-align:center}
+@media(max-width:640px){.ann-net svg{min-width:430px}}
