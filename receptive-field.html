@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>receptive-field — Receptive Field from First Principles</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">receptive-field</div>
+<h1>Receptive Field — from first principles</h1>
+<p class="subtitle">Where \(r_l=r_{l-1}+(k_l-1)j_{l-1}\) actually comes from, why two \(3\times3\) convolutions give \(5\times5\) and not \(9\times9\), and what the mysterious "jump" \(j\) really measures. Derived rather than memorised, so you can reconstruct it in the exam.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#what">1. What is a receptive field?</a></li>
+<li><a href="#why">2. Why isn't it \(9\times9\)?</a></li>
+<li><a href="#formula">3. The formula and its symbols</a></li>
+<li><a href="#jump">4. What exactly is the jump \(j\)?</a></li>
+<li><a href="#derive">5. Deriving the formula</a></li>
+<li><a href="#ex1">6. Example: two \(3\times3\) convolutions</a></li>
+<li><a href="#ex2">7. Example: pooling in between</a></li>
+<li><a href="#visual">8. Visual intuition for the jump</a></li>
+<li><a href="#ex3">9. A larger four-layer example</a></li>
+<li><a href="#padding">10. What padding does — and doesn't</a></li>
+<li><a href="#why-care">11. Why we care</a></li>
+<li><a href="#model">12. The mental model</a></li>
+</ol></nav>
+
+<section class="card hero" id="what">
+<h2 class="sec">1. What is a receptive field?</h2>
+<p>Imagine a CNN receiving an image. A neuron deep inside the network does <strong style="color:var(--text)">not necessarily depend on the entire original image</strong> — it only depends on some region of it. That region is its <strong style="color:var(--text)">receptive field</strong>.</p>
+<p>Take the simplest case:</p>
+<div class="formula">\[ \text{Input} \rightarrow 3\times3\ \text{Conv} \]</div>
+<p>Pick one output pixel. It was computed from a \(3\times3\) patch of the input, so its receptive field is</p>
+<div class="result">\[ \boxed{3\times3} \]</div>
+<p>Now add a second convolution:</p>
+<div class="formula">\[ \text{Input} \rightarrow 3\times3\ \text{Conv} \rightarrow 3\times3\ \text{Conv} \]</div>
+<p>A neuron in the second layer sees \(3\times3\) neurons of the previous layer — and every one of <em>those</em> already sees a \(3\times3\) region of the original image. So the second layer sees a larger portion of the input. The answer turns out to be</p>
+<div class="result">\[ \boxed{5\times5} \qquad\text{not}\qquad 9\times9. \]</div>
+<p class="muted">That point is fundamental, and it is where most people's intuition first breaks. The next section shows exactly why.</p>
+</section>
+
+<section class="card" id="why">
+<h2 class="sec">2. Why isn't it \(3\times3\times3\times3=9\times9\)?</h2>
+<p>Because neighbouring convolution windows <strong style="color:var(--text)">overlap</strong>. Drop to one dimension to see it cleanly. Suppose the input is</p>
+<div class="formula">\[ x_1,\;x_2,\;x_3,\;x_4,\;x_5,\;x_6,\;\ldots \]</div>
+<p>A kernel of size 3 produces</p>
+<div class="formula">
+\[ h_1 \leftarrow (x_1,x_2,x_3) \]
+\[ h_2 \leftarrow (x_2,x_3,x_4) \]
+\[ h_3 \leftarrow (x_3,x_4,x_5) \]
+</div>
+<p>Now the next convolution takes \((h_1,h_2,h_3)\). Which original inputs can affect that second-layer neuron? Take the <strong style="color:var(--text)">union</strong>, not the sum:</p>
+<pre class="diagram">   h₁ sees :  x₁ x₂ x₃
+   h₂ sees :     x₂ x₃ x₄
+   h₃ sees :        x₃ x₄ x₅
+             ─────────────────
+   union   :  x₁ x₂ x₃ x₄ x₅        →  5 positions, not 9</pre>
+<div class="result">\[ \text{1-D receptive field} = \boxed{5} \qquad\Longrightarrow\qquad \text{2-D} = \boxed{5\times5} \]</div>
+<p>The windows share \(x_2,x_3,x_4\) — counting them once each is the whole difference between 5 and 9. Continuing the same way with stride 1:</p>
+<table>
+<tr><th>Stacked \(3\times3\) convolutions</th><th>Receptive field</th></tr>
+<tr><td>1</td><td class="num">\(3\times3\)</td></tr>
+<tr><td>2</td><td class="num">\(5\times5\)</td></tr>
+<tr><td>3</td><td class="num">\(7\times7\)</td></tr>
+<tr><td>4</td><td class="num">\(9\times9\)</td></tr>
+</table>
+<p class="muted">Each extra \(3\times3\) layer adds <strong style="color:var(--text)">2</strong>, not a factor of 3. That is why deep stacks of small kernels are used instead of one big kernel: three \(3\times3\) layers reach the same \(7\times7\) view as a single \(7\times7\) convolution, but with far fewer parameters and two extra non-linearities.</p>
+</section>
+
+<section class="card" id="formula">
+<h2 class="sec">3. The formula and its symbols</h2>
+<div class="formula">
+\[ \boxed{ r_l = r_{l-1} + (k_l-1)\,j_{l-1} } \qquad\text{and}\qquad \boxed{ j_l = j_{l-1}\,s_l } \]
+\[ \text{starting from}\qquad \boxed{ r_0=1, \qquad j_0=1 } \]
+</div>
+<table>
+<tr><th>Symbol</th><th>Meaning</th></tr>
+<tr><td>\(l\)</td><td>Current layer</td></tr>
+<tr><td>\(r_l\)</td><td>Receptive-field size after layer \(l\)</td></tr>
+<tr><td>\(k_l\)</td><td>Kernel size of the current layer</td></tr>
+<tr><td>\(s_l\)</td><td>Stride of the current layer</td></tr>
+<tr><td>\(j_l\)</td><td><strong>Jump</strong> — the spacing between neighbouring features, measured in <em>original-image</em> pixels</td></tr>
+</table>
+<p>Four of those are obvious. The strange one is \(j\), so the next section deals with it properly before anything else.</p>
+<p class="muted">Note \(r_0=1\): before any layer, one "feature" is one input pixel, and neighbouring pixels are 1 apart.</p>
+</section>
+
+<section class="card" id="jump">
+<h2 class="sec">4. What exactly is the jump \(j\)?</h2>
+<p>Suppose there is a stride-1 convolution. Neighbouring feature-map neurons correspond to neighbouring input locations, so</p>
+<div class="formula">\[ \boxed{ j=1 } \]</div>
+<p>Now apply a stride-2 operation. The new feature map skips every other location, so neighbouring neurons in that map are separated by <strong style="color:var(--text)">2 original pixels</strong>:</p>
+<div class="formula">\[ \boxed{ j=2 } \]</div>
+<p>Another stride-2 layer on top:</p>
+<div class="formula">\[ j = 2\times2 = 4 \]</div>
+<blockquote>Moving <strong style="color:var(--text)">one cell</strong> in the deep feature map corresponds to moving <strong style="color:var(--text)">four pixels</strong> in the original image.</blockquote>
+<p>That is precisely why the jump accumulates strides:</p>
+<div class="result blue">\[ \boxed{ j_l = j_{l-1}\,s_l } \]</div>
+<p class="muted">The jump only ever <em>multiplies</em> by the stride. Kernel size has no effect on it — a \(7\times7\) stride-1 convolution leaves the jump unchanged.</p>
+</section>
+
+<section class="card" id="derive">
+<h2 class="sec">5. Deriving the receptive-field formula</h2>
+<p>Suppose the previous layer already has receptive field \(r_{l-1}=5\), and its neighbouring units are spaced \(j_{l-1}=2\) original pixels apart. The next layer uses \(k_l=3\).</p>
+<p>That kernel looks at three previous-layer positions:</p>
+<pre class="diagram">   previous layer:   ●       ●       ●
+                     └── 2 ──┴── 2 ──┘        ← each gap is j = 2 original pixels
+
+   the first ● already covers 5 original pixels
+   the second ● extends coverage by 2
+   the third  ● extends coverage by 2
+                                  5 + 2 + 2 = 9</pre>
+<div class="formula">\[ 5 + (3-1)(2) = 9 \]</div>
+<p>Generalising:</p>
+<div class="result blue">\[ \boxed{ r_l = r_{l-1} + (k_l-1)\,j_{l-1} } \]</div>
+<p>There are \(k_l-1\) <strong style="color:var(--text)">gaps</strong> between \(k_l\) kernel points, and each gap spans \(j_{l-1}\) original pixels, so the extra coverage is \((k_l-1)j_{l-1}\). Nothing magical:</p>
+<div class="result">
+\[ \boxed{ \text{old coverage} \;+\; \text{number of new gaps} \times \text{size of each gap} } \]
+</div>
+<p class="muted">This also explains instantly why \(k=1\) adds nothing: \((1-1)j = 0\).</p>
+</section>
+
+<section class="card" id="ex1">
+<h2 class="sec">6. Example: two \(3\times3\) convolutions</h2>
+<div class="formula">\[ \text{Input} \rightarrow \text{Conv}(3,\,s{=}1) \rightarrow \text{Conv}(3,\,s{=}1) \]</div>
+<p>Track both quantities in a table — this is the layout to reproduce in an exam, because it makes slips visible:</p>
+<table>
+<tr><th>Layer</th><th>\(k\)</th><th>\(s\)</th><th>\(r\)</th><th>\(j\)</th></tr>
+<tr><td>input</td><td class="num">—</td><td class="num">—</td><td class="num">1</td><td class="num">1</td></tr>
+<tr><td>Conv1</td><td class="num">3</td><td class="num">1</td><td class="num">\(1+(3-1)(1)=3\)</td><td class="num">\(1\times1=1\)</td></tr>
+<tr class="hl"><td>Conv2</td><td class="num">3</td><td class="num">1</td><td class="num">\(3+(3-1)(1)=5\)</td><td class="num">\(1\times1=1\)</td></tr>
+</table>
+<div class="result">\[ \boxed{ RF = 5\times5 } \]</div>
+</section>
+
+<section class="card" id="ex2">
+<h2 class="sec">7. Example: now put pooling between them</h2>
+<p>This is exactly the shape of the exam question in <a href="cnn-3.html">cnn-3</a>:</p>
+<div class="formula">\[ 3\times3\ \text{Conv} \rightarrow 2\times2\ \text{Pool},\ s{=}2 \rightarrow 3\times3\ \text{Conv} \]</div>
+<table>
+<tr><th>Layer</th><th>\(k\)</th><th>\(s\)</th><th>\(r\)</th><th>\(j\)</th></tr>
+<tr><td>input</td><td class="num">—</td><td class="num">—</td><td class="num">1</td><td class="num">1</td></tr>
+<tr><td>Conv1</td><td class="num">3</td><td class="num">1</td><td class="num">\(1+(3-1)(1)=3\)</td><td class="num">1</td></tr>
+<tr><td>Pool</td><td class="num">2</td><td class="num">2</td><td class="num">\(3+(2-1)(1)=4\)</td><td class="num">\(1\times2=2\)</td></tr>
+<tr class="hl"><td>Conv2</td><td class="num">3</td><td class="num">1</td><td class="num">\(4+(3-1)(2)=8\)</td><td class="num">2</td></tr>
+</table>
+<div class="result">\[ \boxed{ RF = 8\times8 } \qquad\text{versus}\qquad 5\times5 \ \text{without pooling.} \]</div>
+<p>Why the jump from 5 to 8? Because after pooling, neighbouring features are already <strong style="color:var(--text)">two original pixels apart</strong>, so the second convolution's two gaps each cover 2 pixels instead of 1.</p>
+<blockquote><strong style="color:var(--text)">The classic mistake.</strong> Note that pooling does two separate things on one line: it adds \((k-1)j = 1\) to \(r\), <em>and</em> it doubles \(j\). Forgetting the second is what turns a correct 8 into a wrong 6 — and the error only shows up in the <em>next</em> layer, which makes it hard to spot. Update \(r\) first, then \(j\).</blockquote>
+</section>
+
+<section class="card" id="visual">
+<h2 class="sec">8. Visual intuition for the jump</h2>
+<p>Think of the original image coordinates as \(0,1,2,3,4,5,6,7,8,\ldots\)</p>
+<pre class="diagram">   before downsampling (j = 1)
+   image:    0  1  2  3  4  5  6  7  8
+   features: ●  ●  ●  ●  ●  ●  ●  ●  ●     each feature 1 pixel apart
+
+   after stride 2 (j = 2)
+   image:    0  1  2  3  4  5  6  7  8
+   features: ●     ●     ●     ●     ●     features now map to 0, 2, 4, 6, 8
+
+   a later 3-wide filter over three such features spans:
+             0 ────── 2 ────── 4                 →  extra coverage 2 + 2 = 4
+   (at j = 1 it would only have spanned 0 — 1 — 2  →  extra coverage 1 + 1 = 2)</pre>
+<p class="muted">That is the entire content of the \(j\) recurrence, drawn out.</p>
+</section>
+
+<section class="card" id="ex3">
+<h2 class="sec">9. A larger example</h2>
+<div class="formula">
+\[ \text{Conv}(5,s{=}2) \rightarrow \text{Pool}(3,s{=}2) \rightarrow \text{Conv}(3,s{=}1) \rightarrow \text{Conv}(1,s{=}1) \]
+</div>
+<table>
+<tr><th>Layer</th><th>\(k\)</th><th>\(s\)</th><th>\(r=r_{\text{prev}}+(k-1)j_{\text{prev}}\)</th><th>\(j=j_{\text{prev}}\times s\)</th></tr>
+<tr><td>input</td><td class="num">—</td><td class="num">—</td><td class="num">1</td><td class="num">1</td></tr>
+<tr><td>Conv \(5\times5\)</td><td class="num">5</td><td class="num">2</td><td class="num">\(1+(4)(1)=5\)</td><td class="num">\(1\times2=2\)</td></tr>
+<tr><td>Pool \(3\times3\)</td><td class="num">3</td><td class="num">2</td><td class="num">\(5+(2)(2)=9\)</td><td class="num">\(2\times2=4\)</td></tr>
+<tr><td>Conv \(3\times3\)</td><td class="num">3</td><td class="num">1</td><td class="num">\(9+(2)(4)=17\)</td><td class="num">\(4\times1=4\)</td></tr>
+<tr class="hl"><td>Conv \(1\times1\)</td><td class="num">1</td><td class="num">1</td><td class="num">\(17+(0)(4)=17\)</td><td class="num">4</td></tr>
+</table>
+<div class="result">\[ \boxed{ RF = 17\times17 } \]</div>
+<p>Two things worth reading off that table:</p>
+<ul class="muted">
+<li>A \(\boxed{1\times1}\) convolution <strong style="color:var(--text)">does not increase the receptive field at all</strong> — it examines a single spatial location. It mixes channels, not neighbourhoods.</li>
+<li>The receptive field grows fastest <em>after</em> downsampling. The \(3\times3\) convolution added only 2 at the start but adds 8 once \(j=4\). Same kernel, four times the reach.</li>
+</ul>
+</section>
+
+<section class="card" id="padding">
+<h2 class="sec">10. What padding does — and doesn't do</h2>
+<p>A subtle point, and a common exam trap. Padding changes <strong style="color:var(--text)">where</strong> the receptive field sits near boundaries and it changes the output dimensions. But in the recurrence</p>
+<div class="formula">\[ r_l = r_{l-1} + (k_l-1)j_{l-1} \]</div>
+<p>padding <strong style="color:var(--text)">does not appear</strong>, so it does not change the receptive-field size. A \(3\times3\) convolution has a \(3\times3\) kernel footprint whether it is <em>same</em> or <em>valid</em>.</p>
+<p>What padding changes is whether part of that footprint lands on</p>
+<div class="formula">\[ \boxed{\text{real image pixels}} \qquad\text{or}\qquad \boxed{\text{padded zeros}} \]</div>
+<p class="muted">So a neuron near the border may have fewer <em>real</em> pixels contributing, even though the theoretical footprint is still \(3\times3\). Padding matters for output size; it does not matter for receptive-field size.</p>
+</section>
+
+<section class="card" id="why-care">
+<h2 class="sec">11. Why do we care about receptive field?</h2>
+<p>Early CNN neurons see tiny local patterns — edges, corners, textures. Deeper neurons need to combine information across larger regions: parts of objects, then whole objects.</p>
+<p>If you are trying to recognise a cat, a \(3\times3\) patch is not enough. A sufficiently deep neuron should eventually have access to ears + eyes + body + surroundings. So the receptive field tells us</p>
+<div class="result blue">\[ \boxed{ \text{how much spatial context a feature can theoretically use} } \]</div>
+<p>If the receptive field of your final feature map is smaller than the objects you are trying to detect, the network <em>cannot</em> see a whole object — no amount of training fixes that. It is an architectural property, not a learned one.</p>
+<hr class="sep" />
+<h3>Theoretical vs effective</h3>
+<p>One nuance worth knowing. This formula gives the <strong style="color:var(--text)">theoretical</strong> receptive field. In a real trained CNN, pixels inside that region do not influence the neuron equally — contributions concentrate near the centre and fade towards the edges. The practically influential region is called the <strong style="color:var(--text)">effective receptive field</strong>, and it is usually <em>smaller</em> than the theoretical one.</p>
+<blockquote>For exam purposes, use the theoretical calculation — the recurrence above is what is being marked.</blockquote>
+</section>
+
+<section class="card" id="model">
+<h2 class="sec">12. The mental model</h2>
+<p>Don't memorise the equations blindly. Ask two questions:</p>
+<div class="result">
+\[ \boxed{ r = \text{how wide my view is} } \]
+\[ \boxed{ j = \text{how far I move in the original image when I move one cell here} } \]
+</div>
+<p>Then the recurrences write themselves:</p>
+<div class="result blue">
+\[ \boxed{ r_{\text{new}} = r_{\text{old}} + (k-1)\times\text{jump} } \qquad
+\boxed{ j_{\text{new}} = j_{\text{old}}\times\text{stride} } \]
+</div>
+<h3>Exam checklist</h3>
+<ol class="muted">
+<li>Start \(r=1,\;j=1\).</li>
+<li>For each layer <em>in order</em>, including pooling: update \(r\) using the <strong style="color:var(--text)">old</strong> \(j\), then update \(j\).</li>
+<li>Kernel size affects \(r\) only. Stride affects \(j\) only (and \(r\) indirectly, via later layers).</li>
+<li>\(1\times1\) layers change nothing. Padding changes nothing.</li>
+<li>Quote the answer as \(r\times r\).</li>
+</ol>
+<hr class="sep" />
+<h3>Where this meets computational cost</h3>
+<p>Stride shows up in both topics, pulling in opposite directions. Increasing stride reduces \(H_oW_o\), so later layers get <strong style="color:var(--text)">cheaper</strong> — and it increases \(j\), so later kernels expand the receptive field <strong style="color:var(--text)">faster</strong>. Downsampling therefore does two useful things at once:</p>
+<div class="result">
+\[ \boxed{\text{reduces spatial computation}} \qquad\text{and}\qquad \boxed{\text{helps later neurons see more of the image}} \]
+</div>
+<p class="muted">That is one of the deepest architectural reasons CNNs alternate feature extraction with downsampling. The cost side of the story is on the <a href="macs.html">computational cost</a> page.</p>
+</section>
+
+<footer>receptive-field · extra · theory · dark minimal notes</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>macs — Computational Cost of Convolution</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:22px;margin:0 0 6px}h3{font-size:17px;margin:28px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:22px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13.5px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">macs</div>
+<h1>Computational cost — MACs from first principles</h1>
+<p class="subtitle">Where \(MAC=H_oW_oK^{2}C_{in}C_{out}\) comes from, why parameters and computation are completely different quantities, and why depthwise-separable convolution is always about \(8\)–\(9\times\) cheaper. Built up from one dot product rather than memorised.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#one">1. Start from a single dot product</a></li>
+<li><a href="#channels">2. Add input channels</a></li>
+<li><a href="#slide">3. The filter slides everywhere</a></li>
+<li><a href="#filters">4. Multiple filters — the formula</a></li>
+<li><a href="#ex1">5. Concrete example</a></li>
+<li><a href="#params">6. Parameters \(\neq\) computation</a></li>
+<li><a href="#resolution">7. Why spatial resolution matters</a></li>
+<li><a href="#dw">8. Depthwise convolution</a></li>
+<li><a href="#pw">9. Pointwise, and the total</a></li>
+<li><a href="#cheaper">10. Why depthwise-separable is cheaper</a></li>
+<li><a href="#ex2">11. Standard vs depthwise-separable</a></li>
+<li><a href="#flops">12. MACs versus FLOPs</a></li>
+<li><a href="#pool">13. What about max pooling?</a></li>
+<li><a href="#model">14. The mental model</a></li>
+</ol></nav>
+
+<section class="card hero" id="one">
+<h2 class="sec">1. Start from a single dot product</h2>
+<p>Forget the formula for a moment and literally perform one convolution. A convolution moves a filter across spatial positions and takes a dot product at every location. Suppose the input is grayscale and the kernel is \(3\times3\). At one position you have</p>
+<div class="formula">
+\[ \begin{bmatrix} x_1&x_2&x_3\\ x_4&x_5&x_6\\ x_7&x_8&x_9 \end{bmatrix}
+\qquad\text{and the filter}\qquad
+\begin{bmatrix} w_1&w_2&w_3\\ w_4&w_5&w_6\\ w_7&w_8&w_9 \end{bmatrix} \]
+</div>
+<p>One output value is</p>
+<div class="formula">\[ x_1w_1+x_2w_2+\cdots+x_9w_9 \]</div>
+<p>which is 9 multiplications and their sum. Each multiply-and-add is one <strong style="color:var(--text)">multiply-accumulate operation</strong>, or <strong style="color:var(--text)">MAC</strong>. So one output scalar costs</p>
+<div class="result">\[ \boxed{ 3\times3 = 9\ \text{MACs} } \]</div>
+<p class="muted">Everything below is this one fact, multiplied by how many times it happens.</p>
+</section>
+
+<section class="card" id="channels">
+<h2 class="sec">2. Add input channels</h2>
+<p>Now suppose the input is RGB, \(H\times W\times3\). A normal \(3\times3\) convolutional filter is <strong style="color:var(--text)">not</strong> \(3\times3\) — it is</p>
+<div class="formula">\[ \boxed{ 3\times3\times3 } \]</div>
+<p>because it looks at \(3\times3\) red values, \(3\times3\) green values <em>and</em> \(3\times3\) blue values. That is \(27\) numbers, so producing <strong style="color:var(--text)">one output scalar</strong> takes</p>
+<div class="result">\[ \boxed{ 27\ \text{MACs} } \]</div>
+<p>In general, with \(C_{in}\) input channels and a \(K\times K\) kernel, one output scalar requires</p>
+<div class="result blue">\[ \boxed{ K^{2}C_{in}\ \text{MACs} } \]</div>
+<p class="muted">This is the first building block. A standard convolution filter always spans the <strong style="color:var(--text)">full depth</strong> of its input — that single fact is what makes it expensive, and what depthwise convolution later gives up.</p>
+</section>
+
+<section class="card" id="slide">
+<h2 class="sec">3. But the filter slides everywhere</h2>
+<p>Suppose the output feature map is \(H_o\times W_o\). The filter must produce one value at every output position, so the number of positions is</p>
+<div class="formula">\[ \boxed{ H_oW_o } \]</div>
+<p>If each position costs \(K^2C_{in}\), then one filter costs</p>
+<div class="result">\[ \boxed{ H_oW_o\,K^{2}C_{in} } \]</div>
+<pre class="diagram">  one filter over the whole feature map
+
+  ┌─────────────────────────────┐
+  │ ▣ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢           │   ▣ = the K×K×C_in filter at one position
+  │ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢           │       cost here:  K² · C_in  MACs
+  │ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢           │
+  │ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢ ▢           │   number of positions:  H_o · W_o
+  └─────────────────────────────┘
+        H_o × W_o output positions   →  total for one filter: H_o W_o K² C_in</pre>
+</section>
+
+<section class="card" id="filters">
+<h2 class="sec">4. Now add multiple output filters</h2>
+<p>Suppose you want \(C_{out}=64\) output channels. You have 64 separate filters, each producing its own \(H_o\times W_o\) feature map, so multiply again by \(C_{out}\):</p>
+<div class="result blue">\[ \boxed{ MAC_{\text{standard}} = H_oW_o\,K^{2}C_{in}\,C_{out} } \]</div>
+<p>Now you know where every factor comes from. It is not a formula to memorise blindly — it literally reads</p>
+<div class="result">
+\[ \boxed{ \text{positions} \times \text{work at each position} \times \text{number of filters} } \]
+\[ \boxed{ H_oW_o \times \big(K^{2}C_{in}\big) \times C_{out} } \]
+</div>
+<p class="muted">This is the lecture's statement — <em>computational cost = filter parameters × filter positions × number of filters</em> — with each factor traced back to what it counts.</p>
+</section>
+
+<section class="card" id="ex1">
+<h2 class="sec">5. Concrete example</h2>
+<div class="formula">
+\[ \text{Input } 32\times32\times3, \qquad 3\times3 \text{ conv}, \; C_{out}=16, \text{ same padding}, \ s=1 \]
+\[ \Longrightarrow \text{Output } 32\times32\times16 \]
+</div>
+<p>Build it up one factor at a time:</p>
+<table>
+<tr><th>Step</th><th>Count</th></tr>
+<tr><td>MACs for one output scalar</td><td class="num">\(3\times3\times3 = 27\)</td></tr>
+<tr><td>Scalars in one output feature map</td><td class="num">\(32\times32 = 1{,}024\)</td></tr>
+<tr><td>Cost of one filter</td><td class="num">\(1{,}024\times27 = 27{,}648\)</td></tr>
+<tr class="hl"><td>Cost of all 16 filters</td><td class="num">\(27{,}648\times16 = 442{,}368\)</td></tr>
+</table>
+<div class="result">\[ \boxed{ 442{,}368\ \text{MACs} } \]</div>
+<p>Or straight from the formula, same answer:</p>
+<div class="formula">\[ 32\times32\times3\times3\times3\times16 = 442{,}368 \]</div>
+</section>
+
+<section class="card" id="params">
+<h2 class="sec">6. Parameters \(\neq\) computation</h2>
+<p>This distinction matters, and exam questions test both separately. For the same layer, the number of weights is only</p>
+<div class="formula">\[ 3\times3\times3\times16 = 432 \quad\text{plus 16 biases} \quad\Longrightarrow\quad \boxed{448\ \text{parameters}} \]</div>
+<p>but the computation is</p>
+<div class="formula">\[ \boxed{442{,}368\ \text{MACs}} \]</div>
+<p>Why such a huge gap? Because <strong style="color:var(--text)">the same weights are reused at every spatial position</strong> — that is the defining idea of convolution. The filter holds 432 weights, and those 432 weights get applied again and again across the image.</p>
+<div class="result blue">
+\[ \boxed{ \text{parameter count measures storage} } \qquad
+\boxed{ \text{MAC count measures computation} } \]
+</div>
+<p class="muted">A layer can be tiny in parameters and enormous in compute, or the reverse. A fully-connected layer is the opposite extreme: every weight is used exactly once, so its parameter and MAC counts are nearly the same number.</p>
+</section>
+
+<section class="card" id="resolution">
+<h2 class="sec">7. Why spatial resolution matters so much</h2>
+<p>Run the same convolution at \(224\times224\) instead of \(32\times32\). The filter weights are unchanged, so <strong style="color:var(--text)">parameters do not change at all</strong>. But the filter is now applied at many more locations:</p>
+<table>
+<tr><th>Input size</th><th>Parameters</th><th>MACs</th></tr>
+<tr><td>\(32\times32\times3\)</td><td class="num">448</td><td class="num">442,368</td></tr>
+<tr class="hl"><td>\(224\times224\times3\)</td><td class="num">448</td><td class="num">21,676,032</td></tr>
+</table>
+<p>Same storage, roughly \(49\times\) the compute — exactly the ratio \(\left(\tfrac{224}{32}\right)^2\).</p>
+<p class="muted">This is why early CNN layers can be computationally expensive even though they hold almost none of the model's parameters: their feature maps are huge. The parameters live in the deep layers and the fully-connected head; the <em>compute</em> lives at the front.</p>
+</section>
+
+<section class="card" id="dw">
+<h2 class="sec">8. Computational cost of depthwise convolution</h2>
+<p>In a normal convolution, one output filter sees <strong style="color:var(--text)">all input channels</strong>. With \(C_{in}=32\) and a \(3\times3\) kernel, one output scalar costs</p>
+<div class="formula">\[ 3\times3\times32 = 288\ \text{MACs} \]</div>
+<p>Depthwise convolution behaves differently: it assigns one \(3\times3\) filter to <strong style="color:var(--text)">each channel separately</strong>. For one channel at one position that is just</p>
+<div class="formula">\[ 3\times3 = 9\ \text{MACs} \]</div>
+<p>and across \(C_{in}\) channels and \(H_oW_o\) positions:</p>
+<div class="result blue">\[ \boxed{ MAC_{\text{DW}} = H_oW_o\,K^{2}C_{in} } \]</div>
+<p>Notice what disappeared: \(\boxed{C_{out}}\). Depthwise convolution is not generating each output channel by combining all input channels — it is filtering channels independently, so it produces exactly \(C_{in}\) channels out.</p>
+<pre class="diagram">  standard conv                    depthwise conv
+
+  ch1 ┐                            ch1 ──[3×3]──► ch1
+  ch2 ├──[3×3×C_in]──► out_k       ch2 ──[3×3]──► ch2
+  ch3 ┘   (every output channel    ch3 ──[3×3]──► ch3
+           touches every input)         (no mixing at all)</pre>
+</section>
+
+<section class="card" id="pw">
+<h2 class="sec">9. But then how do channels communicate?</h2>
+<p>They don't — not during the depthwise stage. That is why a <strong style="color:var(--text)">\(1\times1\) pointwise convolution</strong> is added afterwards.</p>
+<p>The depthwise output has \(C_{in}\) channels. One pointwise filter is \(1\times1\times C_{in}\), so one output scalar costs \(C_{in}\) MACs. For \(C_{out}\) filters over \(H_oW_o\) locations:</p>
+<div class="result blue">\[ \boxed{ MAC_{\text{PW}} = H_oW_o\,C_{in}C_{out} } \]</div>
+<p>Total for the depthwise-separable block:</p>
+<div class="result">
+\[ \boxed{ MAC_{\text{DS}} = H_oW_o\,K^{2}C_{in} + H_oW_o\,C_{in}C_{out}
+= H_oW_o\,C_{in}\big(K^{2}+C_{out}\big) } \]
+</div>
+<p class="muted">Note the <strong style="color:var(--text)">plus</strong>. The standard convolution multiplies \(K^2\) by \(C_{out}\); the separable version adds them. That single change from \(\times\) to \(+\) is the whole saving.</p>
+</section>
+
+<section class="card" id="cheaper">
+<h2 class="sec">10. Why is that so much cheaper?</h2>
+<p>Compare the two directly:</p>
+<div class="formula">
+\[ \text{standard: } H_oW_oK^{2}C_{in}C_{out}
+\qquad\text{vs}\qquad
+\text{DS: } H_oW_oK^{2}C_{in}+H_oW_oC_{in}C_{out} \]
+</div>
+<p>A normal convolution does <strong style="color:var(--text)">spatial filtering and channel mixing together</strong>, for every output channel. Depthwise-separable splits the two jobs:</p>
+<div class="result">
+\[ \boxed{ \text{Depthwise: spatial filtering} } \qquad\text{then}\qquad \boxed{ \text{Pointwise: channel mixing} } \]
+</div>
+<p>so it avoids repeating expensive \(K\times K\) spatial work across every input–output channel pair.</p>
+<hr class="sep" />
+<h3>The ratio, in closed form</h3>
+<p>Divide the two expressions and everything cancels except two terms:</p>
+<div class="formula">
+\[ \frac{MAC_{\text{DS}}}{MAC_{\text{standard}}}
+= \frac{H_oW_oK^{2}C_{in}+H_oW_oC_{in}C_{out}}{H_oW_oK^{2}C_{in}C_{out}} \]
+</div>
+<div class="result blue">\[ \boxed{ \frac{MAC_{\text{DS}}}{MAC_{\text{standard}}} = \frac{1}{C_{out}}+\frac{1}{K^{2}} } \]</div>
+<p>It depends on <strong style="color:var(--text)">neither</strong> the spatial size nor \(C_{in}\). For a \(3\times3\) kernel with a decent number of output channels, \(1/C_{out}\) is small and the ratio is dominated by \(1/K^2=1/9\) — so depthwise-separable convolution is roughly <strong style="color:var(--text)">8–9× cheaper</strong>, essentially always.</p>
+<p class="muted">Useful as a check: compute the ratio the long way, then confirm it against \(1/C_{out}+1/K^2\). If they disagree, you have an arithmetic slip.</p>
+</section>
+
+<section class="card" id="ex2">
+<h2 class="sec">11. Concrete standard-vs-depthwise example</h2>
+<p>Take a \(56\times56\times48\) input and produce 96 output channels with a \(3\times3\) kernel, same padding, stride 1 — the setup from <a href="cnn-5.html">cnn-5</a>.</p>
+<h3>Standard convolution</h3>
+<div class="formula">
+\[ \text{one scalar: } 3\times3\times48 = 432 \text{ MACs} \qquad
+\text{scalars: } 56\times56\times96 \]
+\[ MAC_{\text{std}} = 56\times56\times96\times432 \]
+</div>
+<div class="result">\[ \boxed{ 130{,}056{,}192 } \]</div>
+<h3>Depthwise stage</h3>
+<div class="formula">\[ 56\times56\times48\times9 \]</div>
+<div class="result">\[ \boxed{ 1{,}354{,}752 } \]</div>
+<h3>Pointwise stage</h3>
+<div class="formula">\[ 56\times56\times96\times48 \]</div>
+<div class="result">\[ \boxed{ 14{,}450{,}688 } \]</div>
+<hr class="sep" />
+<table>
+<tr><th>Design</th><th>MACs</th><th>Share</th></tr>
+<tr><td>Standard \(3\times3\)</td><td class="num">130,056,192</td><td class="num">100%</td></tr>
+<tr><td>Depthwise stage</td><td class="num">1,354,752</td><td class="num">1.04%</td></tr>
+<tr><td>Pointwise stage</td><td class="num">14,450,688</td><td class="num">11.11%</td></tr>
+<tr class="hl"><td>Depthwise-separable total</td><td class="num">15,805,440</td><td class="num">12.15%</td></tr>
+</table>
+<div class="result gold">
+\[ \frac{130{,}056{,}192}{15{,}805{,}440} \approx \boxed{8.23\times\text{ cheaper}}
+\qquad\Longrightarrow\qquad \boxed{\approx 87.85\%\text{ saving}} \]
+</div>
+<p>Check it against the closed form: \(\dfrac{1}{96}+\dfrac{1}{9}=0.010417+0.111111=0.121528\), and \(15{,}805{,}440/130{,}056{,}192=0.121528\) exactly. </p>
+<p class="muted">Notice the split inside the block: the pointwise stage is over ten times more expensive than the depthwise stage. Channel mixing, not spatial filtering, is where the remaining cost lives — which is why \(1/C_{out}\) barely matters and \(1/K^2\) dominates.</p>
+</section>
+
+<section class="card" id="flops">
+<h2 class="sec">12. MACs versus FLOPs</h2>
+<p>One terminology detail that causes confusion. A MAC is</p>
+<div class="formula">\[ a\times b+c \]</div>
+<p>which some sources count as \(\boxed{1\ \text{MAC}}\) and others as \(\boxed{2\ \text{FLOPs}}\), because there is one multiplication and one addition. So a paper reporting \(100\text{M}\) MACs might be reported elsewhere as roughly \(200\text{M}\) FLOPs.</p>
+<blockquote>For these exam problems we count <strong style="color:var(--text)">MACs</strong> and ignore bias additions. Stick to that unless a question explicitly defines FLOPs differently — and if you convert, say so in your answer.</blockquote>
+</section>
+
+<section class="card" id="pool">
+<h2 class="sec">13. What about max pooling?</h2>
+<p>Max pooling is different because there are no multiplications. For \(2\times2\) pooling each output is \(\max(a,b,c,d)\), which takes roughly <strong style="color:var(--text)">3 comparisons</strong>. For a \(K\times K\) window, approximately</p>
+<div class="formula">\[ \boxed{ K^{2}-1\ \text{comparisons per output value} } \]</div>
+<p>So pooling does have a computational cost — but when a CNN question asks for convolutional MACs, pooling is normally excluded, because it performs comparisons rather than multiply-accumulates.</p>
+<div class="result gold">
+\[ \boxed{\text{pooling has zero trainable parameters}} \quad\text{does \textbf{not} mean}\quad \boxed{\text{zero computation}} \]
+</div>
+<p class="muted">Two different questions, two different answers. Keep them apart — a question asking for "parameters" gets 0 for a pooling layer; a question asking for "operations" does not.</p>
+</section>
+
+<section class="card" id="model">
+<h2 class="sec">14. A single mental model</h2>
+<p>Whenever you are stuck, forget the formula and ask:</p>
+<blockquote><strong style="color:var(--text)">How many output numbers am I producing, and how much work does it take to produce one of them?</strong></blockquote>
+<p>For a standard convolution:</p>
+<div class="formula">
+\[ \text{number of outputs} = H_oW_oC_{out}, \qquad \text{work per output} = K^{2}C_{in} \]
+</div>
+<div class="result blue">
+\[ \boxed{ MACs = \big(H_oW_oC_{out}\big)\big(K^{2}C_{in}\big) = H_oW_oK^{2}C_{in}C_{out} } \]
+</div>
+<p>You can reconstruct every variant the same way:</p>
+<table>
+<tr><th>Layer</th><th>Outputs</th><th>Work per output</th><th>MACs</th></tr>
+<tr><td>Standard conv</td><td class="num">\(H_oW_oC_{out}\)</td><td class="num">\(K^{2}C_{in}\)</td><td class="num">\(H_oW_oK^{2}C_{in}C_{out}\)</td></tr>
+<tr><td>Depthwise</td><td class="num">\(H_oW_oC_{in}\)</td><td class="num">\(K^{2}\)</td><td class="num">\(H_oW_oK^{2}C_{in}\)</td></tr>
+<tr><td>Pointwise \(1\times1\)</td><td class="num">\(H_oW_oC_{out}\)</td><td class="num">\(C_{in}\)</td><td class="num">\(H_oW_oC_{in}C_{out}\)</td></tr>
+<tr><td>Fully connected</td><td class="num">\(N_{out}\)</td><td class="num">\(N_{in}\)</td><td class="num">\(N_{in}N_{out}\)</td></tr>
+</table>
+<p class="muted">Every row is the same sentence. That is why you never need to memorise four formulas.</p>
+<hr class="sep" />
+<h3>Where this meets the receptive field</h3>
+<p>Stride appears in both topics, and it pulls in useful directions on each. Increasing stride reduces \(H_oW_o\), so later layers become <strong style="color:var(--text)">computationally cheaper</strong>. At the same time it increases the jump \(j\), so later kernels expand the <strong style="color:var(--text)">receptive field faster</strong>.</p>
+<div class="result">
+\[ \boxed{\text{reduces spatial computation}} \qquad\text{and}\qquad \boxed{\text{helps later neurons see more of the image}} \]
+</div>
+<p class="muted">That is one of the deepest architectural reasons CNNs traditionally alternate feature extraction with downsampling. The other half of the story is on the <a href="receptive-field.html">receptive field</a> page.</p>
+</section>
+
+<footer>macs · extra · theory · dark minimal notes</footer>
+</div>
+</body>
+</html>
