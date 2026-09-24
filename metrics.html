@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>metrics — Accuracy, Precision, Recall, F1, AP and mAP</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--red:#e89a9a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:20px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+table.cm td,table.cm th{text-align:center}table.cm td:first-child,table.cm th:first-child{text-align:left}
+td.tp{color:var(--green)}td.tn{color:var(--green)}td.fp{color:var(--gold)}td.fn{color:var(--red)}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:14px 0}
+ol.steps>li{counter-increment:st;position:relative;padding:9px 0 9px 32px;border-top:1px solid var(--border)}
+ol.steps>li:last-child{border-bottom:1px solid var(--border)}
+ol.steps>li:before{content:counter(st);position:absolute;left:2px;top:12px;font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">metrics</div>
+<h1>Classification & detection metrics</h1>
+<p class="subtitle">Everything from four numbers. TP, TN, FP and FN give accuracy, precision, recall, F1 and specificity; the precision–recall trade-off gives AP; averaging across classes gives mAP. With a fully worked confusion-matrix question.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#confusion">1. TP, TN, FP and FN</a></li>
+<li><a href="#accuracy">2. Accuracy</a></li>
+<li><a href="#precision">3. Precision</a></li>
+<li><a href="#recall">4. Recall</a></li>
+<li><a href="#distinction">5. Precision vs recall — the easiest distinction</a></li>
+<li><a href="#f1">6. F1 score</a></li>
+<li><a href="#specificity">7. Specificity</a></li>
+<li><a href="#worked">8. Worked exam-style question</a></li>
+<li><a href="#threshold">9. What the threshold changes</a></li>
+<li><a href="#ap">10. AP — Average Precision</a></li>
+<li><a href="#map">11. mAP — mean Average Precision</a></li>
+<li><a href="#cheat">12. Cheat sheet</a></li>
+</ol></nav>
+
+<section class="card hero" id="confusion">
+<h2 class="sec">1. First understand TP, TN, FP and FN</h2>
+<p>Suppose the positive class is <strong style="color:var(--text)">"disease present"</strong>. Every prediction falls into one of four boxes:</p>
+<table>
+<tr><th>Reality</th><th>Prediction</th><th>Name</th></tr>
+<tr><td>Disease</td><td>Disease</td><td class="tp"><strong>TP</strong> — True Positive</td></tr>
+<tr><td>No disease</td><td>No disease</td><td class="tn"><strong>TN</strong> — True Negative</td></tr>
+<tr><td>No disease</td><td>Disease</td><td class="fp"><strong>FP</strong> — False Positive</td></tr>
+<tr><td>Disease</td><td>No disease</td><td class="fn"><strong>FN</strong> — False Negative</td></tr>
+</table>
+<p>The easiest intuition:</p>
+<div class="result blue">
+\[ \textbf{FP} : \text{the model raises a false alarm} \]
+\[ \textbf{FN} : \text{the model misses something that is actually there} \]
+</div>
+<pre class="diagram">                    PREDICTED
+                 Positive   Negative
+              ┌──────────┬──────────┐
+     Positive │    TP    │    FN    │   ← all the real positives
+  A           │  (found) │ (missed) │
+  C           ├──────────┼──────────┤
+  T  Negative │    FP    │    TN    │   ← all the real negatives
+  U           │ (alarm)  │  (quiet) │
+  A           └──────────┴──────────┘
+  L                 ↑
+            everything called positive</pre>
+<p class="muted">Every metric below is just a different ratio of these four numbers. Read the diagram once and you can rebuild all of them: precision divides by a <strong style="color:var(--text)">column</strong>, recall and specificity divide by a <strong style="color:var(--text)">row</strong>.</p>
+</section>
+
+<section class="card" id="accuracy">
+<h2 class="sec">2. Accuracy</h2>
+<blockquote>Out of all predictions, how many were correct?</blockquote>
+<div class="formula">\[ \boxed{ Accuracy=\frac{TP+TN}{TP+TN+FP+FN} } \]</div>
+<p>If 90 out of 100 samples were classified correctly, \(Accuracy = 90/100 = 90\%\).</p>
+<h3>Significance — and the trap</h3>
+<p>Accuracy is useful when the classes are reasonably balanced. It becomes <strong style="color:var(--text)">badly misleading on imbalanced datasets</strong>.</p>
+<div class="result gold">
+<p style="margin:0">If 99% of patients are healthy, a model that predicts "healthy" for <em>everyone</em> scores \(99\%\) accuracy while detecting <strong style="color:var(--text)">zero</strong> diseased patients. Its recall is \(0\).</p>
+</div>
+<p class="muted">This is exactly why precision and recall exist — they refuse to be fooled by the majority class, because neither of them has \(TN\) anywhere in its formula.</p>
+</section>
+
+<section class="card" id="precision">
+<h2 class="sec">3. Precision</h2>
+<blockquote>Of everything the model predicted as positive, how many were actually positive?</blockquote>
+<div class="formula">\[ \boxed{ Precision=\frac{TP}{TP+FP} } \]</div>
+<p>The denominator is <strong style="color:var(--text)">everything predicted positive</strong> — the left column of the confusion matrix.</p>
+<p>High precision means <strong style="color:var(--text)">few false positives</strong>. If a spam filter marks 100 emails as spam and 95 really are spam, \(Precision = 95/100 = 95\%\).</p>
+<div class="result">\[ \boxed{ \text{Precision matters when false alarms are costly.} } \]</div>
+<p class="muted">Spam filtering is the standard example: a legitimate email silently sent to the spam folder is far worse than a spam email reaching the inbox.</p>
+</section>
+
+<section class="card" id="recall">
+<h2 class="sec">4. Recall</h2>
+<p>Also called <strong style="color:var(--text)">Sensitivity</strong> or the <strong style="color:var(--text)">True Positive Rate</strong>.</p>
+<blockquote>Of all the actual positives, how many did the model successfully find?</blockquote>
+<div class="formula">\[ \boxed{ Recall=\frac{TP}{TP+FN} } \]</div>
+<p>The denominator is <strong style="color:var(--text)">everything actually positive</strong> — the top row of the confusion matrix.</p>
+<p>High recall means <strong style="color:var(--text)">few false negatives</strong>. If 100 patients actually have a disease and the model detects 90, \(Recall = 90/100 = 90\%\).</p>
+<div class="result">\[ \boxed{ \text{Recall matters when missing a positive case is dangerous.} } \]</div>
+<p class="muted">Medical screening is the standard example: a missed tumour is far worse than a false alarm that a second test clears.</p>
+</section>
+
+<section class="card" id="distinction">
+<h2 class="sec">5. Precision vs recall — the easiest distinction</h2>
+<p>Memorise these two questions and you never need to re-derive the formulas:</p>
+<div class="result blue">
+\[ \boxed{ Precision:\ \text{When I say YES, how often am I right?} } \]
+\[ \boxed{ Recall:\ \text{Of all the real YES cases, how many did I find?} } \]
+</div>
+<table>
+<tr><th></th><th>Precision</th><th>Recall</th></tr>
+<tr><td>Denominator</td><td class="num">\(TP+FP\)</td><td class="num">\(TP+FN\)</td></tr>
+<tr><td>Which error it punishes</td><td class="fp">FP — false alarms</td><td class="fn">FN — misses</td></tr>
+<tr><td>Direction in the matrix</td><td>column (what I predicted)</td><td>row (what was real)</td></tr>
+<tr><td>Classic use case</td><td>spam filtering</td><td>disease screening</td></tr>
+</table>
+<p class="muted">Both ignore \(TN\) entirely. That is the feature, not an oversight — it is what makes them survive class imbalance.</p>
+</section>
+
+<section class="card" id="f1">
+<h2 class="sec">6. F1 score</h2>
+<p>Raising precision often lowers recall and vice versa, so a single number that respects both is useful. F1 is the <strong style="color:var(--text)">harmonic</strong> mean:</p>
+<div class="formula">\[ \boxed{ F_1 = 2\,\frac{Precision\times Recall}{Precision+Recall} } \]</div>
+<h3>Why harmonic and not ordinary average?</h3>
+<p>Because F1 should only be high when <strong style="color:var(--text)">both</strong> are high. Take an extreme case:</p>
+<div class="formula">\[ P=1.0, \qquad R=0.1 \]</div>
+<table>
+<tr><th>Mean</th><th>Value</th><th>Verdict</th></tr>
+<tr><td>Ordinary (arithmetic)</td><td class="num">\(\frac{1.0+0.1}{2}=0.55\)</td><td>misleadingly reasonable</td></tr>
+<tr class="hl"><td>Harmonic (F1)</td><td class="num">\(\frac{2(1)(0.1)}{1.1}\approx0.182\)</td><td>honest about the imbalance</td></tr>
+</table>
+<p>The harmonic mean is dragged down by the smaller of the two values, which is exactly the behaviour wanted here.</p>
+<hr class="sep" />
+<h3>A shortcut worth knowing</h3>
+<p>Substituting the definitions and simplifying gives F1 directly from the confusion matrix, with no need to compute \(P\) and \(R\) first:</p>
+<div class="result">\[ \boxed{ F_1 = \frac{2\,TP}{2\,TP+FP+FN} } \]</div>
+<p class="muted">Faster under exam pressure, and it makes the interpretation obvious: F1 counts the two error types \(FP\) and \(FN\) against the true positives, and never looks at \(TN\) at all.</p>
+</section>
+
+<section class="card" id="specificity">
+<h2 class="sec">7. Specificity</h2>
+<blockquote>Of all actual negative examples, how many did we correctly identify as negative?</blockquote>
+<div class="formula">\[ \boxed{ Specificity=\frac{TN}{TN+FP} } \]</div>
+<p>Also called the <strong style="color:var(--text)">True Negative Rate</strong>. Recall focuses on the positives; specificity is its mirror image, focusing on the negatives.</p>
+<table>
+<tr><th>Metric</th><th>Row of the matrix</th><th>Asks about</th></tr>
+<tr><td>Recall (sensitivity)</td><td>actual positives</td><td class="num">\(TP/(TP+FN)\)</td></tr>
+<tr><td>Specificity</td><td>actual negatives</td><td class="num">\(TN/(TN+FP)\)</td></tr>
+</table>
+</section>
+
+<section class="card" id="worked">
+<h2 class="sec">8. Worked exam-style question</h2>
+<blockquote class="q"><strong>Question</strong>A binary classifier produces the confusion matrix below. Calculate accuracy, precision, recall, F1 score and specificity, and briefly interpret the results.</blockquote>
+<table class="cm">
+<tr><th></th><th>Predicted Positive</th><th>Predicted Negative</th></tr>
+<tr><td><strong>Actual Positive</strong></td><td class="tp num">32</td><td class="fn num">4</td></tr>
+<tr><td><strong>Actual Negative</strong></td><td class="fp num">8</td><td class="tn num">56</td></tr>
+</table>
+<h3>Step 1 — read off the four values</h3>
+<div class="formula">
+\[ TP=32, \qquad FN=4, \qquad FP=8, \qquad TN=56 \]
+\[ \text{Total} = 32+4+8+56 = 100 \]
+</div>
+<h3>Step 2 — Accuracy</h3>
+<div class="formula">\[ Accuracy=\frac{TP+TN}{\text{Total}}=\frac{32+56}{100} \]</div>
+<div class="result">\[ \boxed{ Accuracy = 0.88 = 88\% } \]</div>
+<h3>Step 3 — Precision</h3>
+<div class="formula">\[ Precision=\frac{32}{32+8}=\frac{32}{40} \]</div>
+<div class="result">\[ \boxed{ Precision = 0.80 = 80\% } \]</div>
+<p class="muted">When the model predicts positive, it is correct \(80\%\) of the time.</p>
+<h3>Step 4 — Recall</h3>
+<div class="formula">\[ Recall=\frac{32}{32+4}=\frac{32}{36} \]</div>
+<div class="result">\[ \boxed{ Recall \approx 0.889 = 88.9\% } \]</div>
+<p class="muted">The model finds about \(88.9\%\) of all real positive cases.</p>
+<h3>Step 5 — F1</h3>
+<div class="formula">\[ F_1 = 2\,\frac{(0.80)(0.889)}{0.80+0.889} = \frac{1.4222}{1.6889} \]</div>
+<div class="result">\[ \boxed{ F_1 \approx 0.842 = 84.2\% } \]</div>
+<p class="muted">Check with the shortcut: \(\dfrac{2(32)}{2(32)+8+4}=\dfrac{64}{76}=0.8421\) ✓ — same answer, one line.</p>
+<h3>Step 6 — Specificity</h3>
+<div class="formula">\[ Specificity=\frac{56}{56+8}=\frac{56}{64} \]</div>
+<div class="result">\[ \boxed{ Specificity = 0.875 = 87.5\% } \]</div>
+<hr class="sep" />
+<h3>Interpretation</h3>
+<table>
+<tr><th>Metric</th><th>Value</th><th>Reading</th></tr>
+<tr><td>Accuracy</td><td class="num">88.0%</td><td>correct on most samples overall</td></tr>
+<tr><td>Precision</td><td class="num">80.0%</td><td>1 in 5 positive calls is a false alarm</td></tr>
+<tr><td>Recall</td><td class="num">88.9%</td><td>misses about 1 in 9 real positives</td></tr>
+<tr class="hl"><td>F1</td><td class="num">84.2%</td><td>reasonably balanced, precision is the weaker side</td></tr>
+<tr><td>Specificity</td><td class="num">87.5%</td><td>correctly clears most true negatives</td></tr>
+</table>
+<p>Recall exceeds precision here, so the classifier leans toward <strong style="color:var(--text)">predicting positive</strong> — it catches most real cases at the cost of some false alarms. If false alarms were expensive, raising the decision threshold would trade some of that recall back for precision.</p>
+</section>
+
+<section class="card" id="threshold">
+<h2 class="sec">9. What happens when the classification threshold changes?</h2>
+<p>Suppose a positive prediction means \(P(y=1)\ge0.5\). Moving that threshold moves precision and recall in opposite directions.</p>
+<table>
+<tr><th>Threshold</th><th>Effect</th><th>Precision</th><th>Recall</th></tr>
+<tr><td>Lowered (e.g. to 0.3)</td><td>more samples called positive</td><td class="num">↓</td><td class="num">↑</td></tr>
+<tr><td>Raised (e.g. to 0.7)</td><td>fewer samples called positive</td><td class="num">↑</td><td class="num">↓</td></tr>
+</table>
+<p>Lowering the threshold catches more real positives (recall up) but also produces more false alarms (precision down). Raising it does the reverse.</p>
+<pre class="diagram">  threshold →  0.1   0.3   0.5   0.7   0.9
+  Recall       ████████████████▌
+               high ─────────────────────► low
+  Precision                ◄───────────────────── 
+               low  ─────────────────────► high
+
+  every threshold gives one (Recall, Precision) point
+  → sweep them all and you trace the PR curve</pre>
+<div class="result blue">\[ \boxed{ \text{This trade-off is exactly what AP measures.} } \]</div>
+</section>
+
+<section class="card" id="ap">
+<h2 class="sec">10. AP — Average Precision</h2>
+<p>AP is used in retrieval and, most often for this course, in <strong style="color:var(--text)">object detection</strong>.</p>
+<p>First decide whether each predicted box is a TP or an FP, using two conditions:</p>
+<ol class="steps">
+<li>The predicted <strong>class</strong> is correct.</li>
+<li>The overlap with a ground-truth object is sufficient, measured by IoU — commonly \(IoU\ge0.5\).</li>
+</ol>
+<p>Then sort the detections from highest to lowest confidence. Sweeping down that sorted list gives a sequence of \((Recall,\ Precision)\) points, which form the <strong style="color:var(--text)">precision–recall curve</strong>. Average Precision is the area under it:</p>
+<div class="result">\[ \boxed{ AP \approx \text{Area under the precision–recall curve} } \]</div>
+<pre class="diagram">  Precision
+   1.0 │●──●──●
+       │        ╲●──●
+       │              ╲●───●
+       │                     ╲●──●
+       │                           ╲●
+   0.0 └──────────────────────────────► Recall
+       0.0                          1.0
+            AP = the shaded area under this curve</pre>
+<p>A high AP means the detector <strong style="color:var(--text)">keeps its precision high even as recall increases</strong> — it finds most of the objects without flooding the output with false detections.</p>
+</section>
+
+<section class="card" id="map">
+<h2 class="sec">11. mAP — mean Average Precision</h2>
+<p>For multiple classes, compute AP independently for each class, then average:</p>
+<div class="formula">\[ \boxed{ mAP = \frac{1}{C}\sum_{c=1}^{C} AP_c } \]</div>
+<h3>Example</h3>
+<table>
+<tr><th>Class</th><th>AP</th></tr>
+<tr><td>car</td><td class="num">0.90</td></tr>
+<tr><td>person</td><td class="num">0.80</td></tr>
+<tr><td>dog</td><td class="num">0.70</td></tr>
+<tr class="hl"><td><strong>mAP</strong></td><td class="num"><strong>0.80</strong></td></tr>
+</table>
+<div class="formula">\[ mAP = \frac{0.90+0.80+0.70}{3} = \boxed{0.80} = 80\% \]</div>
+<p class="muted">Results are often quoted at a fixed IoU threshold (<em>mAP@0.5</em>) or averaged over several thresholds (<em>mAP@[.5:.95]</em>). Always state which, because the numbers are not comparable across conventions.</p>
+</section>
+
+<section class="card" id="cheat">
+<h2 class="sec">12. Cheat sheet</h2>
+<table>
+<tr><th>Metric</th><th>Formula</th><th>Main question</th></tr>
+<tr><td>Accuracy</td><td class="num">\(\frac{TP+TN}{\text{Total}}\)</td><td>How often am I correct overall?</td></tr>
+<tr><td>Precision</td><td class="num">\(\frac{TP}{TP+FP}\)</td><td>When I predict positive, how often am I right?</td></tr>
+<tr><td>Recall</td><td class="num">\(\frac{TP}{TP+FN}\)</td><td>How many real positives did I find?</td></tr>
+<tr><td>F1</td><td class="num">\(\frac{2PR}{P+R}=\frac{2TP}{2TP+FP+FN}\)</td><td>How balanced are precision and recall?</td></tr>
+<tr><td>Specificity</td><td class="num">\(\frac{TN}{TN+FP}\)</td><td>How many real negatives did I identify?</td></tr>
+<tr><td>AP</td><td class="num">area under the PR curve</td><td>Detection quality for one class</td></tr>
+<tr><td>mAP</td><td class="num">\(\frac{1}{C}\sum_c AP_c\)</td><td>Detection quality across classes</td></tr>
+</table>
+<hr class="sep" />
+<div class="result blue">
+\[ \text{Precision divides by a } \textbf{column} \text{ (what I predicted).} \]
+\[ \text{Recall and specificity divide by a } \textbf{row} \text{ (what was real).} \]
+\[ \text{Only accuracy uses all four boxes — which is why only accuracy is fooled by imbalance.} \]
+</div>
+<p class="muted">Related: mAP appears in <a href="pyq-2.html">pyq-2 5(b)</a> and <a href="pyq-3.html">pyq-3 2(c)</a>; IoU and NMS are worked numerically on the object-detection pages.</p>
+</section>
+
+<footer>metrics · extra · theory · dark minimal notes</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cnn-theory-2 — Architecture Concepts</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+nav.toc .grp{list-style:none;margin:12px 0 4px -20px;color:var(--faint);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;border-bottom:none}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+.hv{color:var(--gold)}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">cnn-theory-2</div>
+<h1>CNN Architectures — the "why was it designed this way" questions</h1>
+<p class="subtitle">Eighteen exam-style conceptual questions on LeNet-5, AlexNet, VGG, ResNet, Inception, MobileNet and EfficientNet. Each answer is written in compact 2–3 paragraph exam-note form — the length you could actually reproduce under time pressure. These test <strong style="color:var(--text)">why</strong> an architecture exists, not whether you memorised its layer table.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li class="grp" style="margin-top:0">Orientation</li>
+<li><a href="#map">How to use this page</a></li>
+<li class="grp">LeNet-5</li>
+<li><a href="#q1">1. Why is LeNet considered a foundational CNN architecture?</a></li>
+<li class="grp">AlexNet</li>
+<li><a href="#q2">2. How did AlexNet extend the ideas of LeNet?</a></li>
+<li class="grp">VGG</li>
+<li><a href="#q3">3. Why does VGG repeatedly use \(3\times3\) convolutions?</a></li>
+<li><a href="#q4">4. Why do spatial dimensions decrease while channels increase?</a></li>
+<li class="grp">ResNet</li>
+<li><a href="#q5">5. What problem does a residual connection solve?</a></li>
+<li><a href="#q6">6. Why is learning a residual often easier than learning the full mapping?</a></li>
+<li><a href="#q7">7. What is the difference between a plain block and a residual block?</a></li>
+<li><a href="#q8">8. Why can adding layers hurt a plain network but help a ResNet?</a></li>
+<li class="grp">Inception</li>
+<li><a href="#q9">9. Why does an Inception module use several filter sizes in parallel?</a></li>
+<li><a href="#q10">10. Why are \(1\times1\) convolutions used before expensive \(3\times3\) or \(5\times5\) convolutions?</a></li>
+<li><a href="#q11">11. What does "channel concatenation" mean?</a></li>
+<li><a href="#q12">12. Why is pooling also included as a branch?</a></li>
+<li class="grp">MobileNet</li>
+<li><a href="#q13">13. Why is MobileNet computationally efficient?</a></li>
+<li><a href="#q14">14. Why is pointwise convolution still necessary after depthwise convolution?</a></li>
+<li><a href="#q15">15. What is an inverted residual block?</a></li>
+<li><a href="#q16">16. What changed?</a></li>
+<li class="grp">EfficientNet</li>
+<li><a href="#q17">17. What is compound scaling?</a></li>
+<li class="grp">Putting it together</li>
+<li><a href="#q18">18. What fundamental problem was each architecture trying to solve?</a></li>
+</ol></nav>
+
+<section class="card hero" id="map">
+<h2 class="sec">How to use this page</h2><div class="meta">18 questions · 2–3 paragraph answers · exam-note length</div>
+<p>These questions test <strong style="color:var(--text)">why an architecture was introduced</strong>, not whether you can reproduce its layer table. The answers are deliberately short — roughly what you could write in the time such a question is worth.</p>
+<p>Five are marked <span class="hv">★</span> as the highest-value conceptual ones, because each tests the actual reason an architecture exists rather than simple memorisation:</p>
+<table>
+<tr><th>#</th><th>Question</th><th>Core idea</th></tr>
+<tr class="hl"><td class="num">5</td><td><a href="#q5">What problem does a residual connection solve?</a></td><td>\(y=F(x)+x\) makes depth optimisable</td></tr>
+<tr class="hl"><td class="num">9</td><td><a href="#q9">Why several filter sizes in parallel?</a></td><td>multi-scale, chosen by learning</td></tr>
+<tr class="hl"><td class="num">10</td><td><a href="#q10">Why \(1\times1\) before \(3\times3\)/\(5\times5\)?</a></td><td>channel bottleneck cuts cost ~10×</td></tr>
+<tr class="hl"><td class="num">13</td><td><a href="#q13">Why is MobileNet efficient?</a></td><td>split spatial filtering from channel mixing</td></tr>
+<tr class="hl"><td class="num">17</td><td><a href="#q17">What is compound scaling?</a></td><td>depth, width and resolution together</td></tr>
+</table>
+<p class="muted">Related pages: the numerical side of these ideas is on <a href="macs.html">computational cost</a> and <a href="receptive-field.html">receptive field</a>; ResNet vs DenseNet is answered in <a href="cnn-1.html">cnn-1</a>; the concept list from the earlier set is on <a href="cnn-theory.html">cnn-theory</a>.</p>
+</section>
+
+<section class="card" id="q1">
+<h2 class="sec">1. LeNet-5 — Why is LeNet considered a foundational CNN architecture?</h2><div class="meta">foundational hierarchy</div>
+<blockquote class="q"><strong>Question</strong>Explain the basic architecture of LeNet-5 and why it was important in the development of convolutional neural networks.</blockquote>
+<p>LeNet-5 is an early CNN designed mainly for handwritten digit recognition. A \(32\times32\times1\) image passes through a \(5\times5\) convolution to produce \(28\times28\times6\), followed by \(2\times2\) average pooling. A second \(5\times5\) convolution produces \(10\times10\times16\), followed by another pooling layer, and finally fully connected layers of 120 and 84 neurons before classification.</p>
+<pre class="diagram">  32×32×1 ──5×5 conv──► 28×28×6 ──2×2 pool──► 14×14×6
+          ──5×5 conv──► 10×10×16 ──2×2 pool──►  5×5×16
+          ──flatten──► FC 120 ──► FC 84 ──► classify</pre>
+<p>Its important idea is the repeated pattern of <strong style="color:var(--text)">convolution followed by spatial downsampling</strong>. Convolution extracts local patterns such as edges and shapes, while pooling progressively reduces spatial resolution and makes the representation more compact.</p>
+<p>Thus LeNet established the basic CNN idea that modern networks still follow: <strong style="color:var(--text)">early layers learn local features and deeper layers combine them into increasingly abstract representations</strong>.</p>
+<p class="muted">Check the spatial arithmetic with \(n_{out}=\lfloor(n+2p-k)/s\rfloor+1\): valid \(5\times5\) on 32 gives \(32-5+1=28\); \(2\times2\) pooling with \(s=2\) halves it to 14; then \(14-5+1=10\), and pooling gives 5. Every number in the chain follows from the one formula.</p>
+</section>
+
+<section class="card" id="q2">
+<h2 class="sec">2. AlexNet — How did AlexNet extend the ideas of LeNet?</h2><div class="meta">scale and capacity</div>
+<blockquote class="q"><strong>Question</strong>Compare the design philosophy of AlexNet with LeNet-5. Why was AlexNet suitable for much more complex image recognition?</blockquote>
+<p>AlexNet follows the same broad CNN principle as LeNet but operates on much larger RGB images and uses a substantially larger and deeper feature hierarchy. It takes a \(227\times227\times3\) image, begins with a large \(11\times11\) convolution with stride 4, followed by max pooling, then several convolutional layers with hundreds of channels before reaching fully connected layers of 4096 neurons and a 1000-class Softmax output.</p>
+<p>The key conceptual change is <strong style="color:var(--text)">scale and capacity</strong>. LeNet handled relatively simple grayscale digits, whereas AlexNet had to recognise complex natural objects with variation in colour, background, texture and viewpoint. It therefore uses many more channels and deeper feature extraction.</p>
+<p>As depth increases, early layers can detect simple features while later layers represent more complicated object parts and semantic patterns.</p>
+<table>
+<tr><th></th><th>LeNet-5</th><th>AlexNet</th></tr>
+<tr><td>Input</td><td class="num">\(32\times32\times1\)</td><td class="num">\(227\times227\times3\)</td></tr>
+<tr><td>First kernel</td><td class="num">\(5\times5,\ s=1\)</td><td class="num">\(11\times11,\ s=4\)</td></tr>
+<tr><td>Channel scale</td><td class="num">6 → 16</td><td class="num">96 → hundreds</td></tr>
+<tr><td>FC layers</td><td class="num">120, 84</td><td class="num">4096, 4096</td></tr>
+<tr><td>Classes</td><td class="num">10 digits</td><td class="num">1000 objects</td></tr>
+</table>
+<p class="muted">Note the stride-4 first layer: at \(227\times227\) a stride-1 convolution would be ruinously expensive, so AlexNet downsamples aggressively and immediately — \((227-11)/4+1=55\). This is the cost argument from the <a href="macs.html">MACs</a> page showing up as an architectural decision.</p>
+</section>
+
+<section class="card" id="q3">
+<h2 class="sec">3. VGG — Why does VGG repeatedly use \(3\times3\) convolutions?</h2><div class="meta">small kernels, stacked</div>
+<blockquote class="q"><strong>Question</strong>VGG-16 mainly uses repeated \(3\times3\) convolution layers instead of large convolution kernels. What is the intuition behind this design?</blockquote>
+<p>VGG uses a very uniform design: most convolution layers use \(3\times3\) filters with stride 1 and same padding, while \(2\times2\) max pooling reduces spatial resolution. The network is built from repeated blocks — two \(3\times3\) convolutions at 64 and 128 channels, then blocks of three convolutions at 256 and 512 channels.</p>
+<p>Stacking small kernels lets the network <strong style="color:var(--text)">gradually build larger receptive fields while inserting nonlinear transformations between layers</strong>. Two consecutive \(3\times3\) convolutions give a \(5\times5\) receptive field, and three give \(7\times7\).</p>
+<p>Thus VGG obtains large-context features using a simple, repeated architecture rather than relying on large kernels everywhere.</p>
+<table>
+<tr><th>Design</th><th>Receptive field</th><th>Parameters (per channel pair)</th><th>Non-linearities</th></tr>
+<tr><td>One \(7\times7\) conv</td><td class="num">\(7\times7\)</td><td class="num">49</td><td class="num">1</td></tr>
+<tr class="hl"><td>Three \(3\times3\) convs</td><td class="num">\(7\times7\)</td><td class="num">\(3\times9=27\)</td><td class="num">3</td></tr>
+</table>
+<p class="muted">Same view of the image, <strong style="color:var(--text)">45% fewer parameters</strong>, and three ReLUs instead of one. That is the whole argument in one row. The receptive-field claim is derived in full on the <a href="receptive-field.html">receptive field</a> page — the key point being that overlapping windows make stacked \(3\times3\)s add \(2\) each time rather than multiply.</p>
+</section>
+
+<section class="card" id="q4">
+<h2 class="sec">4. VGG — Why do spatial dimensions decrease while channels increase?</h2><div class="meta">resolution traded for semantics</div>
+<blockquote class="q"><strong>Question</strong>In VGG-16, why does the feature-map size decrease from \(224\times224\) toward \(7\times7\), while the number of channels increases from 64 to 512?</blockquote>
+<p>The spatial dimensions are reduced by max pooling:</p>
+<div class="formula">\[ 224\times224 \rightarrow 112\times112 \rightarrow 56\times56 \rightarrow 28\times28 \rightarrow 14\times14 \rightarrow 7\times7 \]</div>
+<p>while the channel depth grows \(64 \rightarrow 128 \rightarrow 256 \rightarrow 512\).</p>
+<p>The intuition is that <strong style="color:var(--text)">early layers need high spatial resolution</strong> to detect local patterns such as edges and textures. Deeper layers no longer need exact pixel-level location to the same extent; instead they need a <strong style="color:var(--text)">richer collection of semantic features</strong>.</p>
+<p>Therefore spatial detail is gradually compressed while the number of learned feature types increases. Each halving of resolution divides the number of spatial positions by 4, so doubling the channels roughly keeps the per-layer cost balanced instead of letting it explode at the front or collapse at the back.</p>
+<p class="muted">There is also a receptive-field consequence: each pooling stage doubles the jump \(j\), so the same \(3\times3\) kernel reaches further into the original image at every successive block. Downsampling buys both cheaper computation and faster context growth.</p>
+</section>
+
+<section class="card" id="q5">
+<h2 class="sec">5. ResNet — What problem does a residual connection solve?</h2><div class="meta"><span class="hv">★ highest-value conceptual question</span></div>
+<blockquote class="q"><strong>Question</strong>What is a residual block in ResNet, and why does it make very deep neural networks easier to train?</blockquote>
+<p>A normal block tries to directly learn a desired mapping \(H(x)\). A residual block instead learns a residual function \(F(x)\) and adds the original input through a shortcut connection:</p>
+<div class="formula">\[ \boxed{ y=F(x)+x } \]</div>
+<pre class="diagram">          ┌──────────── identity shortcut ────────────┐
+          │                                           ▼
+   x ─────┴──► [ conv → ReLU → conv ] ──► F(x) ──►   (+)  ──► y = F(x) + x</pre>
+<p>Information can travel through the normal convolutional path <strong style="color:var(--text)">as well as</strong> directly through the identity shortcut.</p>
+<p>The intuitive advantage is that if the extra layers are not useful, the network does not need to learn a complicated transformation — it can make \(F(x)\) close to zero, giving approximately \(y=x\). The shortcut also gives gradients a more direct route during backpropagation.</p>
+<p>Therefore adding many layers to a ResNet is much less likely to cause the optimisation degradation seen in a similarly deep plain network.</p>
+</section>
+
+<section class="card" id="q6">
+<h2 class="sec">6. ResNet — Why is learning a residual often easier than learning the full mapping?</h2><div class="meta">the residual intuition</div>
+<blockquote class="q"><strong>Question</strong>Explain intuitively why ResNet learns \(F(x)=H(x)-x\) instead of directly learning \(H(x)\).</blockquote>
+<p>Suppose the ideal transformation of some layers should be nearly the identity, \(H(x)\approx x\). A plain network must learn the complete identity mapping through several nonlinear layers — which is surprisingly awkward, since stacked convolutions and ReLUs are not naturally identity-shaped.</p>
+<p>In a residual network, since \(H(x)=F(x)+x\), the network only has to learn</p>
+<div class="formula">\[ F(x)=H(x)-x\approx 0 \]</div>
+<p>and driving a set of weights toward zero is easy. Learning a small correction to an already useful representation is therefore easier than reconstructing the whole representation from scratch.</p>
+<p>This gives a useful interpretation of residual blocks. Each block asks</p>
+<div class="result blue">\[ \boxed{ \text{"What modification should I make to the current features?"} } \]</div>
+<p>rather than <em>"What completely new features should replace them?"</em>. As a result, deep ResNets progressively <strong style="color:var(--text)">refine</strong> representations while retaining information from earlier layers.</p>
+</section>
+
+<section class="card" id="q7">
+<h2 class="sec">7. ResNet — What is the difference between a plain block and a residual block?</h2><div class="meta">plain vs residual</div>
+<blockquote class="q"><strong>Question</strong>Explain how a residual block differs from an ordinary sequence of convolutional layers.</blockquote>
+<p>In a plain network, the input passes through several transformations and <strong style="color:var(--text)">only the transformed output</strong> is passed forward. In a residual block, the original input \(x\) is also carried through a shortcut path and added to the transformed features:</p>
+<div class="formula">\[ \boxed{ y=F(x)+x } \]</div>
+<p>Thus the block learns a <strong style="color:var(--text)">residual correction</strong> \(F(x)\) rather than replacing the entire input representation.</p>
+<p>This means useful information can travel directly across the block. If the newly added layers are not useful, the learned residual can approach zero and the block approximately becomes an identity mapping. That makes increasing network depth much safer than in an ordinary plain CNN.</p>
+<table>
+<tr><th></th><th>Plain block</th><th>Residual block</th></tr>
+<tr><td>Output</td><td class="num">\(y=F(x)\)</td><td class="num">\(y=F(x)+x\)</td></tr>
+<tr><td>To behave as identity</td><td>must learn identity through nonlinear layers</td><td>set \(F(x)\approx0\)</td></tr>
+<tr><td>Gradient path</td><td>only through every layer</td><td>also straight along the shortcut</td></tr>
+<tr><td>Earlier features</td><td>replaced</td><td>retained and refined</td></tr>
+</table>
+</section>
+
+<section class="card" id="q8">
+<h2 class="sec">8. ResNet — Why can adding layers hurt a plain network but help a ResNet?</h2><div class="meta">the degradation problem</div>
+<blockquote class="q"><strong>Question</strong>A deeper network should theoretically be at least as powerful as a shallower one. Why can a very deep plain CNN have higher training error, while ResNet avoids this problem?</blockquote>
+<p>Adding layers increases representational capacity, but it also makes the <strong style="color:var(--text)">optimisation problem</strong> more difficult. In a plain network, every additional layer has to learn an appropriate transformation, and very deep compositions may become hard to optimise.</p>
+<p>Note carefully what is being claimed: the deeper plain network has higher <strong style="color:var(--text)">training</strong> error, not just higher test error. So this is not overfitting — a deeper network could in principle copy the shallower one and add identity layers, and match it exactly. The problem is that gradient descent does not <em>find</em> that solution.</p>
+<p>ResNet provides shortcut paths through which information and gradients can flow directly. If extra layers are unnecessary, they can learn an approximately zero residual instead of having to reproduce the identity transformation themselves. Therefore ResNet makes additional depth easier to exploit during training.</p>
+<div class="result gold">\[ \boxed{ \text{The problem was never capacity. It was optimisability.} } \]</div>
+</section>
+
+<section class="card" id="q9">
+<h2 class="sec">9. Inception — Why does an Inception module use several filter sizes in parallel?</h2><div class="meta"><span class="hv">★ highest-value conceptual question</span></div>
+<blockquote class="q"><strong>Question</strong>Explain the main idea of an Inception module. Why are \(1\times1\), \(3\times3\), \(5\times5\) convolution and pooling performed in parallel?</blockquote>
+<p>The Inception module allows the network to process the same input using several operations simultaneously. Branches containing \(1\times1\), \(3\times3\), \(5\times5\) convolutions and max pooling all receive the same input, and their outputs are concatenated along the channel dimension.</p>
+<pre class="diagram">                ┌──► 1×1 conv ─────────┐
+                │                       │
+   input ───────┼──► 3×3 conv ─────────┼──► channel concat ──► output
+                │                       │
+                ├──► 5×5 conv ─────────┤
+                │                       │
+                └──► 3×3 max pool ─────┘</pre>
+<p>The intuition is that <strong style="color:var(--text)">different kernel sizes capture information at different spatial scales</strong>. A \(1\times1\) convolution focuses on channel combinations at a single location, while \(3\times3\) and \(5\times5\) filters observe progressively larger neighbourhoods.</p>
+<p>Instead of forcing the designer to choose one kernel size, Inception lets the network retain features produced at several scales and combine them into one richer representation. The choice becomes something the network learns to weight, rather than a hyperparameter someone has to guess.</p>
+</section>
+
+<section class="card" id="q10">
+<h2 class="sec">10. Inception — Why are \(1\times1\) convolutions used before expensive \(3\times3\) or \(5\times5\) convolutions?</h2><div class="meta"><span class="hv">★ highest-value conceptual question</span></div>
+<blockquote class="q"><strong>Question</strong>Explain how a \(1\times1\) convolution reduces the computational cost of an Inception module.</blockquote>
+<p>A large convolution becomes expensive when the input has many channels. Take a \(28\times28\times192\) activation processed by a \(5\times5\) convolution. Rather than applying the expensive \(5\times5\) convolution directly across all 192 channels, a \(1\times1\) convolution first reduces the channel dimension — for example from 192 to 16 — and the \(5\times5\) convolution then operates on this smaller representation.</p>
+<p>Therefore the \(1\times1\) layer acts as a <strong style="color:var(--text)">bottleneck</strong>, or dimensionality-reduction layer. It preserves spatial height and width while reducing the number of channels, dramatically decreasing the multiplications required by the following larger convolution.</p>
+<p>Thus Inception can obtain multi-scale features without making computational cost unreasonable.</p>
+<hr class="sep" />
+<h3>Putting numbers on it</h3>
+<p class="muted">Taking the usual 32 output channels for the \(5\times5\) branch, and counting MACs as on the <a href="macs.html">computational cost</a> page:</p>
+<table>
+<tr><th>Path</th><th>Computation</th><th>MACs</th></tr>
+<tr><td>Direct \(5\times5\), \(192\rightarrow32\)</td><td class="num">\(28^2\times32\times(5^2\times192)\)</td><td class="num">120,422,400</td></tr>
+<tr><td>Bottleneck \(1\times1\), \(192\rightarrow16\)</td><td class="num">\(28^2\times16\times192\)</td><td class="num">2,408,448</td></tr>
+<tr><td>Then \(5\times5\), \(16\rightarrow32\)</td><td class="num">\(28^2\times32\times(5^2\times16)\)</td><td class="num">10,035,200</td></tr>
+<tr class="hl"><td>Bottleneck total</td><td class="num">—</td><td class="num">12,443,648</td></tr>
+</table>
+<div class="result gold">\[ \frac{120{,}422{,}400}{12{,}443{,}648} \approx \boxed{9.7\times\text{ cheaper}} \qquad \boxed{\approx 90\%\text{ saving}} \]</div>
+<p class="muted">Note where the saving comes from: the \(5\times5\) kernel now spans 16 channels instead of 192, so the \(K^2C_{in}\) term drops by a factor of 12. The cheap \(1\times1\) layer costs a little, and buys a lot.</p>
+</section>
+
+<section class="card" id="q11">
+<h2 class="sec">11. Inception — What does "channel concatenation" mean?</h2><div class="meta">concat, not add</div>
+<blockquote class="q"><strong>Question</strong>In an Inception module, \(1\times1\), \(3\times3\), \(5\times5\) convolution and pooling branches operate in parallel. How are their outputs combined?</blockquote>
+<p>Each branch receives the same input activation and produces its own set of feature maps. These outputs are <strong style="color:var(--text)">not added together</strong>. Instead they are <strong style="color:var(--text)">concatenated along the channel dimension</strong>, at the operation labelled "Channel Concat".</p>
+<p>For example, if four branches produce 64, 128, 32 and 32 output channels while preserving the same height and width, the final output depth becomes</p>
+<div class="formula">\[ 64+128+32+32 = \boxed{256} \]</div>
+<p>Thus the final representation simultaneously contains features extracted at several spatial scales.</p>
+<blockquote>Contrast this with <strong style="color:var(--text)">ResNet</strong>, which <em>adds</em> ( \(F(x)+x\) ) and so keeps the channel count fixed while merging the two signals. Concatenation keeps the branches separable as distinct channels; addition blends them. This is the same distinction as ResNet vs DenseNet in <a href="cnn-1.html">cnn-1</a>.</blockquote>
+<p class="muted">Because the outputs are stacked, all branches must produce the <strong style="color:var(--text)">same spatial size</strong> — which is why the convolution branches use same padding.</p>
+</section>
+
+<section class="card" id="q12">
+<h2 class="sec">12. Inception — Why is pooling also included as a branch?</h2><div class="meta">keep several options</div>
+<blockquote class="q"><strong>Question</strong>Why does an Inception module include a max-pooling branch in addition to convolution branches?</blockquote>
+<p>Different operations capture different kinds of information. The \(1\times1\), \(3\times3\) and \(5\times5\) branches learn features at different spatial scales, while the pooling branch provides a different form of <strong style="color:var(--text)">local aggregation</strong> — it summarises a neighbourhood by its strongest response rather than by a learned weighted sum.</p>
+<p>The design therefore avoids committing the entire layer to a single operation. Instead, the network can preserve convolution-derived features together with pooled features.</p>
+<p>In intuitive terms, an Inception module asks</p>
+<div class="result blue">\[ \boxed{ \text{"Which type of local processing is most useful here?"} } \]</div>
+<p>and keeps the outputs of several possibilities rather than choosing only one. The selection is deferred to training, which learns how much to rely on each branch.</p>
+</section>
+
+<section class="card" id="q13">
+<h2 class="sec">13. MobileNet — Why is MobileNet computationally efficient?</h2><div class="meta"><span class="hv">★ highest-value conceptual question</span></div>
+<blockquote class="q"><strong>Question</strong>What is the main idea behind MobileNet, and how does depthwise-separable convolution reduce computational cost?</blockquote>
+<p>MobileNet is designed for situations where deployment cost matters, particularly mobile and embedded vision. Its key idea is replacing ordinary convolution with <strong style="color:var(--text)">depthwise-separable convolution</strong>. A normal convolution performs spatial filtering and channel mixing together; a depthwise-separable convolution splits them into a depthwise convolution followed by a \(1\times1\) pointwise convolution.</p>
+<p>The depthwise stage applies one spatial filter to each input channel independently, so its cost is approximately</p>
+<div class="formula">\[ H_oW_oK^{2}C_{in} \]</div>
+<p>The pointwise stage then mixes channels with cost</p>
+<div class="formula">\[ H_oW_oC_{in}C_{out} \]</div>
+<p>while a standard convolution would cost</p>
+<div class="formula">\[ H_oW_oK^{2}C_{in}C_{out} \]</div>
+<p>By separating spatial filtering from channel mixing, MobileNet removes much of the redundant computation and therefore achieves a much lighter model suitable for resource-limited devices.</p>
+<div class="result blue">\[ \frac{MAC_{\text{DS}}}{MAC_{\text{standard}}} = \frac{1}{C_{out}}+\frac{1}{K^{2}} \]</div>
+<p class="muted">Note the structure of the saving: the standard form <strong style="color:var(--text)">multiplies</strong> \(K^2\) by \(C_{out}\), the separable form <strong style="color:var(--text)">adds</strong> them. For a \(3\times3\) kernel that ratio is dominated by \(1/9\), so the saving is roughly \(8\)–\(9\times\) essentially regardless of the layer's size. Derived in full on the <a href="macs.html">computational cost</a> page.</p>
+</section>
+
+<section class="card" id="q14">
+<h2 class="sec">14. MobileNet — Why is pointwise convolution still necessary after depthwise convolution?</h2><div class="meta">spatial vs channel</div>
+<blockquote class="q"><strong>Question</strong>If depthwise convolution already applies a spatial filter to every channel, why does MobileNet need a \(1\times1\) pointwise convolution afterward?</blockquote>
+<p>Depthwise convolution processes every input channel <strong style="color:var(--text)">independently</strong>. It can therefore detect spatial patterns inside each channel, but it does <strong style="color:var(--text)">not mix information between different channels</strong>. Without a second stage, the channels would never interact and the layer could not even change the channel count.</p>
+<p>MobileNet solves this by following the depthwise stage with a \(1\times1\) pointwise convolution. The pointwise convolution looks across all input channels at each spatial location, allowing information from different channels to interact and allowing the network to change the number of output channels.</p>
+<p>Hence the two stages divide the job:</p>
+<div class="result">
+\[ \boxed{\text{Depthwise: spatial filtering}} \qquad \boxed{\text{Pointwise: channel mixing}} \]
+</div>
+<pre class="diagram">  depthwise (no mixing)           pointwise (all mixing, no spatial extent)
+
+  ch1 ──[3×3]──► ch1              ch1 ┐
+  ch2 ──[3×3]──► ch2              ch2 ├──[1×1×C_in]──► out_k
+  ch3 ──[3×3]──► ch3              ch3 ┘</pre>
+<p class="muted">Together they reproduce what a standard convolution does in one step — but factorised, and far cheaper.</p>
+</section>
+
+<section class="card" id="q15">
+<h2 class="sec">15. MobileNetV2 — What is an inverted residual block?</h2><div class="meta">expansion → depthwise → projection</div>
+<blockquote class="q"><strong>Question</strong>Explain the basic structure of a MobileNetV2 bottleneck block and why it is called an "inverted residual."</blockquote>
+<p>The MobileNetV2 block is</p>
+<div class="formula">\[ \boxed{ \text{Expansion} \rightarrow \text{Depthwise} \rightarrow \text{Projection} } \]</div>
+<p>together with a residual connection when the dimensions permit it. The input first passes through a \(1\times1\) <strong style="color:var(--text)">expansion</strong> layer that increases the number of channels. A depthwise convolution then performs inexpensive spatial processing, and another \(1\times1\) <strong style="color:var(--text)">projection</strong> compresses the representation back to a smaller number of channels.</p>
+<pre class="diagram">          ┌──────────────── residual (when shapes match) ────────────────┐
+          │                                                              ▼
+  x ──────┴──► 1×1 expand ──► 3×3 depthwise ──► 1×1 project ──────────► (+)
+            narrow → WIDE        WIDE            WIDE → narrow</pre>
+<p>It is called an <strong style="color:var(--text)">inverted residual</strong> because traditional residual designs usually have relatively wide representations around a narrower internal bottleneck. MobileNetV2 reverses this: the input and output are relatively <strong style="color:var(--text)">narrow</strong>, while the intermediate representation is <strong style="color:var(--text)">expanded</strong>.</p>
+<p>Expensive spatial convolution is still depthwise, so processing the expanded representation remains efficient — widening the middle costs little precisely because the middle stage is the cheap one.</p>
+</section>
+
+<section class="card" id="q16">
+<h2 class="sec">16. MobileNetV1 vs MobileNetV2 — What changed?</h2><div class="meta">V1 vs V2</div>
+<blockquote class="q"><strong>Question</strong>What is the main architectural difference between MobileNetV1 and MobileNetV2?</blockquote>
+<p>MobileNetV1 mainly relies on repeated <strong style="color:var(--text)">depthwise-separable convolution</strong>: a depthwise spatial convolution followed by a pointwise \(1\times1\) convolution. MobileNetV2 keeps that efficiency idea but introduces a bottleneck structure:</p>
+<div class="formula">\[ \boxed{ \text{Expansion} \rightarrow \text{Depthwise} \rightarrow \text{Projection} } \]</div>
+<p>together with a residual connection when possible.</p>
+<p>The expansion layer first increases the channel dimension so features can be represented in a richer intermediate space. The depthwise layer performs cheap spatial processing, and the projection layer compresses the representation back down.</p>
+<p>Therefore MobileNetV2 combines the computational efficiency of depthwise convolution with a <strong style="color:var(--text)">residual-style bottleneck</strong> design.</p>
+<table>
+<tr><th></th><th>MobileNetV1</th><th>MobileNetV2</th></tr>
+<tr><td>Core block</td><td>depthwise → pointwise</td><td>expand → depthwise → project</td></tr>
+<tr><td>Channel profile</td><td>roughly constant through the block</td><td>narrow → wide → narrow</td></tr>
+<tr><td>Shortcut</td><td>none</td><td>residual, when shapes match</td></tr>
+<tr><td>Borrowed from</td><td>—</td><td><a href="#q5">ResNet</a></td></tr>
+</table>
+</section>
+
+<section class="card" id="q17">
+<h2 class="sec">17. EfficientNet — What is compound scaling?</h2><div class="meta"><span class="hv">★ highest-value conceptual question</span></div>
+<blockquote class="q"><strong>Question</strong>What problem does EfficientNet address, and what is meant by compound scaling?</blockquote>
+<p>When increasing the capacity of a CNN there are three obvious choices: make it <strong style="color:var(--text)">deeper</strong>, make it <strong style="color:var(--text)">wider</strong>, or increase the <strong style="color:var(--text)">input resolution</strong>. EfficientNet contrasts these individual strategies with <strong style="color:var(--text)">compound scaling</strong>, where depth, width and resolution are increased together in a balanced manner rather than scaling only one dimension.</p>
+<p>The intuition is that the three dimensions are related. Higher-resolution images provide more detailed information, but the network also needs enough <strong style="color:var(--text)">depth</strong> to process increasingly complex features and enough <strong style="color:var(--text)">width</strong> to represent them. Increasing only one dimension creates an imbalance — more pixels with no extra depth to interpret them, or more depth with no extra detail to work on.</p>
+<p>EfficientNet therefore spends additional computation more systematically, scaling all three dimensions together.</p>
+<table>
+<tr><th>Scale only…</th><th>What you gain</th><th>What becomes the bottleneck</th></tr>
+<tr><td>Depth</td><td>more abstract features</td><td>too little detail and too few feature types to work with</td></tr>
+<tr><td>Width</td><td>more feature types per layer</td><td>too shallow to combine them into high-level structure</td></tr>
+<tr><td>Resolution</td><td>finer spatial detail</td><td>receptive field too small to cover the larger image</td></tr>
+<tr class="hl"><td>All three (compound)</td><td>balanced capacity</td><td>—</td></tr>
+</table>
+<p class="muted">The resolution row connects back to the <a href="receptive-field.html">receptive field</a> page: if you double the input resolution without adding depth, the final layer's receptive field covers <em>half</em> as much of the scene in relative terms. Resolution and depth genuinely have to move together.</p>
+</section>
+
+<section class="card" id="q18">
+<h2 class="sec">18. Architecture Evolution — What fundamental problem was each architecture trying to solve?</h2><div class="meta">the summary answer</div>
+<blockquote class="q"><strong>Question</strong>Briefly explain the major design idea introduced by LeNet, AlexNet, ResNet, InceptionNet, MobileNet and EfficientNet.</blockquote>
+<p>The architectures can be understood as a progression of different CNN design problems. <strong style="color:var(--text)">LeNet</strong> established the basic convolution–pooling hierarchy for learning spatial features. <strong style="color:var(--text)">AlexNet</strong> scaled CNNs to complex natural images using a much deeper and wider architecture. <strong style="color:var(--text)">ResNet</strong> addressed the difficulty of training very deep networks through identity shortcut connections. <strong style="color:var(--text)">InceptionNet</strong> introduced parallel multi-scale processing and \(1\times1\) bottlenecks to obtain rich features while controlling computational cost.</p>
+<p><strong style="color:var(--text)">MobileNet</strong> focused on deployment efficiency by replacing expensive standard convolution with depthwise-separable convolution, and MobileNetV2 further introduced expansion, depthwise processing and projection with inverted residual connections. <strong style="color:var(--text)">EfficientNet</strong> approached efficiency from another direction: instead of changing the convolution itself, it systematically scales network depth, width and image resolution together using compound scaling.</p>
+<hr class="sep" />
+<h3>The one-line map to memorise</h3>
+<div class="formula">
+\[ \boxed{ \begin{aligned}
+\text{LeNet}&:\ \text{basic CNN hierarchy}\\
+\text{AlexNet}&:\ \text{scale CNNs up}\\
+\text{ResNet}&:\ \text{train very deep CNNs}\\
+\text{Inception}&:\ \text{multi-scale features efficiently}\\
+\text{MobileNet}&:\ \text{cheap convolution}\\
+\text{EfficientNet}&:\ \text{balanced model scaling}
+\end{aligned} } \]
+</div>
+<h3>And for the four most-examined ones</h3>
+<div class="formula">
+\[ \boxed{ \begin{array}{ll}
+\text{VGG} & \rightarrow\ \text{simple repeated }3\times3\text{ blocks}\\[2mm]
+\text{ResNet} & \rightarrow\ \text{shortcut / residual learning}\\[2mm]
+\text{Inception} & \rightarrow\ \text{parallel multi-scale branches}\\[2mm]
+\text{MobileNet} & \rightarrow\ \text{separate spatial filtering from channel mixing}
+\end{array} } \]
+</div>
+<p class="muted">These are the core intuitions to be able to explain <strong style="color:var(--text)">without memorising wording</strong>. If you can say what problem each architecture was solving, you can reconstruct the mechanism.</p>
+</section>
+
+<footer>cnn-theory-2 · architecture concepts · dark minimal notes</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>pyq-1 — Previous Year Theory Questions</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px;list-style:none}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+nav.toc .grp{margin:13px 0 4px -20px;color:var(--faint);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase}
+nav.toc .mk{color:var(--faint);font-family:var(--mono);font-size:12px;margin-left:6px}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+.marks{display:inline-block;font-family:var(--mono);font-size:12px;color:var(--gold);border:1px solid #3a3020;background:#1a1610;border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:2px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:14px 0}
+ol.steps>li{counter-increment:st;position:relative;padding:9px 0 9px 32px;border-top:1px solid var(--border)}
+ol.steps>li:last-child{border-bottom:1px solid var(--border)}
+ol.steps>li:before{content:counter(st);position:absolute;left:2px;top:12px;font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+ol.steps ul{margin:8px 0 0;padding-left:20px;list-style:disc}
+ol.steps ul li{padding:3px 0;border:none;color:var(--muted)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">pyq-1</div>
+<h1>Previous Year Questions — Theory</h1>
+<p class="subtitle">Fifteen written-answer questions from Q1, Q3, Q5 and Q7, answered at the length the marks justify. Gradient descent and learning rate, hyperparameter search, the Universal Approximation Theorem, bias/variance diagnosis, L2 regularisation, vanishing gradients, evaluation practice, and non-max suppression with anchor boxes.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li class="grp" style="margin-top:0">Orientation</li>
+<li><a href="#paper">The paper at a glance</a></li>
+<li class="grp">Question 1</li>
+<li><a href="#q1a">1(a) Gradient descent in backpropagation</a><span class="mk">5</span></li>
+<li><a href="#q1b">1(b) Effect of the learning rate</a><span class="mk">5</span></li>
+<li><a href="#q1c">1(c) Random search, grid search and coarse-to-fine</a><span class="mk">4</span></li>
+<li class="grp">Question 3</li>
+<li><a href="#q3a">3(a) Universal Approximation Theorem</a><span class="mk">4</span></li>
+<li><a href="#q3b">3(b) Diagnosing training error 2%, dev error 15%</a><span class="mk">5</span></li>
+<li><a href="#q3c">3(c) L2-regularised logistic regression</a><span class="mk">5</span></li>
+<li class="grp">Question 5</li>
+<li><a href="#q5a">5(a) Regularization and three techniques</a><span class="mk">4</span></li>
+<li><a href="#q5b">5(b) Deep vs shallow networks and vanishing gradients</a><span class="mk">2</span></li>
+<li><a href="#q5c">5(c) Activation functions prone to vanishing gradients</a><span class="mk">2</span></li>
+<li><a href="#q5d">5(d) Data augmentation on the test set</a><span class="mk">2</span></li>
+<li><a href="#q5e">5(e) Multi-crop testing</a><span class="mk">2</span></li>
+<li><a href="#q5f">5(f) Counting trainable parameters</a><span class="mk">2</span></li>
+<li class="grp">Question 7</li>
+<li><a href="#q7a">7(a) The problem non-max suppression solves</a><span class="mk">2</span></li>
+<li><a href="#q7b">7(b) Multi-class non-max suppression</a><span class="mk">2</span></li>
+<li><a href="#q7c">7(c) When anchor-box detectors perform poorly</a><span class="mk">2</span></li>
+</ol></nav>
+
+<section class="card hero" id="paper">
+<h2 class="sec">The paper at a glance</h2><div class="meta">15 written-answer questions · 48 marks total</div>
+<p>Answers are written at the length the marks justify — a 2-mark question gets a direct answer and one supporting reason, a 5-mark question gets the equation, the mechanism and the consequence. Sketches appear only where they genuinely earn their space.</p>
+<table>
+<tr><th>Part</th><th>Topic</th><th>Marks</th></tr>
+<tr><td class="num">1(a)</td><td><a href="#q1a">Gradient descent in backpropagation</a></td><td class="num">5</td></tr><tr><td class="num">1(b)</td><td><a href="#q1b">Effect of the learning rate</a></td><td class="num">5</td></tr><tr><td class="num">1(c)</td><td><a href="#q1c">Random search, grid search and coarse-to-fine</a></td><td class="num">4</td></tr><tr><td class="num">3(a)</td><td><a href="#q3a">Universal Approximation Theorem</a></td><td class="num">4</td></tr><tr><td class="num">3(b)</td><td><a href="#q3b">Diagnosing training error 2%, dev error 15%</a></td><td class="num">5</td></tr><tr><td class="num">3(c)</td><td><a href="#q3c">L2-regularised logistic regression</a></td><td class="num">5</td></tr><tr><td class="num">5(a)</td><td><a href="#q5a">Regularization and three techniques</a></td><td class="num">4</td></tr><tr><td class="num">5(b)</td><td><a href="#q5b">Deep vs shallow networks and vanishing gradients</a></td><td class="num">2</td></tr><tr><td class="num">5(c)</td><td><a href="#q5c">Activation functions prone to vanishing gradients</a></td><td class="num">2</td></tr><tr><td class="num">5(d)</td><td><a href="#q5d">Data augmentation on the test set</a></td><td class="num">2</td></tr><tr><td class="num">5(e)</td><td><a href="#q5e">Multi-crop testing</a></td><td class="num">2</td></tr><tr><td class="num">5(f)</td><td><a href="#q5f">Counting trainable parameters</a></td><td class="num">2</td></tr><tr><td class="num">7(a)</td><td><a href="#q7a">The problem non-max suppression solves</a></td><td class="num">2</td></tr><tr><td class="num">7(b)</td><td><a href="#q7b">Multi-class non-max suppression</a></td><td class="num">2</td></tr><tr><td class="num">7(c)</td><td><a href="#q7c">When anchor-box detectors perform poorly</a></td><td class="num">2</td></tr>
+<tr class="hl"><td class="num"><strong>Total</strong></td><td></td><td class="num"><strong>48</strong></td></tr>
+</table>
+<p class="muted">Related pages: <a href="ANN-4.html">ANN-4</a> also covers the Universal Approximation Theorem alongside softmax backprop; the object-detection pages work NMS numerically; and <a href="cnn-theory-2.html">cnn-theory-2</a> covers the architecture-design questions.</p>
+</section>
+
+<section class="card" id="q1a">
+<h2 class="sec">1(a) Gradient descent in backpropagation<span class="marks">5 marks</span></h2><div class="meta">chain rule → gradient → step downhill</div>
+<blockquote class="q"><strong>Question</strong>Describe briefly how gradient descent is used to find the optimal weights in the backpropagation algorithm. Mention a problem that may arise from using gradient descent.</blockquote>
+<p>In a neural network, the objective of training is to find weights and biases that minimise the cost or loss function \(J\). During <strong style="color:var(--text)">backpropagation</strong>, the chain rule is used to compute the gradient of the loss with respect to every trainable parameter:</p>
+<div class="formula">\[ \frac{\partial J}{\partial w} \]</div>
+<p>The gradient indicates the direction in which the loss <em>increases</em> most rapidly. Gradient descent therefore changes the weight in the <strong style="color:var(--text)">opposite</strong> direction:</p>
+<div class="formula">\[ \boxed{ w^{new}=w^{old}-\alpha\frac{\partial J}{\partial w} } \]</div>
+<p>where \(\alpha\) is the learning rate. The training sequence is:</p>
+<div class="result blue">
+\[ \boxed{ \text{Forward pass} \rightarrow \text{Compute loss} \rightarrow \text{Backpropagate gradients} \rightarrow \text{Update weights} \rightarrow \text{Repeat} } \]
+</div>
+<p>Geometrically, gradient descent moves downhill on the loss surface toward a minimum:</p>
+<pre class="diagram">  J
+  ^
+  │  ●  start
+  │   ╲
+  │    ●
+  │     ╲
+  │      ●
+  │       ╲___●___
+  │              ‾‾●‾‾        each step:  w ← w − α ∂J/∂w
+  └──────────────────────► w
+                 minimum</pre>
+<h3>The problem</h3>
+<p>The neural-network loss surface is generally <strong style="color:var(--text)">non-convex</strong>. Gradient descent is therefore not guaranteed to reach the global minimum — it may settle in local minima, stall at saddle points, or crawl across flat regions. Poor learning-rate selection can also make convergence very slow or unstable.</p>
+</section>
+
+<section class="card" id="q1b">
+<h2 class="sec">1(b) Effect of the learning rate<span class="marks">5 marks</span></h2><div class="meta">step size — speed vs stability</div>
+<blockquote class="q"><strong>Question</strong>In the backpropagation algorithm, the learning rate parameter \(\alpha\) controls the amount of change of a weight in each iteration. What happens if the learning rate is too high? What happens if it is too low?</blockquote>
+<p>The learning rate \(\alpha\) determines the <strong style="color:var(--text)">step size</strong> of the gradient-descent update:</p>
+<div class="formula">\[ w^{new}=w^{old}-\alpha\frac{\partial J}{\partial w} \]</div>
+<p>If \(\alpha\) is <strong style="color:var(--text)">too large</strong>, each update may move too far. The optimisation can repeatedly overshoot the minimum, causing the loss to oscillate; in the extreme case the loss increases continuously and training diverges.</p>
+<p>If \(\alpha\) is <strong style="color:var(--text)">too small</strong>, the updates are safe but tiny, so training converges very slowly and may need a very large number of iterations.</p>
+<pre class="diagram">  Too high — overshoots           Good — steady descent          Too low — crawls
+  J                               J                              J
+  │╲    ╱╲    ╱╲                  │╲                             │╲
+  │ ╲  ╱  ╲  ╱  ╲                 │ ╲__                          │ ╲_
+  │  ╲╱    ╲╱    ╲                │    ╲____                     │   ╲__
+  │                               │         ╲______              │      ╲___
+  └──────────────► iter           └──────────────► iter          └──────────────► iter</pre>
+<p>The learning rate must therefore balance <strong style="color:var(--text)">speed against stability</strong>:</p>
+<div class="result">
+\[ \boxed{ \alpha \text{ too high} \Rightarrow \text{unstable / overshooting} } \]
+\[ \boxed{ \alpha \text{ too low} \Rightarrow \text{very slow convergence} } \]
+</div>
+<p class="muted">A practical diagnostic: if the loss curve oscillates or rises, reduce \(\alpha\); if it falls smoothly but barely moves, increase it.</p>
+</section>
+
+<section class="card" id="q1c">
+<h2 class="sec">1(c) Random search, grid search and coarse-to-fine<span class="marks">4 marks</span></h2><div class="meta">search the dimension that matters</div>
+<blockquote class="q"><strong>Question</strong>Why is random search often better than grid search for hyperparameter tuning? Explain the "coarse-to-fine" strategy of hyperparameter tuning.</blockquote>
+<p>In <strong style="color:var(--text)">grid search</strong>, fixed values are chosen for every hyperparameter and all combinations are evaluated. The problem is that some hyperparameters strongly influence performance while others barely matter — and grid search wastes many experiments re-testing values of the unimportant ones.</p>
+<p>Suppose \(x\) is an important hyperparameter and \(y\) is relatively unimportant. With 16 trials each:</p>
+<pre class="diagram">   Grid search (16 trials)            Random search (16 trials)
+
+ y │  ×    ×    ×    ×               y │        ×            ×
+   │                                   │  ×            ×
+   │  ×    ×    ×    ×                 │      ×     ×      ×
+   │                                   │            ×          ×
+   │  ×    ×    ×    ×                 │   ×     ×      ×    ×
+   │                                   │ ×          ×     ×
+   │  ×    ×    ×    ×                 │     ×           ×
+   └──┴────┴────┴────┴──► x            └─┴──┴─┴──┴─┴─┴──┴─┴─┴─► x
+
+   only 4 distinct values of x        16 distinct values of x
+   (the dimension that matters)       explored along x</pre>
+<p>Grid search tests only <strong style="color:var(--text)">four</strong> distinct values of the important hyperparameter; random search explores sixteen. Random search therefore covers the useful part of the search space far more efficiently for the same budget.</p>
+<h3>Coarse-to-fine</h3>
+<p>In the <strong style="color:var(--text)">coarse-to-fine</strong> strategy, we first search broadly over a large range. Having identified a promising region, we restrict the range and search it more finely.</p>
+<div class="result blue">
+\[ \boxed{ \text{Large search space} \rightarrow \text{Find promising region} \rightarrow \text{Search that region more finely} } \]
+</div>
+<p>For example, \(\alpha\in[10^{-5},1]\) may be searched first; if good results cluster around \(10^{-3}\), a second finer search concentrates near that region.</p>
+</section>
+
+<section class="card" id="q3a">
+<h2 class="sec">3(a) Universal Approximation Theorem<span class="marks">4 marks</span></h2><div class="meta">existence, not learnability</div>
+<blockquote class="q"><strong>Question</strong>State the Universal Approximation Theorem. Does this theorem imply that shallow neural networks are always preferable to deep networks? Justify your answer.</blockquote>
+<p>The <strong style="color:var(--text)">Universal Approximation Theorem</strong> states that a feedforward neural network with at least one hidden layer, sufficiently many hidden neurons and a suitable nonlinear activation function can approximate any continuous function on a compact domain to arbitrary accuracy.</p>
+<p>Formally, for a target continuous function \(f(x)\) and any desired error \(\epsilon>0\), there exists a network \(\hat f(x)\) such that</p>
+<div class="formula">\[ \boxed{ |f(x)-\hat f(x)|<\epsilon } \]</div>
+<p>over the specified domain.</p>
+<pre class="diagram">  y
+  │            ___
+  │        ___╱   ╲___          ——— target f(x)
+  │    ___╱            ╲__      - - - network f̂(x)
+  │ - - - - - - - - - - - -
+  │        everywhere within ε
+  └──────────────────────────► x</pre>
+<h3>Does it favour shallow networks?</h3>
+<p><strong style="color:var(--text)">No.</strong> The theorem only guarantees that an approximating shallow network <em>exists</em>. It does not state:</p>
+<ul class="muted">
+<li>how many neurons are required — the number can be astronomically large;</li>
+<li>whether gradient descent will actually <em>find</em> those weights;</li>
+<li>whether the resulting network will generalise to unseen data.</li>
+</ul>
+<p>A shallow network might need an enormous number of neurons, whereas a deep network can often represent hierarchical and complex functions far more efficiently with fewer parameters. The theorem is a statement about <strong style="color:var(--text)">existence, not about learnability, size or generalisation</strong>.</p>
+</section>
+
+<section class="card" id="q3b">
+<h2 class="sec">3(b) Diagnosing training error 2%, dev error 15%<span class="marks">5 marks</span></h2><div class="meta">large gap ⇒ variance</div>
+<blockquote class="q"><strong>Question</strong>A model has Training error = 2% and Dev (validation) error = 15%. Diagnose whether this is high bias or high variance. What are two practical steps you would take to improve the model?</blockquote>
+<p>The training error is very low but the validation error is much higher:</p>
+<div class="formula">\[ E_{train}=2\%, \qquad E_{dev}=15\%, \qquad \text{gap} = 15\%-2\% = 13\% \]</div>
+<p>The model performs very well on data it has seen and poorly on unseen data. That large generalisation gap is the signature of</p>
+<div class="result">\[ \boxed{ \text{High variance / overfitting} } \]</div>
+<pre class="diagram">  Error
+   │                            ███████████  Dev = 15%
+   │                            ███████████
+   │                            ███████████
+   │   ██                       ███████████
+   │   ██  Train = 2%           ███████████
+   └───────────────────────────────────────►
+        the gap (13%) is the variance</pre>
+<h3>Two practical steps</h3>
+<ol class="steps">
+<li><strong>Increase regularisation</strong> — for example L2 regularisation or dropout — so the network cannot fit the training data excessively.</li>
+<li><strong>Increase the effective amount of training data</strong> — collect more samples, or apply suitable data augmentation.</li>
+</ol>
+<p class="muted">Reducing model complexity or applying early stopping would also help. Note what you would <em>not</em> do: making the network bigger addresses high <strong style="color:var(--text)">bias</strong>, and here bias is clearly not the problem — 2% training error shows the model has ample capacity.</p>
+</section>
+
+<section class="card" id="q3c">
+<h2 class="sec">3(c) L2-regularised logistic regression<span class="marks">5 marks</span></h2><div class="meta">penalty on \(\sum w^2\)</div>
+<blockquote class="q"><strong>Question</strong>Write the cost function for L2-regularized logistic regression. Explain how the regularization parameter \(\lambda\) affects training error and model complexity.</blockquote>
+<p>For logistic regression the ordinary cross-entropy cost is</p>
+<div class="formula">
+\[ -\frac{1}{m}\sum_{i=1}^{m}\Big[ y^{(i)}\log\hat y^{(i)} + (1-y^{(i)})\log(1-\hat y^{(i)}) \Big] \]
+</div>
+<p>With L2 regularisation, a penalty on large weights is added:</p>
+<div class="formula">
+\[ \boxed{ J(w,b) = -\frac{1}{m}\sum_{i=1}^{m}\Big[ y^{(i)}\log\hat y^{(i)} + (1-y^{(i)})\log(1-\hat y^{(i)}) \Big] + \frac{\lambda}{2m}\sum_j w_j^{2} } \]
+</div>
+<p>The bias \(b\) is usually <strong style="color:var(--text)">not</strong> regularised, since it only shifts the decision boundary and does not control model complexity.</p>
+<h3>Effect of \(\lambda\)</h3>
+<p>\(\lambda\) controls the strength of the penalty. As \(\lambda\uparrow\), large weights are punished more heavily, so the weights shrink and the model becomes less complex. This reduces variance and overfitting, but <strong style="color:var(--text)">training error normally increases</strong> — the model is no longer free to fit the training set exactly. If \(\lambda\) becomes excessively large the model becomes too simple and suffers high bias, i.e. underfitting.</p>
+<table>
+<tr><th>\(\lambda\)</th><th>Model complexity</th><th>Training error</th><th>Risk</th></tr>
+<tr><td>Very small</td><td>High</td><td class="num">Low</td><td>Overfitting</td></tr>
+<tr class="hl"><td>Moderate</td><td>Balanced</td><td class="num">Moderate</td><td>Good generalisation</td></tr>
+<tr><td>Very large</td><td>Low</td><td class="num">High</td><td>Underfitting</td></tr>
+</table>
+<p class="muted">Read the table downwards: training error moves in one direction only. It is the <em>validation</em> error that is U-shaped, and the best \(\lambda\) sits at the bottom of that U.</p>
+</section>
+
+<section class="card" id="q5a">
+<h2 class="sec">5(a) Regularization and three techniques<span class="marks">4 marks</span></h2><div class="meta">L2 · dropout · augmentation</div>
+<blockquote class="q"><strong>Question</strong>What is regularization? Explain three regularization techniques used in training neural networks.</blockquote>
+<p><strong style="color:var(--text)">Regularisation</strong> refers to techniques used to reduce overfitting and improve a network's ability to generalise to unseen data. Rather than letting the network memorise the training set perfectly, regularisation constrains or perturbs the learning process so the model learns more general patterns.</p>
+<h3>1. L2 regularisation</h3>
+<p>A penalty proportional to the square of the weights is added to the cost:</p>
+<div class="formula">\[ J_{reg} = J + \frac{\lambda}{2m}\sum w^{2} \]</div>
+<p>This discourages extremely large weights and generally produces a smoother, less complex model.</p>
+<h3>2. Dropout</h3>
+<p>During training, neurons are randomly switched off with a specified probability. The network therefore cannot depend excessively on any particular neuron and is pushed toward robust, distributed representations.</p>
+<pre class="diagram">   full network              with dropout (p = 0.5)
+     ●   ●   ●                  ●   ✕   ●
+      ╲ ╱ ╲ ╱                    ╲     ╱
+     ●   ●   ●                  ✕   ●   ●
+      ╲ ╱ ╲ ╱                      ╲ ╱
+     ●   ●   ●                  ●   ●   ✕      ✕ = dropped this step</pre>
+<h3>3. Data augmentation</h3>
+<p>Additional training examples are generated by applying label-preserving transformations such as flipping, cropping, rotation or scaling. This increases the effective diversity of the training set and reduces overfitting.</p>
+</section>
+
+<section class="card" id="q5b">
+<h2 class="sec">5(b) Deep vs shallow networks and vanishing gradients<span class="marks">2 marks</span></h2><div class="meta">product of many small factors</div>
+<blockquote class="q"><strong>Question</strong>Which type of neural network, deep or shallow, is more prone to the vanishing-gradient problem? Why?</blockquote>
+<div class="result">\[ \boxed{ \text{Deep neural networks} } \]</div>
+<p>During backpropagation, the gradient for an <strong style="color:var(--text)">early</strong> layer contains a product of many derivatives:</p>
+<div class="formula">\[ \frac{\partial L}{\partial W_1} \;\propto\; f'_1 f'_2 f'_3 \cdots f'_L \]</div>
+<p>If many of these derivatives have magnitude less than 1, repeated multiplication drives the product toward zero. A deep network contains many more such factors than a shallow one, so its earliest layers may receive almost no useful learning signal and train extremely slowly.</p>
+<p class="muted">Concretely, with a factor of \(0.25\) per layer, 10 layers already give \(0.25^{10}\approx 10^{-6}\).</p>
+</section>
+
+<section class="card" id="q5c">
+<h2 class="sec">5(c) Activation functions prone to vanishing gradients<span class="marks">2 marks</span></h2><div class="meta">saturating activations</div>
+<blockquote class="q"><strong>Question</strong>Which activation functions are prone to the vanishing-gradient problem, and why?</blockquote>
+<div class="result">\[ \boxed{ \text{Sigmoid and Tanh} } \]</div>
+<p>Both <strong style="color:var(--text)">saturate</strong> for sufficiently large positive or negative inputs, so their derivatives fall toward zero.</p>
+<p>For sigmoid,</p>
+<div class="formula">\[ \sigma'(z)=\sigma(z)\big(1-\sigma(z)\big), \qquad 0<\sigma'(z)\le 0.25 \]</div>
+<p>so the derivative is <strong style="color:var(--text)">at most \(0.25\)</strong> even at its best, and approaches zero in the saturated regions. For tanh,</p>
+<div class="formula">\[ \tanh'(z)=1-\tanh^{2}(z) \]</div>
+<p>which approaches zero when \(|z|\) is large. Repeated multiplication of these small derivatives through a deep network causes the gradient to vanish.</p>
+<table>
+<tr><th>Activation</th><th>Derivative</th><th>Maximum</th><th>Saturates?</th></tr>
+<tr><td>Sigmoid</td><td class="num">\(\sigma(1-\sigma)\)</td><td class="num">0.25</td><td>both tails</td></tr>
+<tr><td>Tanh</td><td class="num">\(1-\tanh^2\)</td><td class="num">1.0</td><td>both tails</td></tr>
+<tr class="hl"><td>ReLU</td><td class="num">0 or 1</td><td class="num">1.0</td><td>negative side only</td></tr>
+</table>
+<p class="muted">Tanh is the milder of the two — its derivative can reach 1, whereas sigmoid shrinks the gradient by at least \(4\times\) at every layer even in the best case. ReLU is included for contrast: its derivative is exactly 1 wherever the unit is active, which is why it largely fixed the problem.</p>
+</section>
+
+<section class="card" id="q5d">
+<h2 class="sec">5(d) Data augmentation on the test set<span class="marks">2 marks</span></h2><div class="meta">no random augmentation at test</div>
+<blockquote class="q"><strong>Question</strong>Should data augmentation be applied to the test set? Explain your reasoning.</blockquote>
+<div class="result">\[ \boxed{ \text{No} } \]</div>
+<p>Training-style <strong style="color:var(--text)">random</strong> data augmentation should not be applied to the test set. The purpose of the test set is to give an unbiased estimate of performance on unseen examples; random transformations alter the test distribution and make the evaluation inconsistent and non-reproducible.</p>
+<p>However, standard <strong style="color:var(--text)">deterministic</strong> preprocessing — resizing, normalisation — is still applied, because the network requires inputs in the same format it was trained on.</p>
+<p>A special exception is <strong style="color:var(--text)">test-time augmentation</strong> such as multi-crop testing, where several <em>predefined</em> transformed versions are deliberately evaluated and their predictions combined. That is a controlled, repeatable procedure, not random perturbation.</p>
+</section>
+
+<section class="card" id="q5e">
+<h2 class="sec">5(e) Multi-crop testing<span class="marks">2 marks</span></h2><div class="meta">average several fixed crops</div>
+<blockquote class="q"><strong>Question</strong>Explain the concept of multi-crop testing and discuss why it is used during model evaluation.</blockquote>
+<p>In <strong style="color:var(--text)">multi-crop testing</strong>, several different crops are extracted from the same test image — for example centre, top-left, top-right, bottom-left and bottom-right — and each is passed separately through the network.</p>
+<pre class="diagram">              ┌─ Crop 1 ──► Prediction 1 ┐
+              │                           │
+  Image ──────┼─ Crop 2 ──► Prediction 2 ┤
+              │                           ├──► average scores ──► final prediction
+              ├─ Crop 3 ──► Prediction 3 ┤
+              │                           │
+              └─ Crop 4 ──► Prediction 4 ┘</pre>
+<p>The class probabilities or logits from the crops are usually <strong style="color:var(--text)">averaged</strong> to produce the final prediction.</p>
+<p>Multi-crop testing reduces sensitivity to the exact position or framing of an object and can improve robustness. The cost is that inference becomes several times more expensive, since the same image is processed multiple times.</p>
+</section>
+
+<section class="card" id="q5f">
+<h2 class="sec">5(f) Counting trainable parameters<span class="marks">2 marks</span></h2><div class="meta">watch the off-by-one</div>
+<blockquote class="q"><strong>Question</strong>You'd like to train a fully connected neural network with 5 hidden layers, each with 10 hidden units. The input is 20-dimensional and the output is a scalar. What is the total number of trainable parameters?</blockquote>
+<p>For every fully connected layer:</p>
+<div class="formula">\[ \boxed{ \text{Parameters} = (\text{inputs}\times\text{outputs}) + \text{biases} } \]</div>
+<p>The architecture is \(20 \rightarrow 10 \rightarrow 10 \rightarrow 10 \rightarrow 10 \rightarrow 10 \rightarrow 1\).</p>
+<h3>Input → hidden layer 1</h3>
+<div class="formula">\[ 20(10)+10 = 210 \]</div>
+<h3>Between the hidden layers</h3>
+<p>Five hidden layers means <strong style="color:var(--text)">four</strong> \(10\rightarrow10\) connections:</p>
+<div class="formula">\[ 4\big[10(10)+10\big] = 4(110) = 440 \]</div>
+<h3>Final hidden layer → scalar output</h3>
+<div class="formula">\[ 10(1)+1 = 11 \]</div>
+<div class="result">\[ N = 210+440+11 \qquad \boxed{ \text{Total trainable parameters} = 661 } \]</div>
+<table>
+<tr><th>Connection</th><th>Weights</th><th>Biases</th><th>Total</th></tr>
+<tr><td>\(20\rightarrow10\)</td><td class="num">200</td><td class="num">10</td><td class="num">210</td></tr>
+<tr><td>\(10\rightarrow10\) (×4)</td><td class="num">400</td><td class="num">40</td><td class="num">440</td></tr>
+<tr><td>\(10\rightarrow1\)</td><td class="num">10</td><td class="num">1</td><td class="num">11</td></tr>
+<tr class="hl"><td><strong>Total</strong></td><td class="num">610</td><td class="num">51</td><td class="num">661</td></tr>
+</table>
+<p class="muted">The classic slip is counting <strong style="color:var(--text)">five</strong> \(10\rightarrow10\) connections instead of four. Five layers have four gaps between them — the same off-by-one as fenceposts.</p>
+</section>
+
+<section class="card" id="q7a">
+<h2 class="sec">7(a) The problem non-max suppression solves<span class="marks">2 marks</span></h2><div class="meta">duplicate boxes for one object</div>
+<blockquote class="q"><strong>Question</strong>Which problem in object detection is addressed by non-max suppression?</blockquote>
+<p>An object detector often predicts <strong style="color:var(--text)">several highly overlapping bounding boxes for the same physical object</strong>. One car might produce five different boxes with slightly different positions and confidence scores. If all are kept, the detector reports the same object multiple times.</p>
+<p><strong style="color:var(--text)">Non-Max Suppression (NMS)</strong> removes these duplicate detections. It keeps the highest-confidence box and suppresses lower-confidence boxes that overlap it strongly, according to an IoU threshold.</p>
+<pre class="diagram">   Before NMS                        After NMS
+
+   ┌──────────┐                      
+   │ ┌────────┼──┐                   ┌──────────┐
+   │ │  ┌─────┼──┼──┐                │          │
+   │ │  │ car │  │  │      ──►       │   car    │
+   └─┼──┼─────┘  │  │                │          │
+     └──┼────────┘  │                └──────────┘
+        └───────────┘
+   5 boxes, 1 object                 1 box, 1 object</pre>
+<div class="result">\[ \boxed{ \text{NMS removes redundant overlapping detections.} } \]</div>
+</section>
+
+<section class="card" id="q7b">
+<h2 class="sec">7(b) Multi-class non-max suppression<span class="marks">2 marks</span></h2><div class="meta">run NMS per class</div>
+<blockquote class="q"><strong>Question</strong>How is non-max suppression applied in the presence of multiple object classes?</blockquote>
+<p>With multiple classes, NMS must be applied <strong style="color:var(--text)">separately to each object class</strong>. A car box should compete with other car boxes, but it should not suppress a person box merely because the two overlap — a person standing in front of a car is a perfectly valid pair of detections.</p>
+<h3>Multi-class NMS algorithm</h3>
+<ol class="steps">
+<li>Generate all predicted bounding boxes with their confidence scores and predicted classes.</li>
+<li>Discard boxes whose confidence score is below a chosen confidence threshold.</li>
+<li>Separate the remaining boxes by class: cars, persons, motorcycles, …</li>
+<li>For <strong>each class independently</strong>:
+<ul class="muted">
+<li>select the remaining box with the highest confidence;</li>
+<li>output / keep that box;</li>
+<li>compute its IoU with all remaining boxes of the <strong style="color:var(--text)">same class</strong>;</li>
+<li>remove every box for which \(IoU \ge T_{NMS}\);</li>
+<li>repeat until no boxes remain in that class.</li>
+</ul></li>
+<li>Combine the surviving detections from all classes to obtain the final prediction set.</li>
+</ol>
+<pre class="diagram">            Predicted boxes
+                   ↓
+          Confidence filtering
+                   ↓
+            Separate by class
+                   ↓
+        ┌──────────┼──────────┐
+       Car       Person      Bike
+        ↓          ↓          ↓
+       NMS        NMS        NMS          ← independent, same-class IoU only
+        └──────────┼──────────┘
+                   ↓
+            Final detections</pre>
+<p class="muted">Low-probability boxes are removed <em>first</em>, then NMS runs independently per class. Doing it in that order keeps the per-class loops short.</p>
+</section>
+
+<section class="card" id="q7c">
+<h2 class="sec">7(c) When anchor-box detectors perform poorly<span class="marks">2 marks</span></h2><div class="meta">capacity per grid cell is fixed</div>
+<blockquote class="q"><strong>Question</strong>Under which two conditions do anchor-box-based detection frameworks exhibit degraded performance?</blockquote>
+<p>In the anchor-box formulation used by YOLO, an object is assigned to the grid cell containing its midpoint, and to the anchor box having the highest IoU with that object's shape. Anchor boxes make it possible to detect multiple overlapping objects in one grid cell, provided they are assigned to <em>different</em> anchors.</p>
+<p>Performance therefore degrades in two situations:</p>
+<ol class="steps">
+<li><strong>Two objects fall in the same grid cell and both best-match the same anchor box.</strong> One grid-cell/anchor slot cannot represent two independent objects simultaneously, so one of them is lost.</li>
+<li><strong>More objects fall into one grid cell than there are anchor boxes.</strong> If a cell has two anchors but three object centres land inside it, there are simply not enough slots to represent all three.</li>
+</ol>
+<pre class="diagram">   ┌─────────────┐      2 anchors available in this cell
+   │  ●  ●  ●    │      3 object midpoints fall inside
+   │             │      →  one object cannot be represented
+   └─────────────┘</pre>
+<div class="result">\[ \boxed{ \text{Anchor boxes help with overlapping objects, but capacity per grid cell is still limited.} } \]</div>
+<p class="muted">Both failures come from the same root cause: representational capacity is fixed at <em>(grid cells) × (anchors per cell)</em>, decided before training. Finer grids or more anchors relieve it, but never remove it.</p>
+</section>
+
+<footer>pyq-1 · previous year theory · dark minimal notes</footer>
+</div>
+</body>
+</html>

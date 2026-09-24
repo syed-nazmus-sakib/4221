@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>activations — Activation Functions</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--red:#e89a9a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}h4{font-size:15px;margin:20px 0 6px;color:var(--accent)}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+table.cm td,table.cm th{text-align:center}table.cm td:first-child,table.cm th:first-child{text-align:left}
+td.tp{color:var(--green)}td.tn{color:var(--green)}td.fp{color:var(--gold)}td.fn{color:var(--red)}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:14px 0}
+ol.steps>li{counter-increment:st;position:relative;padding:9px 0 9px 32px;border-top:1px solid var(--border)}
+ol.steps>li:last-child{border-bottom:1px solid var(--border)}
+ol.steps>li:before{content:counter(st);position:absolute;left:2px;top:12px;font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">activations</div>
+<h1>Activation functions</h1>
+<p class="subtitle">Sigmoid, tanh, ReLU, Leaky ReLU, softmax and linear — formula, range, derivative, what each is for and how each fails. Plus the sigmoid-vs-softmax decision, six likely exam questions, and a fully worked numerical covering all of them.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#why">1. Why activation functions exist</a></li>
+<li><a href="#sigmoid">2. Sigmoid</a></li>
+<li><a href="#tanh">3. Tanh</a></li>
+<li><a href="#relu">4. ReLU</a></li>
+<li><a href="#leaky">5. Leaky ReLU</a></li>
+<li><a href="#softmax">6. Softmax</a></li>
+<li><a href="#linear">7. Linear</a></li>
+<li><a href="#sigvssoft">8. Sigmoid vs Softmax — the key distinction</a></li>
+<li><a href="#summary">9. Summary table</a></li>
+<li><a href="#exam">10. Likely exam questions</a></li>
+<li><a href="#practice">11. Practice numerical (with solution)</a></li>
+</ol></nav>
+
+<section class="card hero" id="why">
+<h2 class="sec">1. Why activation functions exist</h2>
+<p>A neuron first computes \(z=w^{T}x+b\), then applies \(a=f(z)\). The second step is where all the power comes from.</p>
+<p>Without a nonlinear activation, stacking layers achieves nothing. Two linear layers compose to</p>
+<div class="formula">\[ W_2(W_1x+b_1)+b_2 = \underbrace{W_2W_1}_{W'}x + \underbrace{W_2b_1+b_2}_{b'} = W'x+b' \]</div>
+<div class="result gold">
+\[ \boxed{ \text{A stack of linear layers is just one linear layer.} } \]
+</div>
+<p>No matter how deep the network, it could only ever learn a linear mapping. <strong style="color:var(--text)">Nonlinear activations are what let a network represent complex nonlinear relationships</strong> — and what make depth meaningful.</p>
+<pre class="diagram">         w, b              f(·)
+   x ──► z = wᵀx + b ──► a = f(z) ──► next layer
+         │                 │
+     linear part      the nonlinearity
+    (does the work)   (makes depth matter)</pre>
+</section>
+
+<section class="card" id="sigmoid">
+<h2 class="sec">2. Sigmoid</h2>
+<div class="formula">\[ \boxed{ \sigma(z)=\frac{1}{1+e^{-z}} } \]</div>
+<h3>Range</h3>
+<div class="formula">\[ \boxed{ 0<\sigma(z)<1 } \]</div>
+<p>so it naturally behaves like a probability. Key values:</p>
+<div class="formula">
+\[ \sigma(0)=0.5, \qquad z\to+\infty \Rightarrow \sigma(z)\to1, \qquad z\to-\infty \Rightarrow \sigma(z)\to0 \]
+</div>
+<h3>Derivative</h3>
+<div class="formula">\[ \boxed{ \sigma'(z)=\sigma(z)\big(1-\sigma(z)\big) } \]</div>
+<p>Its maximum value is only \(\boxed{0.25}\), reached at \(z=0\).</p>
+<pre class="diagram">   σ(z)                          σ'(z)
+  1 ┤        ╭────────         0.25┤    ╭╮
+    │      ╭─╯                     │   ╱  ╲
+0.5 ┤────╭─╯──────────         0.1 ┤  ╱    ╲
+    │  ╭─╯                         │ ╱      ╲
+  0 ┤──╯                         0 ┤╯        ╰────
+    └──────┼──────►                └────┼────────►
+    -6     0      6                -6   0        6
+                                   flat where σ saturates</pre>
+<h3>Main use</h3>
+<div class="result">\[ \boxed{ \text{One output neuron + Sigmoid} \;\Rightarrow\; \text{binary classification} } \]</div>
+<h3>Disadvantage</h3>
+<p>For large \(|z|\), sigmoid <strong style="color:var(--text)">saturates</strong> and its derivative becomes almost zero, causing <strong style="color:var(--text)">vanishing gradients</strong>. Even at its very best it shrinks the gradient by a factor of 4.</p>
+</section>
+
+<section class="card" id="tanh">
+<h2 class="sec">3. Tanh</h2>
+<div class="formula">\[ \boxed{ \tanh(z)=\frac{e^{z}-e^{-z}}{e^{z}+e^{-z}} } \]</div>
+<h3>Range</h3>
+<div class="formula">\[ \boxed{ -1<\tanh(z)<1 }, \qquad \tanh(0)=0 \]</div>
+<p>Unlike sigmoid, it is <strong style="color:var(--text)">zero-centred</strong>.</p>
+<h3>Derivative</h3>
+<div class="formula">\[ \boxed{ \tanh'(z)=1-\tanh^{2}(z) } \]</div>
+<p>with a maximum of \(1\) at \(z=0\) — four times better than sigmoid's best case.</p>
+<h3>Advantage over sigmoid</h3>
+<p>Its outputs contain both positive and negative values centred around zero, which generally makes optimisation better behaved: activations passed forward do not all share the same sign.</p>
+<h3>Disadvantage</h3>
+<p>Tanh still <strong style="color:var(--text)">saturates</strong>: \(z\to\pm\infty \Rightarrow \tanh(z)\to\pm1\), so its gradient can also vanish. It is milder than sigmoid, not immune.</p>
+<table>
+<tr><th></th><th>Sigmoid</th><th>Tanh</th></tr>
+<tr><td>Range</td><td class="num">\((0,1)\)</td><td class="num">\((-1,1)\)</td></tr>
+<tr><td>Centred at</td><td class="num">0.5</td><td class="num">0</td></tr>
+<tr><td>Max derivative</td><td class="num">0.25</td><td class="num">1.0</td></tr>
+<tr><td>Saturates</td><td>both tails</td><td>both tails</td></tr>
+<tr><td>Typical use</td><td>binary output</td><td>hidden / recurrent units</td></tr>
+</table>
+</section>
+
+<section class="card" id="relu">
+<h2 class="sec">4. ReLU</h2>
+<p><strong style="color:var(--text)">Re</strong>ctified <strong style="color:var(--text)">L</strong>inear <strong style="color:var(--text)">U</strong>nit:</p>
+<div class="formula">
+\[ \boxed{ ReLU(z)=\max(0,z) } \qquad\text{or}\qquad
+ReLU(z)=\begin{cases} z, & z>0 \\ 0, & z\le 0 \end{cases} \]
+</div>
+<h3>Range and derivative</h3>
+<div class="formula">
+\[ \boxed{ [0,\infty) } \qquad
+ReLU'(z)=\begin{cases} 1, & z>0 \\ 0, & z<0 \end{cases} \]
+</div>
+<p class="muted">The derivative at \(z=0\) is mathematically undefined; implementations pick a convention (usually 0).</p>
+<pre class="diagram">   ReLU(z)                       ReLU'(z)
+    │        ╱                   1 ┤      ┌────────
+    │      ╱                       │      │
+    │    ╱                         │      │
+  0 ┤────────────                0 ┤──────┘
+    └────┼───────►                 └──────┼───────►
+        0                                0
+   flat then linear              0 then exactly 1 — no shrinking</pre>
+<h3>Advantages</h3>
+<ul class="muted">
+<li>Very simple to compute — a comparison, not an exponential.</li>
+<li>Does <strong style="color:var(--text)">not saturate</strong> for positive inputs.</li>
+<li>Derivative is exactly \(1\) where active, so gradients pass through undiminished — this is what largely solved the vanishing-gradient problem.</li>
+<li>Produces sparse representations, since roughly half the units output zero.</li>
+</ul>
+<h3>Main disadvantage — the dying ReLU</h3>
+<p>If a neuron continually receives \(z<0\), then</p>
+<div class="formula">\[ ReLU(z)=0 \qquad\text{and}\qquad ReLU'(z)=0 \]</div>
+<p>so it contributes nothing forward <em>and</em> receives no gradient backward. It may stop learning permanently.</p>
+<p class="muted">Seen concretely in <a href="ANN-6.html">ANN-6</a> and <a href="ANN-8.html">ANN-8</a>, where a dead unit leaves an entire column of \(\nabla W\) at zero and those weights never move.</p>
+</section>
+
+<section class="card" id="leaky">
+<h2 class="sec">5. Leaky ReLU</h2>
+<p>Leaky ReLU modifies only the negative side:</p>
+<div class="formula">
+\[ \boxed{ f(z)=\begin{cases} z, & z>0 \\ 0.01z, & z\le 0 \end{cases} } \]
+</div>
+<p>Instead of completely killing negative inputs, it gives them a small slope. Therefore</p>
+<div class="formula">\[ z<0 \;\Rightarrow\; f'(z)=0.01 \quad\text{instead of }0 \]</div>
+<div class="result">\[ \boxed{ \text{Purpose: reduce the dying-ReLU problem} } \]</div>
+<p>A small gradient can still flow when \(z<0\), so a unit that drifts negative retains a route back.</p>
+<pre class="diagram">   ReLU                          Leaky ReLU
+    │        ╱                    │        ╱
+    │      ╱                      │      ╱
+  0 ┤────────                   0 ┤────╱
+    │                             │  ╱  ← small slope 0.01, not flat
+    └────┼───────►                └──┼───────►
+        0                            0
+   dead below zero            still alive below zero</pre>
+<p class="muted">The trade-off is one extra hyperparameter: the negative slope. \(0.01\) is the usual default.</p>
+</section>
+
+<section class="card" id="softmax">
+<h2 class="sec">6. Softmax</h2>
+<p>Softmax differs from everything above: it takes an <strong style="color:var(--text)">entire vector</strong> of logits \(z_1,z_2,\ldots,z_C\) and converts them into class probabilities.</p>
+<div class="formula">\[ \boxed{ \hat y_i=\frac{e^{z_i}}{\sum_{j=1}^{C}e^{z_j}} } \]</div>
+<p>with \(0<\hat y_i<1\) and, crucially,</p>
+<div class="result">\[ \boxed{ \sum_i \hat y_i = 1 } \]</div>
+<h3>Main use</h3>
+<div class="result blue">\[ \boxed{ \text{Mutually exclusive multiclass classification} } \]</div>
+<h3>Example</h3>
+<p>Take \(z=[2,\ 1,\ 0]\):</p>
+<table>
+<tr><th>\(z_i\)</th><th>\(e^{z_i}\)</th><th>\(\hat y_i\)</th></tr>
+<tr><td class="num">2</td><td class="num">7.389</td><td class="num">0.665</td></tr>
+<tr><td class="num">1</td><td class="num">2.718</td><td class="num">0.245</td></tr>
+<tr><td class="num">0</td><td class="num">1.000</td><td class="num">0.090</td></tr>
+<tr class="hl"><td><strong>sum</strong></td><td class="num">11.107</td><td class="num">1.000</td></tr>
+</table>
+<p>The classes <strong style="color:var(--text)">compete</strong> with one another, because the shared denominator forces the probabilities to sum to 1. Raising one necessarily lowers the others.</p>
+<p class="muted">Softmax is unchanged if you subtract the same constant from every logit, so \(c=\max_j z_j\) is often subtracted first to keep the exponentials small. Same answer, easier arithmetic.</p>
+</section>
+
+<section class="card" id="linear">
+<h2 class="sec">7. Linear activation</h2>
+<p>For regression, the output layer often uses no activation at all:</p>
+<div class="formula">\[ \boxed{ f(z)=z }, \qquad -\infty<y<+\infty \]</div>
+<p>There is no restriction on the output, which is what a continuous target needs — temperature, price, force, position.</p>
+<p>This is why the regression problems use the pattern</p>
+<div class="result">\[ \boxed{ \text{ReLU / tanh hidden layer} \;\rightarrow\; \text{Linear output} } \]</div>
+<p class="muted">A sigmoid output would cap the prediction at 1, and a ReLU output would forbid negative predictions. See <a href="ANN-5.html">ANN-5</a> through <a href="ANN-8.html">ANN-8</a> — and note that a linear activation in a <em>hidden</em> layer is useless, for the reason given in section 1.</p>
+</section>
+
+<section class="card" id="sigvssoft">
+<h2 class="sec">8. Sigmoid vs Softmax — the key exam distinction</h2>
+<h3>Binary classification</h3>
+<p>One sigmoid output: \(\boxed{\hat y=\sigma(z)}\) — for example \(P(\text{cat})=0.82\), with \(P(\text{not cat})=0.18\) implied.</p>
+<h3>Multiclass classification</h3>
+<p>Softmax over all classes: \(\boxed{[P_1,P_2,P_3]}\) with \(\sum P=1\) — for example \([0.1,\,0.7,\,0.2]\).</p>
+<h3>Multi-label classification</h3>
+<p>If several labels can be true <strong style="color:var(--text)">at the same time</strong>, use <strong style="color:var(--text)">independent sigmoids</strong>, not softmax. An image may contain both a person and a car:</p>
+<div class="formula">\[ P(\text{person})=0.9, \qquad P(\text{car})=0.8 \]</div>
+<p>These do not need to sum to 1 — and softmax would wrongly force them to compete.</p>
+<table>
+<tr><th>Task</th><th>Output layer</th><th>Do probabilities sum to 1?</th></tr>
+<tr><td>Binary</td><td>1 neuron + sigmoid</td><td>n/a (two outcomes implied)</td></tr>
+<tr><td>Multiclass, mutually exclusive</td><td>\(C\) neurons + softmax</td><td class="num">yes</td></tr>
+<tr class="hl"><td>Multi-label, independent</td><td>\(C\) neurons + \(C\) sigmoids</td><td class="num">no</td></tr>
+</table>
+<p class="muted">The deciding question is simply: <strong style="color:var(--text)">can two labels be true at once?</strong> If yes, sigmoid. If no, softmax.</p>
+</section>
+
+<section class="card" id="summary">
+<h2 class="sec">9. Summary table</h2>
+<table>
+<tr><th>Activation</th><th>Range</th><th>Derivative</th><th>Common use</th><th>Main weakness</th></tr>
+<tr><td>Sigmoid</td><td class="num">\((0,1)\)</td><td class="num">\(\sigma(1-\sigma)\le0.25\)</td><td>binary output</td><td>vanishing gradient</td></tr>
+<tr><td>Tanh</td><td class="num">\((-1,1)\)</td><td class="num">\(1-\tanh^{2}\le1\)</td><td>hidden / recurrent units</td><td>vanishing gradient</td></tr>
+<tr><td>ReLU</td><td class="num">\([0,\infty)\)</td><td class="num">0 or 1</td><td>hidden layers</td><td>dying ReLU</td></tr>
+<tr><td>Leaky ReLU</td><td class="num">\((-\infty,\infty)\)</td><td class="num">0.01 or 1</td><td>hidden layers</td><td>extra slope hyperparameter</td></tr>
+<tr><td>Softmax</td><td class="num">probabilities, sum 1</td><td class="num">—</td><td>multiclass output</td><td>not for independent labels</td></tr>
+<tr><td>Linear</td><td class="num">\((-\infty,\infty)\)</td><td class="num">1</td><td>regression output</td><td>no nonlinearity</td></tr>
+</table>
+</section>
+
+<section class="card" id="exam">
+<h2 class="sec">10. Likely exam questions</h2>
+
+<h3>Q1. Why are activation functions necessary in neural networks?</h3>
+<p>Activation functions introduce <strong style="color:var(--text)">nonlinearity</strong>. Without them, multiple linear layers collapse into a single linear transformation:</p>
+<div class="formula">\[ W_2(W_1x+b_1)+b_2 = W'x+b' \]</div>
+<p>Regardless of depth, the network could only learn linear mappings. Nonlinear activations allow it to represent complex nonlinear relationships.</p>
+
+<h3>Q2. Compare Sigmoid and Tanh.</h3>
+<p>Both are smooth nonlinear functions and both can suffer vanishing gradients through saturation. Sigmoid outputs lie in \((0,1)\) while tanh outputs lie in \((-1,1)\). Tanh is <strong style="color:var(--text)">zero-centred</strong>, which is generally preferable for hidden representations; sigmoid is especially useful for binary probability outputs. Tanh's derivative peaks at \(1\) against sigmoid's \(0.25\), so tanh is the milder of the two.</p>
+
+<h3>Q3. Why is ReLU commonly preferred over Sigmoid in hidden layers?</h3>
+<p>For positive inputs \(ReLU'(z)=1\), so gradients do not shrink through activation saturation. ReLU is also computationally trivial and produces sparse representations. Sigmoid saturates for large positive <em>and</em> negative inputs, driving its derivative toward zero and increasing the risk of vanishing gradients.</p>
+
+<h3>Q4. What is the dying-ReLU problem and how does Leaky ReLU address it?</h3>
+<p>If a ReLU neuron's pre-activation stays negative, \(ReLU(z)=0\) and \(ReLU'(z)=0\), so it receives no useful gradient and stops learning. Leaky ReLU assigns a small negative slope, \(f(z)=0.01z\) for \(z<0\), allowing some gradient to keep flowing.</p>
+
+<h3>Q5. When should Sigmoid and Softmax be used?</h3>
+<p>Use <strong style="color:var(--text)">sigmoid</strong> for binary classification or independent multi-label outputs, because each output is treated independently. Use <strong style="color:var(--text)">softmax</strong> for mutually exclusive multiclass classification, because all class probabilities are normalised so that \(\sum_i P_i=1\).</p>
+
+<h3>Q6. Which activations are most prone to the vanishing-gradient problem?</h3>
+<p><strong style="color:var(--text)">Sigmoid and tanh</strong>, because they saturate for large absolute inputs where their derivatives approach zero. ReLU reduces the problem for positive inputs since its derivative is exactly 1, although it can suffer from dying neurons on the negative side.</p>
+</section>
+
+<section class="card" id="practice">
+<h2 class="sec">11. Practice numerical</h2>
+<blockquote class="q"><strong>Question</strong>Given \(z=\begin{bmatrix}-1\\0\\2\end{bmatrix}\), calculate (1) sigmoid, (2) tanh, (3) ReLU, (4) Leaky ReLU with slope \(0.01\), and (5) the softmax probabilities treating the three numbers as logits. (6) Explain why the sigmoid outputs need not sum to 1 while the softmax outputs must.</blockquote>
+<p class="muted">This single problem touches nearly every activation idea that can become a short numerical question.</p>
+<hr class="sep" />
+<h3>(1)–(4) Element-wise activations</h3>
+<p>Each of these is applied to <strong style="color:var(--text)">one number at a time</strong>, independently:</p>
+<table>
+<tr><th>\(z\)</th><th>\(\sigma(z)\)</th><th>\(\tanh(z)\)</th><th>\(ReLU(z)\)</th><th>Leaky ReLU</th></tr>
+<tr><td class="num">−1</td><td class="num">0.2689</td><td class="num">−0.7616</td><td class="num">0</td><td class="num">−0.01</td></tr>
+<tr><td class="num">0</td><td class="num">0.5000</td><td class="num">0.0000</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><td class="num">2</td><td class="num">0.8808</td><td class="num">0.9640</td><td class="num">2</td><td class="num">2</td></tr>
+<tr class="hl"><td><strong>sum</strong></td><td class="num">1.6497</td><td class="num">0.2024</td><td class="num">2</td><td class="num">1.99</td></tr>
+</table>
+<p class="muted">Sanity checks: \(\sigma(0)=0.5\) and \(\tanh(0)=0\) exactly; ReLU clips the \(-1\) to \(0\) while Leaky ReLU keeps \(-0.01\); both leave the positive value \(2\) untouched.</p>
+<h3>(5) Softmax</h3>
+<div class="formula">\[ \hat y_i = \frac{e^{z_i}}{\sum_j e^{z_j}} \]</div>
+<table>
+<tr><th>\(z_i\)</th><th>\(e^{z_i}\)</th><th>\(\hat y_i = e^{z_i}/8.7569\)</th></tr>
+<tr><td class="num">−1</td><td class="num">0.3679</td><td class="num">0.0420</td></tr>
+<tr><td class="num">0</td><td class="num">1.0000</td><td class="num">0.1142</td></tr>
+<tr><td class="num">2</td><td class="num">7.3891</td><td class="num">0.8438</td></tr>
+<tr class="hl"><td><strong>sum</strong></td><td class="num">8.7569</td><td class="num">1.0000 ✓</td></tr>
+</table>
+<div class="result">\[ \boxed{ \hat y \approx \begin{bmatrix} 0.0420 \\ 0.1142 \\ 0.8438 \end{bmatrix} } \]</div>
+<h3>(6) Why the sums differ</h3>
+<p><strong style="color:var(--text)">Sigmoid is applied element-wise.</strong> Each output is computed from its own \(z_i\) alone:</p>
+<div class="formula">\[ \sigma(z_i)=\frac{1}{1+e^{-z_i}} \qquad \text{— no other } z_j \text{ appears} \]</div>
+<p>Nothing couples the three values, so their sum can be anything in \((0,3)\). Here it is \(1.6497\).</p>
+<p><strong style="color:var(--text)">Softmax is applied to the vector.</strong> Every output shares the same denominator:</p>
+<div class="formula">\[ \hat y_i=\frac{e^{z_i}}{\sum_j e^{z_j}} \qquad\Longrightarrow\qquad \sum_i \hat y_i = \frac{\sum_i e^{z_i}}{\sum_j e^{z_j}} = 1 \]</div>
+<p>The sum is <strong style="color:var(--text)">1 by construction</strong> — it is an algebraic identity, not a coincidence of these numbers.</p>
+<div class="result blue">
+\[ \boxed{ \text{Sigmoid: independent outputs} \;\Rightarrow\; \text{multi-label} } \]
+\[ \boxed{ \text{Softmax: competing outputs} \;\Rightarrow\; \text{mutually exclusive classes} } \]
+</div>
+<p class="muted">Notice also how softmax exaggerates differences: the logits \(-1,0,2\) are evenly spread, but the probabilities are \(0.04,\,0.11,\,0.84\). Exponentiating amplifies the gap — which is why a confident softmax can look far more certain than its logits suggest.</p>
+</section>
+
+<footer>activations · extra · theory · dark minimal notes</footer>
+</div>
+</body>
+</html>

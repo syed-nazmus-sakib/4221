@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>pyq-2 — Previous Final 2022 — Theory</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px;list-style:none}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+nav.toc .grp{margin:13px 0 4px -20px;color:var(--faint);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:14px 0}
+ol.steps>li{counter-increment:st;position:relative;padding:9px 0 9px 32px;border-top:1px solid var(--border)}
+ol.steps>li:last-child{border-bottom:1px solid var(--border)}
+ol.steps>li:before{content:counter(st);position:absolute;left:2px;top:12px;font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+ol.steps ul{margin:8px 0 0;padding-left:20px;list-style:disc}
+ol.steps ul li{padding:3px 0;border:none;color:var(--muted)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<script src="study-nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">pyq-2</div>
+<h1>Previous Final 2022 — Theory</h1>
+<p class="subtitle">All twenty-one theory questions from the 2022 final, answered short and precise. Covers ML fundamentals and PAC learning, SVM slack penalties, CNN design, GAN theory including the global optimum, LSTM, object-detection evaluation and the R-CNN family, and regularisation.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li class="grp" style="margin-top:0">Orientation</li>
+<li><a href="#paper">The paper at a glance</a></li>
+<li class="grp">Question 1</li>
+<li><a href="#q1a">1(a) Why learning is required; types of supervised and unsupervised learning</a></li>
+<li><a href="#q1b">1(b) PAC learning; underfitting and overfitting</a></li>
+<li><a href="#q1c">1(c) Factors and trade-off for a good model</a></li>
+<li class="grp">Question 2</li>
+<li><a href="#q2b">2(b) Can a small slack penalty C hurt training accuracy?</a></li>
+<li><a href="#q2ci">2(c)(i) Setting C by cross-validation</a></li>
+<li class="grp">Question 3</li>
+<li><a href="#q3a">3(a) Advantages of convolutional over fully connected layers</a></li>
+<li><a href="#q3b">3(b) What goes wrong with ŷ = σ(ReLU(z))?</a></li>
+<li><a href="#q3c">3(c) How depthwise separable convolution builds lightweight networks</a></li>
+<li><a href="#q3d">3(d) Top-1 and Top-5 accuracy</a></li>
+<li class="grp">Question 4</li>
+<li><a href="#q4a">4(a) Discriminative vs generative vs conditional generative</a></li>
+<li><a href="#q4b">4(b) How a GAN trains G and D as a minimax game</a></li>
+<li><a href="#q4c">4(c) The global minimum of the GAN minimax game</a></li>
+<li class="grp">Question 5</li>
+<li><a href="#q5a">5(a) How LSTM solves the vanishing-gradient problem</a></li>
+<li><a href="#q5b">5(b) Evaluating an object detector</a></li>
+<li><a href="#q5c">5(c) Cut weights, units, or connections to reduce backprop cost?</a></li>
+<li><a href="#q5d">5(d) Why multiple filter sizes in Inception</a></li>
+<li class="grp">Question 6</li>
+<li><a href="#q6a">6(a) Classification vs semantic segmentation vs detection vs instance segmentation</a></li>
+<li><a href="#q6b">6(b) R-CNN’s disadvantage; how Fast and Faster R-CNN fix it</a></li>
+<li><a href="#q6c">6(c) Solving overlapping detections</a></li>
+<li class="grp">Question 7</li>
+<li><a href="#q7a">7(a) Gradient descent; cost function vs gradient descent</a></li>
+<li><a href="#q7b">7(b) L1 vs L2 regularisation</a></li>
+</ol></nav>
+
+<section class="card hero" id="paper">
+<h2 class="sec">The paper at a glance</h2><div class="meta">Previous Final 2022 · 21 theory questions</div>
+<p>The theory parts of the 2022 final, answered short and exam-ready. Purely numerical parts are covered on the <a href="cnn-1.html">CNN</a>, <a href="ANN-1.html">ANN</a> and <a href="lstm-1.html">LSTM</a> problem pages.</p>
+<table>
+<tr><th>Part</th><th>Topic</th><th>Area</th></tr>
+<tr><td class="num">1(a)</td><td><a href="#q1a">Why learning is required; types of supervised and unsupervised learning</a></td><td>ML fundamentals</td></tr><tr><td class="num">1(b)</td><td><a href="#q1b">PAC learning; underfitting and overfitting</a></td><td>learning theory</td></tr><tr><td class="num">1(c)</td><td><a href="#q1c">Factors and trade-off for a good model</a></td><td>bias–variance</td></tr><tr><td class="num">2(b)</td><td><a href="#q2b">Can a small slack penalty C hurt training accuracy?</a></td><td>SVM</td></tr><tr><td class="num">2(c)(i)</td><td><a href="#q2ci">Setting C by cross-validation</a></td><td>model selection</td></tr><tr><td class="num">3(a)</td><td><a href="#q3a">Advantages of convolutional over fully connected layers</a></td><td>CNN design</td></tr><tr><td class="num">3(b)</td><td><a href="#q3b">What goes wrong with ŷ = σ(ReLU(z))?</a></td><td>activation design</td></tr><tr><td class="num">3(c)</td><td><a href="#q3c">How depthwise separable convolution builds lightweight networks</a></td><td>efficiency</td></tr><tr><td class="num">3(d)</td><td><a href="#q3d">Top-1 and Top-5 accuracy</a></td><td>evaluation</td></tr><tr><td class="num">4(a)</td><td><a href="#q4a">Discriminative vs generative vs conditional generative</a></td><td>generative models</td></tr><tr><td class="num">4(b)</td><td><a href="#q4b">How a GAN trains G and D as a minimax game</a></td><td>GAN</td></tr><tr><td class="num">4(c)</td><td><a href="#q4c">The global minimum of the GAN minimax game</a></td><td>GAN theory</td></tr><tr><td class="num">5(a)</td><td><a href="#q5a">How LSTM solves the vanishing-gradient problem</a></td><td>LSTM</td></tr><tr><td class="num">5(b)</td><td><a href="#q5b">Evaluating an object detector</a></td><td>detection metrics</td></tr><tr><td class="num">5(c)</td><td><a href="#q5c">Cut weights, units, or connections to reduce backprop cost?</a></td><td>efficiency</td></tr><tr><td class="num">5(d)</td><td><a href="#q5d">Why multiple filter sizes in Inception</a></td><td>Inception</td></tr><tr><td class="num">6(a)</td><td><a href="#q6a">Classification vs semantic segmentation vs detection vs instance segmentation</a></td><td>vision tasks</td></tr><tr><td class="num">6(b)</td><td><a href="#q6b">R-CNN’s disadvantage; how Fast and Faster R-CNN fix it</a></td><td>detectors</td></tr><tr><td class="num">6(c)</td><td><a href="#q6c">Solving overlapping detections</a></td><td>NMS</td></tr><tr><td class="num">7(a)</td><td><a href="#q7a">Gradient descent; cost function vs gradient descent</a></td><td>optimisation</td></tr><tr><td class="num">7(b)</td><td><a href="#q7b">L1 vs L2 regularisation</a></td><td>regularisation</td></tr>
+</table>
+<p class="muted">Also see <a href="pyq-1.html">pyq-1</a> and <a href="pyq-3.html">pyq-3</a> for the other theory papers.</p>
+</section>
+
+<section class="card" id="q1a">
+<h2 class="sec">1(a) Why learning is required; types of supervised and unsupervised learning</h2><div class="meta">ML fundamentals</div>
+<blockquote class="q"><strong>Question</strong>Why is learning required in machines? What are the types of supervised and unsupervised learning algorithms? Give definition with an example of each different type.</blockquote>
+<p>Machine learning is required when it is difficult or impossible to explicitly program rules for every possible input. Instead, the machine <strong style="color:var(--text)">learns patterns from examples</strong> and improves its prediction or decision-making from data.</p>
+<h3>Supervised learning</h3>
+<p>Uses <strong style="color:var(--text)">labelled input–output pairs</strong>. Its main types are:</p>
+<table>
+<tr><th>Type</th><th>Predicts</th><th>Example</th></tr>
+<tr><td><strong>Classification</strong></td><td>a discrete class</td><td>cat vs dog</td></tr>
+<tr><td><strong>Regression</strong></td><td>a continuous value</td><td>house price</td></tr>
+</table>
+<h3>Unsupervised learning</h3>
+<p>Uses <strong style="color:var(--text)">unlabelled data</strong> and discovers underlying structure:</p>
+<table>
+<tr><th>Type</th><th>Does</th><th>Example</th></tr>
+<tr><td><strong>Clustering</strong></td><td>groups similar samples</td><td>customer segmentation</td></tr>
+<tr><td><strong>Dimensionality reduction</strong></td><td>represents high-dimensional data with fewer variables</td><td>PCA</td></tr>
+</table>
+</section>
+
+<section class="card" id="q1b">
+<h2 class="sec">1(b) PAC learning; underfitting and overfitting</h2><div class="meta">learning theory</div>
+<blockquote class="q"><strong>Question</strong>Why do we use PAC Learning? Define Underfitting and Overfitting.</blockquote>
+<p><strong style="color:var(--text)">PAC — Probably Approximately Correct</strong> learning provides a theoretical framework for asking whether a learning algorithm can learn a hypothesis that is <em>approximately</em> correct with <em>high probability</em>, using a finite amount of training data. It connects model accuracy, confidence and the required sample size.</p>
+<p><strong style="color:var(--text)">Underfitting</strong> occurs when the model is too simple to capture the underlying relationship, resulting in high training <em>and</em> test error.</p>
+<p><strong style="color:var(--text)">Overfitting</strong> occurs when the model fits the training data too closely, including its noise, producing very low training error but poor generalisation to unseen data.</p>
+<div class="result blue">
+\[ \text{Underfitting: } E_{train}\uparrow,\ E_{test}\uparrow \qquad
+\text{Overfitting: } E_{train}\downarrow,\ E_{test}\uparrow \]
+</div>
+</section>
+
+<section class="card" id="q1c">
+<h2 class="sec">1(c) Factors and trade-off for a good model</h2><div class="meta">bias–variance</div>
+<blockquote class="q"><strong>Question</strong>Which factors and trade-off need to be considered to find a good model?</blockquote>
+<p>A good model should balance <strong style="color:var(--text)">bias and variance</strong>. A very simple model tends to have high bias and may underfit, whereas an excessively complex model has low training error but high variance and may overfit.</p>
+<p>Model selection should therefore consider training error, validation error, model complexity, the amount of available data, and regularisation. The aim is <strong style="color:var(--text)">not</strong> simply to minimise training error, but to achieve the lowest possible <strong style="color:var(--text)">generalisation error</strong>.</p>
+<pre class="diagram">  Error
+   │╲                                    ╱  total error
+   │ ╲  variance ─────────────────────╱
+   │  ╲___                        ___╱
+   │      ‾‾‾───────●───────────‾‾
+   │   bias ────────┼──────____
+   │                │        ‾‾‾‾────
+   └────────────────┼──────────────────► model complexity
+              best complexity</pre>
+</section>
+
+<section class="card" id="q2b">
+<h2 class="sec">2(b) Can a small slack penalty C hurt training accuracy?</h2><div class="meta">SVM</div>
+<blockquote class="q"><strong>Question</strong>For linearly separable data, can a small slack penalty \(C\) hurt the training accuracy when using a linear SVM (no kernel)? If so, explain how. If not, why not?</blockquote>
+<div class="result">\[ \boxed{\text{Yes}} \]</div>
+<p>In a soft-margin SVM, \(C\) controls the penalty for violating the margin or misclassifying training points.</p>
+<p>If \(C\) is very <strong style="color:var(--text)">small</strong>, margin violations are inexpensive. The optimiser may therefore prefer a <strong style="color:var(--text)">wider margin with some training errors</strong> rather than perfectly separating data that is in fact linearly separable. A sufficiently small \(C\) can therefore reduce training accuracy.</p>
+<p class="muted">The trade-off runs the other way too: a very large \(C\) forces a perfect fit on the training set and can produce a narrow margin that generalises poorly.</p>
+</section>
+
+<section class="card" id="q2ci">
+<h2 class="sec">2(c)(i) Setting C by cross-validation</h2><div class="meta">model selection</div>
+<blockquote class="q"><strong>Question</strong>Assume you are given a data set and you want to train a linear SVM, but do not know the value of \(C\). Explain how you can set the value of \(C\) using cross-validation.</blockquote>
+<ol class="steps">
+<li>Choose several candidate values of \(C\), usually over a <strong>logarithmic</strong> range such as \(0.01,\;0.1,\;1,\;10,\;100\).</li>
+<li>For each value, perform \(k\)-fold cross-validation: train the SVM on \(k-1\) folds and evaluate on the remaining fold, repeating until every fold has served as validation data.</li>
+<li>Calculate the <strong>average validation performance</strong> for each \(C\).</li>
+<li>Choose the \(C\) giving the best cross-validation performance.</li>
+<li>Retrain the final model on the <strong>complete</strong> training set using that \(C\).</li>
+</ol>
+<p class="muted">A logarithmic grid is used because \(C\) spans orders of magnitude — the difference between \(0.01\) and \(0.1\) matters far more than between \(100\) and \(100.1\).</p>
+</section>
+
+<section class="card" id="q3a">
+<h2 class="sec">3(a) Advantages of convolutional over fully connected layers</h2><div class="meta">CNN design</div>
+<blockquote class="q"><strong>Question</strong>What are the advantages of using convolutional layers instead of fully connected ones for visual tasks?</blockquote>
+<p>Convolutional layers exploit the <strong style="color:var(--text)">spatial structure</strong> of images. <strong style="color:var(--text)">Local connectivity</strong> allows filters to learn useful patterns such as edges, textures and shapes, while <strong style="color:var(--text)">weight sharing</strong> allows the same feature detector to operate at every image location.</p>
+<p>They also require far fewer parameters than fully connected layers, reducing computation and overfitting. CNNs therefore provide parameter efficiency, translation-related feature reuse, and hierarchical feature learning.</p>
+<p class="muted">Concretely: a fully connected layer on a \(224\times224\times3\) image needs over 150,000 weights <em>per neuron</em>; a \(3\times3\) convolutional filter needs 27, reused at every position.</p>
+</section>
+
+<section class="card" id="q3b">
+<h2 class="sec">3(b) What goes wrong with ŷ = σ(ReLU(z))?</h2><div class="meta">activation design</div>
+<blockquote class="q"><strong>Question</strong>Suppose you are solving a binary classification task of classifying images as cat vs dog. You design a CNN with a single output neuron. Let the output of this neuron be \(z\). The final output is \(\hat y=\sigma(\text{ReLU}(z))\). If you classify all inputs with a final value \(\hat y\ge0.5\) as cat images, what problem are you going to encounter?</blockquote>
+<p>Since \(\text{ReLU}(z)\ge0\), the input to the sigmoid can never be negative. Therefore</p>
+<div class="formula">\[ \sigma(\text{ReLU}(z))\ \ge\ \sigma(0) = 0.5 \]</div>
+<p>The model can <strong style="color:var(--text)">never produce a probability below \(0.5\)</strong>, so it cannot represent the negative class at all. With a threshold of \(0.5\), essentially every input would be classified as cat.</p>
+<pre class="diagram">   z:      −3   −2   −1    0    1    2    3
+   ReLU:    0    0    0    0    1    2    3
+   σ(·):  0.50 0.50 0.50 0.50 0.73 0.88 0.95
+          └──────────────┬────┘
+          all negative z collapse to exactly 0.5</pre>
+<p>Furthermore, when \(z<0\) the ReLU derivative is zero, which also <strong style="color:var(--text)">blocks gradient flow</strong> — so the network cannot even learn its way out. The correct design applies the sigmoid directly to the unrestricted output logit:</p>
+<div class="result">\[ \boxed{ \hat y=\sigma(z) } \]</div>
+</section>
+
+<section class="card" id="q3c">
+<h2 class="sec">3(c) How depthwise separable convolution builds lightweight networks</h2><div class="meta">efficiency</div>
+<blockquote class="q"><strong>Question</strong>How does depthwise separable convolution help to build lightweight deep neural networks?</blockquote>
+<p>A standard convolution performs spatial filtering and channel mixing <strong style="color:var(--text)">simultaneously</strong>. Depthwise separable convolution separates these into two stages:</p>
+<div class="formula">\[ \text{Depthwise convolution} \;\rightarrow\; 1\times1 \text{ pointwise convolution} \]</div>
+<p>The depthwise stage filters each input channel independently; the pointwise stage mixes channels. This greatly reduces both parameters and multiply-accumulate operations, enabling lightweight architectures such as MobileNet.</p>
+<div class="formula">
+\[ \text{standard: } H_oW_oK^2C_{in}C_{out} \qquad
+\text{separable: } H_oW_oK^2C_{in} + H_oW_oC_{in}C_{out} \]
+\[ \frac{\text{separable}}{\text{standard}}=\frac{1}{C_{out}}+\frac{1}{K^{2}} \]
+</div>
+<p class="muted">For \(K=3\) the ratio is dominated by \(1/9\), so the saving is roughly \(8\)–\(9\times\) almost regardless of layer size. Derived in full on the <a href="macs.html">computational cost</a> page.</p>
+</section>
+
+<section class="card" id="q3d">
+<h2 class="sec">3(d) Top-1 and Top-5 accuracy</h2><div class="meta">evaluation</div>
+<blockquote class="q"><strong>Question</strong>Define Top-1 and Top-5 accuracy.</blockquote>
+<p><strong style="color:var(--text)">Top-1 accuracy</strong> is the percentage of samples for which the class with the <em>highest</em> predicted probability is the true class.</p>
+<p><strong style="color:var(--text)">Top-5 accuracy</strong> is the percentage of samples for which the true class appears anywhere among the <em>five</em> highest-probability predictions.</p>
+<div class="result">\[ \boxed{ \text{Top-5 accuracy} \ \ge\ \text{Top-1 accuracy} } \]</div>
+<p class="muted">The inequality is automatic: any sample counted correct under Top-1 is also correct under Top-5, since the top prediction is one of the top five.</p>
+</section>
+
+<section class="card" id="q4a">
+<h2 class="sec">4(a) Discriminative vs generative vs conditional generative</h2><div class="meta">generative models</div>
+<blockquote class="q"><strong>Question</strong>Differentiate among discriminative, generative, and conditional generative models.</blockquote>
+<table>
+<tr><th>Model</th><th>Learns</th><th>Can it generate?</th><th>Example</th></tr>
+<tr><td><strong>Discriminative</strong></td><td>\(P(y\mid x)\), or a decision boundary directly</td><td>No</td><td>logistic regression</td></tr>
+<tr><td><strong>Generative</strong></td><td>the data distribution \(P(x)\)</td><td>Yes — new samples</td><td>GAN, VAE</td></tr>
+<tr><td><strong>Conditional generative</strong></td><td>\(P(x\mid c)\)</td><td>Yes — controlled by \(c\)</td><td>class- or text-conditioned image generation</td></tr>
+</table>
+<p>A <strong style="color:var(--text)">discriminative</strong> model learns only what is needed to predict \(y\) from \(x\). A <strong style="color:var(--text)">generative</strong> model learns the underlying data distribution and can synthesise new samples. A <strong style="color:var(--text)">conditional generative</strong> model generates samples conditioned on extra information \(c\) — for example an image conditioned on a class label or a text prompt.</p>
+</section>
+
+<section class="card" id="q4b">
+<h2 class="sec">4(b) How a GAN trains G and D as a minimax game</h2><div class="meta">GAN</div>
+<blockquote class="q"><strong>Question</strong>How does a Generative Adversarial Network (GAN) jointly train generator \(G\) and discriminator \(D\) with a minimax game?</blockquote>
+<p>A GAN contains a <strong style="color:var(--text)">generator \(G\)</strong> that converts random noise \(z\) into fake samples, and a <strong style="color:var(--text)">discriminator \(D\)</strong> that tries to distinguish real samples from generated ones. They optimise opposing objectives:</p>
+<div class="formula">
+\[ \boxed{ \min_G\max_D \Big[ \mathbb{E}_{x\sim p_{data}}\log D(x) + \mathbb{E}_{z\sim p_z}\log\big(1-D(G(z))\big) \Big] } \]
+</div>
+<pre class="diagram">   z ──► [ G ] ──► fake x̂ ──┐
+                              ├──► [ D ] ──► real / fake
+        real x ───────────────┘
+                              
+   D maximises:  correctly label real as real, fake as fake
+   G minimises:  make D label its fakes as real</pre>
+<p>The discriminator is trained to assign high probability to real data and low probability to generated data, while the generator is trained to produce samples that fool the discriminator. Alternating these updates creates the adversarial minimax game.</p>
+</section>
+
+<section class="card" id="q4c">
+<h2 class="sec">4(c) The global minimum of the GAN minimax game</h2><div class="meta">GAN theory</div>
+<blockquote class="q"><strong>Question</strong>Show mathematically when the global minimum of the GAN minimax game occurs.</blockquote>
+<p>For a fixed generator distribution \(p_g\), the optimal discriminator is</p>
+<div class="formula">\[ \boxed{ D^{*}(x)=\frac{p_{data}(x)}{p_{data}(x)+p_g(x)} } \]</div>
+<p>Substituting this optimal discriminator back into the GAN objective gives</p>
+<div class="formula">\[ C(G) = -\log 4 + 2\,JS\big(p_{data}\,\|\,p_g\big) \]</div>
+<p>where \(JS\) is the Jensen–Shannon divergence. Since \(JS(p_{data}\|p_g)\ge0\) with equality only when the two distributions coincide, the minimum occurs at</p>
+<div class="result">\[ \boxed{ p_g = p_{data} } \qquad\Longrightarrow\qquad C(G)=-\log 4, \qquad \boxed{ D^{*}(x)=\tfrac12 } \]</div>
+<p>The global optimum is therefore achieved when the generator perfectly reproduces the real data distribution — at which point the discriminator can do no better than guessing.</p>
+</section>
+
+<section class="card" id="q5a">
+<h2 class="sec">5(a) How LSTM solves the vanishing-gradient problem</h2><div class="meta">LSTM</div>
+<blockquote class="q"><strong>Question</strong>How does Long Short-Term Memory (LSTM) solve the vanishing-gradient problem?</blockquote>
+<p>LSTM introduces a <strong style="color:var(--text)">cell state</strong> that provides a nearly linear path through time. Instead of repeatedly transforming all information through ordinary nonlinear recurrent activations, information travels along the cell state with only <strong style="color:var(--text)">controlled, additive</strong> modifications:</p>
+<div class="formula">\[ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t \]</div>
+<p>The forget, input and output gates determine what should be removed, added and exposed. Because the update is additive rather than a repeated matrix multiplication through a squashing nonlinearity, gradients can propagate over long time intervals, reducing the vanishing-gradient problem found in ordinary RNNs.</p>
+<p class="muted">Contrast with a plain RNN, where the gradient through \(T\) steps carries a factor \(\prod W^T f'\) — a product that shrinks geometrically. The LSTM cell state lets that product stay near 1 when \(f_t\approx1\). Worked numerically on the <a href="lstm-1.html">lstm-1</a> page.</p>
+</section>
+
+<section class="card" id="q5b">
+<h2 class="sec">5(b) Evaluating an object detector</h2><div class="meta">detection metrics</div>
+<blockquote class="q"><strong>Question</strong>How can we evaluate the performance of an object detector?</blockquote>
+<p>Detection is evaluated on both <strong style="color:var(--text)">classification correctness and localisation quality</strong>.</p>
+<p>A predicted box is counted as a <strong style="color:var(--text)">true positive</strong> if it predicts the correct class <em>and</em> its intersection-over-union with the ground truth exceeds a chosen threshold:</p>
+<div class="formula">\[ IoU=\frac{\text{Intersection}}{\text{Union}} \]</div>
+<p>From true positives, false positives and false negatives, precision–recall curves are constructed. <strong style="color:var(--text)">Average Precision (AP)</strong> summarises performance for one class as the area under that curve, and <strong style="color:var(--text)">mean Average Precision (mAP)</strong> averages AP across classes, often at one or several IoU thresholds.</p>
+</section>
+
+<section class="card" id="q5c">
+<h2 class="sec">5(c) Cut weights, units, or connections to reduce backprop cost?</h2><div class="meta">efficiency</div>
+<blockquote class="q"><strong>Question</strong>Suppose you want to redesign the AlexNet architecture to reduce the number of arithmetic operations required for each backprop update. Would you try to cut down on the number of weights, units, or connections? Justify your answer.</blockquote>
+<div class="result">\[ \boxed{ \text{Connections / computations} } \]</div>
+<p>Every <strong style="color:var(--text)">active connection</strong> requires arithmetic during both the forward and the backward pass, so the number of connections is what the cost is actually proportional to.</p>
+<p>Reducing only the number of <em>unique weights</em> does not reduce computation proportionally, because convolutional weights are <strong style="color:var(--text)">shared and reused</strong> at many spatial locations — the same 27 numbers may be applied 50,000 times. Cutting feature-map sizes, channels, or expensive layer connections directly reduces the number of multiply-accumulate operations.</p>
+<p class="muted">This is the parameters-vs-MACs distinction: a \(3\times3\times3\times16\) layer holds 448 parameters but performs 442,368 MACs on a \(32\times32\) input. See <a href="macs.html">computational cost</a>.</p>
+</section>
+
+<section class="card" id="q5d">
+<h2 class="sec">5(d) Why multiple filter sizes in Inception</h2><div class="meta">Inception</div>
+<blockquote class="q"><strong>Question</strong>Why do we use multiple filters of varying sizes in the Inception network?</blockquote>
+<p>Different filter sizes capture features at <strong style="color:var(--text)">different spatial scales</strong>. A \(1\times1\) filter performs local channel mixing at a single position, while \(3\times3\) and \(5\times5\) filters capture progressively larger spatial structures.</p>
+<p>Inception performs these operations <strong style="color:var(--text)">in parallel</strong> and concatenates their outputs along the channel dimension, so the network can learn both fine and coarse features without committing to a single receptive-field size. The relative importance of each scale becomes something training learns, rather than a hyperparameter someone must guess.</p>
+</section>
+
+<section class="card" id="q6a">
+<h2 class="sec">6(a) Classification vs semantic segmentation vs detection vs instance segmentation</h2><div class="meta">vision tasks</div>
+<blockquote class="q"><strong>Question</strong>Differentiate among classification, semantic segmentation, object detection, and instance segmentation.</blockquote>
+<table>
+<tr><th>Task</th><th>Output</th></tr>
+<tr><td><strong>Classification</strong></td><td>One class label for the entire image</td></tr>
+<tr><td><strong>Object detection</strong></td><td>Class labels + bounding boxes for objects</td></tr>
+<tr><td><strong>Semantic segmentation</strong></td><td>A class label for every pixel</td></tr>
+<tr><td><strong>Instance segmentation</strong></td><td>A pixel-level mask for every individual object</td></tr>
+</table>
+<p>The key distinction: <strong style="color:var(--text)">semantic segmentation does not separate instances</strong> of the same class — three overlapping sheep become one "sheep" region — whereas <strong style="color:var(--text)">instance segmentation does</strong>, giving each sheep its own mask.</p>
+</section>
+
+<section class="card" id="q6b">
+<h2 class="sec">6(b) R-CNN’s disadvantage; how Fast and Faster R-CNN fix it</h2><div class="meta">detectors</div>
+<blockquote class="q"><strong>Question</strong>What is the primary disadvantage of Region-based CNN (R-CNN)? How do Fast R-CNN and Faster R-CNN solve that problem?</blockquote>
+<p>The major disadvantage of R-CNN is its <strong style="color:var(--text)">very high computational cost</strong>. It generates many region proposals and runs the CNN <em>separately on every proposal</em>, so overlapping regions are re-processed again and again. Both training and inference are extremely slow.</p>
+<p><strong style="color:var(--text)">Fast R-CNN</strong> computes the convolutional feature map <em>once</em> for the whole image, then extracts each region's features from that shared map using ROI pooling.</p>
+<p><strong style="color:var(--text)">Faster R-CNN</strong> goes further by replacing the external region-proposal method with a trainable <strong style="color:var(--text)">Region Proposal Network (RPN)</strong> that shares convolutional features with the detector.</p>
+<table>
+<tr><th>Model</th><th>CNN runs</th><th>Proposals from</th></tr>
+<tr><td>R-CNN</td><td>once per proposal</td><td>external (selective search)</td></tr>
+<tr><td>Fast R-CNN</td><td>once per image</td><td>external (selective search)</td></tr>
+<tr class="hl"><td>Faster R-CNN</td><td>once per image</td><td>learned RPN, shares features</td></tr>
+</table>
+<p class="muted">Read the table downwards: each version removes one source of repeated work.</p>
+</section>
+
+<section class="card" id="q6c">
+<h2 class="sec">6(c) Solving overlapping detections</h2><div class="meta">NMS</div>
+<blockquote class="q"><strong>Question</strong>What approach is used to solve overlapping detections by object detectors?</blockquote>
+<p>The standard approach is <strong style="color:var(--text)">Non-Max Suppression (NMS)</strong>.</p>
+<ol class="steps">
+<li>Remove low-confidence boxes.</li>
+<li>Select the highest-confidence remaining box.</li>
+<li>Keep it as a prediction.</li>
+<li>Compute its IoU with the other boxes.</li>
+<li>Suppress boxes whose IoU exceeds the chosen threshold.</li>
+<li>Repeat until no boxes remain.</li>
+</ol>
+<p>NMS therefore removes multiple overlapping predictions that correspond to the same object. With several classes it is run <strong style="color:var(--text)">independently per class</strong>, so a car box never suppresses a person box.</p>
+</section>
+
+<section class="card" id="q7a">
+<h2 class="sec">7(a) Gradient descent; cost function vs gradient descent</h2><div class="meta">optimisation</div>
+<blockquote class="q"><strong>Question</strong>What is the concept behind Gradient Descent? What is the difference between Cost Function vs Gradient Descent?</blockquote>
+<p>A <strong style="color:var(--text)">cost function</strong> measures how poorly the model is performing. For parameters \(\theta\) it is written \(J(\theta)\).</p>
+<p><strong style="color:var(--text)">Gradient descent</strong> is the optimisation algorithm used to minimise that cost, by repeatedly stepping in the direction of steepest decrease:</p>
+<div class="formula">\[ \boxed{ \theta \leftarrow \theta - \alpha\nabla_\theta J } \]</div>
+<div class="result blue">
+\[ \text{Cost function} = \textbf{what} \text{ should be minimised} \]
+\[ \text{Gradient descent} = \textbf{how} \text{ the parameters are changed to minimise it} \]
+</div>
+<p class="muted">They are different kinds of object entirely — one is a function being measured, the other is a procedure being run. You could minimise the same cost function with a different optimiser, or run gradient descent on a different cost.</p>
+</section>
+
+<section class="card" id="q7b">
+<h2 class="sec">7(b) L1 vs L2 regularisation</h2><div class="meta">regularisation</div>
+<blockquote class="q"><strong>Question</strong>What are the differences between L1 and L2 regularization techniques?</blockquote>
+<p><strong style="color:var(--text)">L1</strong> regularisation adds \(\lambda\sum_i|w_i|\) to the loss. It tends to drive some weights <strong style="color:var(--text)">exactly to zero</strong> and therefore produces <strong style="color:var(--text)">sparse</strong> models.</p>
+<p><strong style="color:var(--text)">L2</strong> regularisation adds \(\lambda\sum_i w_i^{2}\). It smoothly shrinks large weights toward zero but usually does not make them exactly zero.</p>
+<table>
+<tr><th></th><th>L1</th><th>L2</th></tr>
+<tr><td>Penalty</td><td class="num">\(\lambda\sum|w_i|\)</td><td class="num">\(\lambda\sum w_i^{2}\)</td></tr>
+<tr><td>Effect on weights</td><td>drives some exactly to 0</td><td>shrinks all smoothly</td></tr>
+<tr><td>Result</td><td>sparse model</td><td>small, spread-out weights</td></tr>
+<tr><td>Side benefit</td><td>implicit feature selection</td><td>smoother, more stable model</td></tr>
+</table>
+<p class="muted">The reason L1 reaches exactly zero: its gradient is a constant \(\pm\lambda\) regardless of how small \(w\) becomes, so it keeps pushing. L2's gradient is \(2\lambda w\), which vanishes as \(w\to0\) — so it never quite arrives.</p>
+</section>
+
+<footer>pyq-2 · previous final 2022 · dark minimal notes</footer>
+</div>
+</body>
+</html>

@@ -33,3 +33,7 @@
 .question-list li:last-child{border-bottom:1px solid var(--border,#232c3a)}
 .question-list .part{font-family:var(--mono,monospace);font-size:13px;color:var(--accent,#8ab4ff);padding-top:3px}
 .marks{color:var(--faint,#6b7688);font-size:12.5px;font-family:var(--mono,monospace);margin-left:6px}
+
+/* MathJax inside uppercased table headers must not be transformed
+   (text-transform mangles glyphs: sigma -> Sigma, tanh -> TANH) */
+mjx-container{text-transform:none;letter-spacing:normal}

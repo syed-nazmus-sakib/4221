@@ -14,9 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ]],
     ['ANN', [['ANN-1','ANN-1 · forward + backprop'],['ANN-2','ANN-2 · 3→2→2 · sigmoid+CCE'],['ANN-3','ANN-3 · 2→3→2 · tanh+softmax'],['ANN-4','ANN-4 · 3→3→3 · softmax backprop']]],
     ['ANN regression', [['ANN-5','ANN-5 · all-linear + MSE'],['ANN-6','ANN-6 · ReLU + linear'],['ANN-7','ANN-7 · tanh + linear'],['ANN-8','ANN-8 · ReLU + sigmoid']]],
-    ['LSTM', [['lstm-1','lstm-1'],['lstm-2','lstm-2'],['lstm-3','lstm-3']]],
-    ['CNN', [['cnn-1','cnn-1'],['cnn-2','cnn-2'],['cnn-3','cnn-3'],['cnn-4','cnn-4'],['cnn-5','cnn-5'],['cnn-6','cnn-6'],['cnn-theory','cnn-theory']]],
-    ['Extra', [['macs','macs · computational cost'],['receptive-field','receptive-field · theory']]]
+    ['LSTM', [['lstm-1','lstm-1'],['lstm-2','lstm-2'],['lstm-3','lstm-3'],['rnn-theory','rnn-theory · RNN/GRU']]],
+    ['CNN', [['cnn-1','cnn-1'],['cnn-2','cnn-2'],['cnn-3','cnn-3'],['cnn-4','cnn-4'],['cnn-5','cnn-5'],['cnn-6','cnn-6'],['cnn-theory','cnn-theory'],['cnn-theory-2','cnn-theory-2 · architectures']]],
+    ['PYQ', [['pyq-1','pyq-1 · theory Q1/3/5/7'],['pyq-2','pyq-2 · final 2022 · theory'],['pyq-3','pyq-3 · final 2023 · theory']]],
+    ['Extra', [['macs','macs · computational cost'],['receptive-field','receptive-field · theory'],['metrics','metrics · precision/recall/mAP'],['activations','activations · sigmoid/ReLU/softmax']]]
   ];
   const current = location.pathname.split('/').pop() || 'index.html';
   const sidebar = document.createElement('aside');

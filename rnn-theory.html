@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>rnn-theory — Recurrent Architectures</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px;list-style:none}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+nav.toc .grp{margin:13px 0 4px -20px;color:var(--faint);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="lstm-diagram.css" />
+<script src="study-nav.js" defer></script>
+<script src="lstm-diagram.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">rnn-theory</div>
+<h1>Recurrent architectures — theory</h1>
+<p class="subtitle">Fourteen exam-style questions on the recurrent-architectures lecture: why feed-forward networks fail on sequences, the vanishing-gradient problem, sequence mappings, LSTM variants, and the GRU. This is the material the <a href="lstm-1.html">LSTM numerical pages</a> do <em>not</em> cover.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li class="grp" style="margin-top:0">Orientation</li>
+<li><a href="#priority">What to prioritise</a></li>
+<li class="grp">Recurrent fundamentals</li>
+<li><a href="#q1">1. Why feed-forward networks are unsuitable for sequential data</a></li>
+<li><a href="#q2">2. What an RNN is, and the role of the hidden state</a></li>
+<li><a href="#q3">3. Input–output structures that RNNs can model</a></li>
+<li class="grp">The long-term dependency problem</li>
+<li><a href="#q4">4. Short-term vs long-term dependencies</a></li>
+<li><a href="#q5">5. Why a vanilla RNN struggles with long-term dependencies</a></li>
+<li class="grp">LSTM and its variants</li>
+<li><a href="#q6">6. Vanilla RNN vs LSTM</a></li>
+<li><a href="#q7">7. Peephole connections</a></li>
+<li><a href="#q8">8. Coupled forget and input gates</a></li>
+<li class="grp">GRU</li>
+<li><a href="#q9">9. What a GRU is, and its components</a></li>
+<li><a href="#q10">10. Roles of the update gate and reset gate</a></li>
+<li><a href="#q11">11. LSTM vs GRU</a></li>
+<li class="grp">Why gating works</li>
+<li><a href="#q12">12. Why the cell-state update is called additive</a></li>
+<li><a href="#q13">13. Why gates use sigmoid</a></li>
+<li class="grp">Putting it together</li>
+<li><a href="#q14">14. Architecture evolution: RNN → LSTM → GRU</a></li>
+</ol></nav>
+
+<section class="card hero" id="priority">
+<h2 class="sec">What to prioritise</h2><div class="meta">14 questions · recurrent-architectures lecture</div>
+<p>The <a href="lstm-1.html">LSTM numerical pages</a> already cover the gate arithmetic thoroughly. What they do <em>not</em> cover is everything else in this lecture — and that is what tends to become a short 2–5 mark theory question.</p>
+<p>These five should be answerable without hesitation:</p>
+<table>
+<tr><th>#</th><th>Topic</th><th>Questions</th></tr>
+<tr class="hl"><td class="num">1</td><td>Why feed-forward networks fail on sequences, and how an RNN solves it</td><td><a href="#q1">1</a>, <a href="#q2">2</a></td></tr>
+<tr class="hl"><td class="num">2</td><td>Short-term vs long-term dependency, and why vanilla RNNs fail</td><td><a href="#q4">4</a>, <a href="#q5">5</a></td></tr>
+<tr class="hl"><td class="num">3</td><td>Sequence mappings: one-to-many, many-to-one, many-to-many</td><td><a href="#q3">3</a></td></tr>
+<tr class="hl"><td class="num">4</td><td>GRU architecture, update and reset gates, GRU vs LSTM</td><td><a href="#q9">9</a>, <a href="#q10">10</a>, <a href="#q11">11</a></td></tr>
+<tr class="hl"><td class="num">5</td><td>LSTM variants: peephole connections and coupled forget/input gates</td><td><a href="#q7">7</a>, <a href="#q8">8</a></td></tr>
+</table>
+<p class="muted">Related: the LSTM gate arithmetic is worked on <a href="lstm-1.html">lstm-1</a>–<a href="lstm-3.html">lstm-3</a>; seq2seq and attention appear in <a href="pyq-3.html#q7a">pyq-3 Q7</a>; the vanishing-gradient question also appears in <a href="pyq-1.html#q5b">pyq-1 5(b)</a>.</p>
+</section>
+
+<section class="card" id="q1">
+<h2 class="sec">1. Why feed-forward networks are unsuitable for sequential data</h2><div class="meta">fundamentals</div>
+<blockquote class="q"><strong>Question</strong>Why are ordinary feed-forward neural networks unsuitable for sequential data?</blockquote>
+<p>Sequential data have an important <strong style="color:var(--text)">temporal order</strong>, and the current prediction may depend on information that appeared earlier in the sequence — language, speech, video, time series, sensor signals.</p>
+<p>A feed-forward network processes each input <strong style="color:var(--text)">independently</strong> and maintains no internal state across time. It therefore cannot remember previous inputs or model temporal dependencies. An RNN solves this by introducing a <strong style="color:var(--text)">hidden state</strong> that carries information from previous time steps forward.</p>
+<pre class="diagram">  feed-forward                     recurrent
+
+  x₁ ──► [net] ──► y₁              x₁ ──► [net] ──► y₁
+  x₂ ──► [net] ──► y₂                      │ h₁
+  x₃ ──► [net] ──► y₃              x₂ ──► [net] ──► y₂
+                                            │ h₂
+  no link between steps            x₃ ──► [net] ──► y₃
+  each input seen in isolation              state carried forward</pre>
+<p class="muted">A second, more practical problem: a feed-forward network has a fixed input size, so it cannot handle sequences of varying length without padding or truncation. An RNN reuses the same cell at every step, so length is not baked into the architecture.</p>
+</section>
+
+<section class="card" id="q2">
+<h2 class="sec">2. What an RNN is, and the role of the hidden state</h2><div class="meta">fundamentals</div>
+<blockquote class="q"><strong>Question</strong>What is a Recurrent Neural Network? Explain the role of the hidden state.</blockquote>
+<p>An RNN is designed for sequential data. At each time step it combines the current input \(x_t\) with the previous hidden state \(h_{t-1}\):</p>
+<div class="formula">\[ \boxed{ h_t=\phi\big(W_h h_{t-1}+W_x x_t+b\big) } \]</div>
+<p>The hidden state \(h_t\) acts as the network's <strong style="color:var(--text)">memory</strong>, carrying information from earlier time steps forward through the sequence.</p>
+<h3>Parameter sharing</h3>
+<p>An important property is that <strong style="color:var(--text)">the same computation and the same parameters are reused at every time step</strong>. The matrices \(W_h, W_x\) and bias \(b\) do not change with \(t\).</p>
+<pre class="diagram">   unrolled through time — note the SAME W at every step
+
+        h₀        h₁        h₂        h₃
+         │         │         │         │
+    ┌────▼────┐┌───▼─────┐┌──▼──────┐┌─▼───────┐
+    │  W, b   ││  W, b   ││  W, b   ││  W, b   │
+    └────▲────┘└───▲─────┘└──▲──────┘└─▲───────┘
+         │         │         │         │
+        x₁        x₂        x₃        x₄</pre>
+<p>Because of this sharing, an RNN can process sequences of <strong style="color:var(--text)">different lengths</strong> without needing a separate network for every position, and a pattern learned at one position transfers to all the others.</p>
+</section>
+
+<section class="card" id="q3">
+<h2 class="sec">3. Input–output structures that RNNs can model</h2><div class="meta">sequence mappings</div>
+<blockquote class="q"><strong>Question</strong>Explain the different input-output structures that can be modeled using RNNs.</blockquote>
+<p>RNNs support several sequence structures depending on the application:</p>
+<table>
+<tr><th>Structure</th><th>Example</th></tr>
+<tr><td><strong>One-to-one</strong></td><td>Image classification</td></tr>
+<tr><td><strong>One-to-many</strong></td><td>Image captioning</td></tr>
+<tr><td><strong>Many-to-one</strong></td><td>Sentiment analysis</td></tr>
+<tr><td><strong>Many-to-many, unaligned</strong></td><td>Machine translation</td></tr>
+<tr><td><strong>Many-to-many, aligned</strong></td><td>Video-frame / sequence labelling</td></tr>
+</table>
+<pre class="diagram">  one-to-one     one-to-many    many-to-one    many-to-many    many-to-many
+                                                (unaligned)      (aligned)
+     □              □              □ □ □          □ □ □           □ □ □
+     │              │              │ │ │          │ │ │           │ │ │
+     ▣              ▣─▣─▣          ▣─▣─▣          ▣─▣─▣─▣─▣       ▣─▣─▣
+     │              │ │ │              │              │ │         │ │ │
+     ○              ○ ○ ○              ○              ○ ○         ○ ○ ○
+
+                                                   input ends
+                                                   before output
+                                                   begins</pre>
+<p>For example, <strong style="color:var(--text)">sentiment analysis</strong> reads an entire sequence of words and produces one label, so it is many-to-one. <strong style="color:var(--text)">Machine translation</strong> receives a sequence and generates another sequence that may have a different length, so it is many-to-many <em>unaligned</em>.</p>
+<p class="muted">The distinction between aligned and unaligned matters: aligned means one output per input step, produced as you go; unaligned means the whole input is consumed first, then the output is generated — which is exactly the encoder–decoder structure of <a href="pyq-3.html#q7a">seq2seq</a>.</p>
+</section>
+
+<section class="card" id="q4">
+<h2 class="sec">4. Short-term vs long-term dependencies</h2><div class="meta">the core problem</div>
+<blockquote class="q"><strong>Question</strong>Differentiate short-term and long-term dependencies in RNNs.</blockquote>
+<p>A <strong style="color:var(--text)">short-term dependency</strong> occurs when the information needed for the current prediction appeared only a few steps earlier:</p>
+<blockquote>"I studied <strong style="color:var(--text)">medicine</strong>, so I am a <strong style="color:var(--text)">doctor</strong>."</blockquote>
+<p>The relevant information is nearby, so a vanilla RNN normally preserves it easily.</p>
+<p>A <strong style="color:var(--text)">long-term dependency</strong> occurs when the important information appeared many time steps earlier. The signal must travel through many recurrent transitions, and the gradient may gradually shrink. The network can then lose the earlier information and fail to connect distant parts of the sequence.</p>
+<pre class="diagram">  short-term:   ... studied MEDICINE , so I am a ___
+                          └──── 5 steps ────┘        easy
+
+  long-term:    I grew up in FRANCE ... (40 words) ... I speak fluent ___
+                             └──────── 40+ steps ────────┘   hard</pre>
+<div class="result blue">\[ \boxed{ \text{The difficulty is not the distance itself — it is the number of transformations the signal must survive.} } \]</div>
+</section>
+
+<section class="card" id="q5">
+<h2 class="sec">5. Why a vanilla RNN struggles with long-term dependencies</h2><div class="meta">vanishing gradient</div>
+<blockquote class="q"><strong>Question</strong>Why does a vanilla RNN struggle with long-term dependencies?</blockquote>
+<p>In a standard RNN,</p>
+<div class="formula">\[ h_t=\tanh\big(W_x x_t+W_h h_{t-1}+b\big) \]</div>
+<p>During <strong style="color:var(--text)">backpropagation through time</strong>, the gradient must pass backward through many recurrent steps. Each step contributes a factor of the recurrent weight and the activation derivative, so the gradient across \(k\) steps carries a <strong style="color:var(--text)">product</strong> of \(k\) such factors.</p>
+<p>When those factors are smaller than 1, the product shrinks geometrically:</p>
+<div class="result">
+\[ \boxed{ \text{many recurrent steps} \rightarrow \text{gradient shrinking} \rightarrow \text{loss of long-term information} } \]
+</div>
+<p>This is the <strong style="color:var(--text)">vanishing-gradient problem</strong>, and it makes long-term dependencies hard for vanilla RNNs to learn.</p>
+<table>
+<tr><th>Per-step factor</th><th>After 10 steps</th><th>After 50 steps</th></tr>
+<tr><td class="num">0.9</td><td class="num">0.35</td><td class="num">0.005</td></tr>
+<tr class="hl"><td class="num">0.5</td><td class="num">0.001</td><td class="num">\(\approx10^{-15}\)</td></tr>
+</table>
+<p class="muted">Note that \(\tanh'(z)=1-\tanh^2(z)\le1\), so the activation alone can never <em>amplify</em> the gradient — it can only leave it unchanged at best. Combined with repeated multiplication by \(W_h\), decay is the default outcome. The mirror-image failure, exploding gradients, occurs when the factors exceed 1.</p>
+</section>
+
+<section class="card" id="q6">
+<h2 class="sec">6. Vanilla RNN vs LSTM</h2><div class="meta">LSTM</div>
+<blockquote class="q"><strong>Question</strong>Compare a vanilla RNN and an LSTM.</blockquote>
+<p>A vanilla RNN has <strong style="color:var(--text)">one hidden state</strong> and a simple repeating module, commonly based on tanh:</p>
+<div class="formula">\[ h_t=\tanh\big(W_x x_t+W_h h_{t-1}+b\big) \]</div>
+<p>Its hidden state must <em>simultaneously</em> store long-term memory and produce the current representation — two competing jobs in one vector, which is why long-term information is hard to preserve.</p>
+<p>An LSTM introduces a separate <strong style="color:var(--text)">cell state \(C_t\)</strong> for long-term memory, together with forget, input and output gates. Its memory is updated <strong style="color:var(--text)">additively</strong> rather than being overwritten at each step, so gradients and information travel more stably across long sequences.</p>
+<div class="lstm-visual" data-stage="all" data-label="The LSTM cell — note the separate memory line along the top"></div>
+<table>
+<tr><th></th><th>Vanilla RNN</th><th>LSTM</th></tr>
+<tr><td>State</td><td class="num">\(h_t\) only</td><td class="num">\(h_t\) and \(C_t\)</td></tr>
+<tr><td>Update</td><td>overwritten each step</td><td>additive, gated</td></tr>
+<tr><td>Gates</td><td>none</td><td>forget, input, output</td></tr>
+<tr><td>Long-term memory</td><td>weak</td><td>explicit</td></tr>
+</table>
+<div class="result blue">
+\[ \boxed{ \text{RNN: simple but weak long-term memory} } \]
+\[ \boxed{ \text{LSTM: gated cell state for long-term memory} } \]
+</div>
+</section>
+
+<section class="card" id="q7">
+<h2 class="sec">7. Peephole connections</h2><div class="meta">LSTM variant</div>
+<blockquote class="q"><strong>Question</strong>What is a peephole LSTM connection? Why can it be useful?</blockquote>
+<p>In a standard LSTM, the gates make their decisions using only the current input \(x_t\) and the previous hidden state \(h_{t-1}\).</p>
+<p>A <strong style="color:var(--text)">peephole connection</strong> additionally lets the gates observe the <strong style="color:var(--text)">cell state directly</strong>. For example:</p>
+<div class="formula">\[ f_t=\sigma\big(W_f[\,C_{t-1},\,h_{t-1},\,x_t\,]+b_f\big) \]</div>
+<p>and similarly for the input gate. The output gate can also observe the <em>current</em> cell state \(C_t\).</p>
+<pre class="diagram">  standard gate                  gate with peephole
+
+   h(t-1) ┐                       h(t-1) ┐
+          ├──► [ σ ] ──► f_t             ├──► [ σ ] ──► f_t
+     x_t ─┘                         x_t ─┤
+                                  C(t-1) ┘   ← the extra "peephole"
+   decides without seeing          decides while seeing
+   what memory holds               what memory already holds</pre>
+<p>The intuition is that a gate can make a better decision when it directly knows <strong style="color:var(--text)">what is already stored in memory</strong> — it has extra context for deciding what to forget, add or expose.</p>
+</section>
+
+<section class="card" id="q8">
+<h2 class="sec">8. Coupled forget and input gates</h2><div class="meta">LSTM variant</div>
+<blockquote class="q"><strong>Question</strong>What are coupled forget and input gates in an LSTM?</blockquote>
+<p>In a standard LSTM the forget gate and input gate are <strong style="color:var(--text)">independent</strong>: one controls how much old information is removed, the other how much new information is added. Nothing stops the network from erasing everything and writing nothing, or keeping everything and adding more on top.</p>
+<p>In the <strong style="color:var(--text)">coupled-gate variant</strong>, these decisions are linked:</p>
+<div class="formula">\[ \boxed{ C_t = f_t\odot C_{t-1} + (1-f_t)\odot\tilde C_t } \]</div>
+<p>When more old memory is retained, less new information is written; when old memory is erased, more new information replaces it.</p>
+<table>
+<tr><th>\(f_t\)</th><th>Old memory kept</th><th>New content written</th></tr>
+<tr><td class="num">1.0</td><td class="num">all</td><td class="num">none</td></tr>
+<tr><td class="num">0.5</td><td class="num">half</td><td class="num">half</td></tr>
+<tr><td class="num">0.0</td><td class="num">none</td><td class="num">all</td></tr>
+</table>
+<div class="result">\[ \boxed{ \text{Forget old information and write new information jointly.} } \]</div>
+<p class="muted">This also removes one whole gate's worth of parameters — and it is precisely the idea the GRU's update gate generalises.</p>
+</section>
+
+<section class="card" id="q9">
+<h2 class="sec">9. What a GRU is, and its components</h2><div class="meta">GRU</div>
+<blockquote class="q"><strong>Question</strong>What is a GRU? Explain its main components.</blockquote>
+<p>The <strong style="color:var(--text)">Gated Recurrent Unit (GRU)</strong> is a simplified gated recurrent architecture. Unlike an LSTM it has <strong style="color:var(--text)">no separate cell state</strong> — the hidden state \(h_t\) itself stores the memory. It also merges the LSTM's forget and input behaviour into a single <strong style="color:var(--text)">update gate</strong>.</p>
+<h3>The two gates</h3>
+<div class="formula">
+\[ \boxed{ z_t=\sigma\big(W_z[h_{t-1},x_t]+b_z\big) } \qquad \text{update gate} \]
+\[ \boxed{ r_t=\sigma\big(W_r[h_{t-1},x_t]+b_r\big) } \qquad \text{reset gate} \]
+</div>
+<h3>The candidate and the final state</h3>
+<div class="formula">
+\[ \boxed{ \tilde h_t=\tanh\big(W_h[\,r_t\odot h_{t-1},\,x_t\,]+b_h\big) } \]
+\[ \boxed{ h_t=(1-z_t)\odot h_{t-1} + z_t\odot\tilde h_t } \]
+</div>
+<pre class="diagram">   inputs:  h(t-1) , x_t
+      │
+      ├──► [ σ ] ──► r_t                        reset gate
+      ├──► [ σ ] ──► z_t                        update gate
+      │
+      └──► tanh( W_h [ r_t ⊙ h(t-1) , x_t ] ) ──► h̃_t      candidate
+
+   h_t  =  (1 − z_t) ⊙ h(t-1)   +   z_t ⊙ h̃_t
+           └──── keep old ────┘      └── write new ──┘
+                        the two shares always sum to 1</pre>
+<p class="muted">Note the structural echo of the coupled-gate LSTM in question 8: one gate decides both how much to keep and how much to write, so the two fractions necessarily sum to 1.</p>
+</section>
+
+<section class="card" id="q10">
+<h2 class="sec">10. Roles of the update gate and reset gate</h2><div class="meta">GRU</div>
+<blockquote class="q"><strong>Question</strong>Explain the roles of the update gate and reset gate in a GRU.</blockquote>
+<h3>Update gate \(z_t\)</h3>
+<p>Determines how much of the previous hidden state is retained and how much is replaced by the newly computed candidate:</p>
+<div class="formula">\[ h_t=(1-z_t)h_{t-1}+z_t\tilde h_t \]</div>
+<p>A <strong style="color:var(--text)">small</strong> \(z_t\) preserves more old information; a <strong style="color:var(--text)">large</strong> \(z_t\) lets more new information into the hidden state.</p>
+<h3>Reset gate \(r_t\)</h3>
+<p>Controls how much of the previous hidden state is used <em>when computing the candidate</em>:</p>
+<div class="formula">\[ \tilde h_t=\tanh\big(W_h[\,r_t\odot h_{t-1},\,x_t\,]+b_h\big) \]</div>
+<p>A <strong style="color:var(--text)">small</strong> reset value reduces the influence of past information, letting the GRU effectively <strong style="color:var(--text)">"reset"</strong> some of its previous memory and build a candidate largely from the current input.</p>
+<table>
+<tr><th>Gate</th><th>Acts on</th><th>Question it answers</th></tr>
+<tr><td>Update \(z_t\)</td><td>the final mix of old and new</td><td>how much should I <strong>change</strong>?</td></tr>
+<tr><td>Reset \(r_t\)</td><td>the candidate's view of the past</td><td>how much of the past is <strong>relevant</strong> right now?</td></tr>
+</table>
+<p class="muted">The distinction that earns the mark: the reset gate acts <em>before</em> the candidate is formed, the update gate acts <em>after</em>. They operate at different points in the computation, not on the same quantity.</p>
+</section>
+
+<section class="card" id="q11">
+<h2 class="sec">11. LSTM vs GRU</h2><div class="meta">GRU</div>
+<blockquote class="q"><strong>Question</strong>Compare LSTM and GRU.</blockquote>
+<table>
+<tr><th>LSTM</th><th>GRU</th></tr>
+<tr><td>Separate hidden state \(h_t\) and cell state \(C_t\)</td><td>Only hidden state \(h_t\)</td></tr>
+<tr><td>Forget, input and output gates</td><td>Update and reset gates</td></tr>
+<tr><td>More complex</td><td>Simpler</td></tr>
+<tr><td>More parameters</td><td>Fewer parameters</td></tr>
+<tr><td>Explicit long-term cell memory</td><td>Hidden state itself stores memory</td></tr>
+</table>
+<p>The GRU merges the forget/input behaviour, eliminates the separate cell state, and therefore has a <strong style="color:var(--text)">simpler architecture with fewer parameters</strong>.</p>
+<h3>How many fewer?</h3>
+<p>An LSTM computes four gated quantities (\(f,i,\tilde C,o\)); a GRU computes three (\(z,r,\tilde h\)). Each is one weight-matrix-plus-bias block, so:</p>
+<div class="formula">\[ \frac{\text{GRU parameters}}{\text{LSTM parameters}} \approx \frac{3}{4} \]</div>
+<p>Both were designed to improve a recurrent model's ability to handle long-term dependencies; the GRU achieves it with a more compact gating structure.</p>
+</section>
+
+<section class="card" id="q12">
+<h2 class="sec">12. Why the cell-state update is called additive</h2><div class="meta">why gating works</div>
+<blockquote class="q"><strong>Question</strong>Why is the LSTM cell-state update called "additive" and why is this important?</blockquote>
+<p>The LSTM updates its cell state as</p>
+<div class="formula">\[ \boxed{ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t } \]</div>
+<p>The previous memory is partly <strong style="color:var(--text)">retained</strong> and new information is <strong style="color:var(--text)">added</strong> to it, rather than the state being completely replaced.</p>
+<p>This additive path lets information and gradients travel through many time steps with far fewer destructive transformations. Consequently LSTMs learn longer dependencies more reliably and train more stably than vanilla RNNs.</p>
+<pre class="diagram">  vanilla RNN — every step is a full transformation
+
+    h₀ ─[tanh W]→ h₁ ─[tanh W]→ h₂ ─[tanh W]→ h₃      gradient multiplied each time
+
+  LSTM — the memory line is only scaled and added to
+
+    C₀ ──×f──+i──► C₁ ──×f──+i──► C₂ ──×f──+i──► C₃    when f ≈ 1 the path is ≈ straight</pre>
+<p class="muted">The key contrast: in a vanilla RNN the gradient is multiplied by \(W_h\) and \(\tanh'\) at every step, so decay is automatic. In an LSTM the gradient along the cell state is multiplied by \(f_t\) — and the network can <em>learn</em> to set \(f_t\approx1\), keeping that product near 1 for as long as the information is needed.</p>
+</section>
+
+<section class="card" id="q13">
+<h2 class="sec">13. Why gates use sigmoid</h2><div class="meta">why gating works</div>
+<blockquote class="q"><strong>Question</strong>Why do LSTM/GRU gates use Sigmoid?</blockquote>
+<p>A gate needs to control <strong style="color:var(--text)">how much information passes through</strong>. Sigmoid produces values in</p>
+<div class="formula">\[ \boxed{ (0,1) } \]</div>
+<p>so it works naturally as a <strong style="color:var(--text)">soft switch</strong>:</p>
+<div class="result">
+\[ 0 \rightarrow \text{block information} \qquad 1 \rightarrow \text{allow information} \]
+</div>
+<p>and values in between allow <strong style="color:var(--text)">partial</strong> information flow. A gate output multiplies the signal it controls, so a range of \((0,1)\) is exactly a scaling factor between "none" and "all".</p>
+<p>Being smooth and differentiable, sigmoid also lets these decisions be <strong style="color:var(--text)">learned by gradient descent</strong> — a hard 0/1 switch would have zero gradient everywhere and could never be trained.</p>
+<table>
+<tr><th>Component</th><th>Activation</th><th>Range</th><th>Why</th></tr>
+<tr><td>Gates \(f,i,o,z,r\)</td><td class="num">\(\sigma\)</td><td class="num">(0,1)</td><td>a fraction to let through</td></tr>
+<tr><td>Candidate \(\tilde C,\tilde h\)</td><td class="num">\(\tanh\)</td><td class="num">(−1,1)</td><td>content, which may be negative</td></tr>
+</table>
+<p class="muted">This is the cleanest way to remember which activation goes where: <strong style="color:var(--text)">valves use sigmoid, content uses tanh</strong>.</p>
+</section>
+
+<section class="card" id="q14">
+<h2 class="sec">14. Architecture evolution: RNN → LSTM → GRU</h2><div class="meta">summary</div>
+<blockquote class="q"><strong>Question</strong>Draw and explain the architecture evolution: RNN → LSTM → GRU.</blockquote>
+<pre class="diagram">  ┌─ VANILLA RNN ──────────────────────────────────────────┐
+  │   x_t , h(t-1)  ──►  tanh  ──►  h_t                     │
+  │   one state, no gates, memory overwritten every step    │
+  └─────────────────────────────┬───────────────────────────┘
+                                ▼
+  ┌─ LSTM ─────────────────────────────────────────────────┐
+  │   x_t , h(t-1) , C(t-1)                                 │
+  │        ──► forget + input + output gates                │
+  │        ──► cell state C_t  AND  hidden state h_t        │
+  │   separate additive memory, 3 gates, 4 weight blocks    │
+  └─────────────────────────────┬───────────────────────────┘
+                                ▼
+  ┌─ GRU ──────────────────────────────────────────────────┐
+  │   x_t , h(t-1)                                          │
+  │        ──► update + reset gates                         │
+  │        ──► h_t                                          │
+  │   no cell state, 2 gates, 3 weight blocks (~¾ of LSTM)  │
+  └─────────────────────────────────────────────────────────┘</pre>
+<div class="result blue">
+\[ \boxed{ \text{RNN} \rightarrow \text{simple recurrent memory} } \]
+\[ \boxed{ \text{LSTM} \rightarrow \text{separate gated additive memory} } \]
+\[ \boxed{ \text{GRU} \rightarrow \text{simplified gated memory with fewer parameters} } \]
+</div>
+<p>The progression matches the lecture's overall argument: RNNs introduce memory, vanilla RNNs struggle on long sequences, and gated recurrent architectures improve long-term sequence learning.</p>
+<table>
+<tr><th></th><th>RNN</th><th>LSTM</th><th>GRU</th></tr>
+<tr><td>States carried</td><td class="num">1</td><td class="num">2</td><td class="num">1</td></tr>
+<tr><td>Gates</td><td class="num">0</td><td class="num">3</td><td class="num">2</td></tr>
+<tr><td>Weight blocks</td><td class="num">1</td><td class="num">4</td><td class="num">3</td></tr>
+<tr><td>Memory update</td><td>overwrite</td><td>additive</td><td>interpolate</td></tr>
+<tr class="hl"><td>Long-term dependencies</td><td>poor</td><td>good</td><td>good</td></tr>
+</table>
+</section>
+
+<footer>rnn-theory · recurrent architectures · dark minimal notes</footer>
+</div>
+</body>
+</html>

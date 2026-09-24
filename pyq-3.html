@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>pyq-3 — Previous Final 2023 — Theory</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--bg:#0a0c10;--panel:#11151c;--panel-2:#161c26;--border:#232c3a;--text:#e6e9ef;--muted:#9aa4b5;--faint:#6b7688;--accent:#8ab4ff;--accent-dim:#3a4a68;--green:#7ee2a8;--gold:#e8c07a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:48px 24px 100px}
+.file-tag{display:inline-block;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:999px;background:#0e131b;margin-bottom:16px}
+h1{font-size:32px;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em;font-weight:650}
+.subtitle{color:var(--muted);font-size:16px;margin:0 0 24px;max-width:68ch}
+nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:24px 0 36px}
+nav.toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:20px;color:var(--muted);font-size:14.5px;list-style:none}
+nav.toc li{margin:2px 0}
+nav.toc a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent-dim)}nav.toc a:hover{color:var(--accent)}
+nav.toc .grp{margin:13px 0 4px -20px;color:var(--faint);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase}
+section.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin:22px 0}
+section.card.hero{background:linear-gradient(180deg,#121824 0%,#11151c 100%)}
+h2.sec{font-size:21px;margin:0 0 6px;line-height:1.35}h3{font-size:17px;margin:26px 0 8px;color:#f0f3f8}
+.meta{color:var(--faint);font-size:13px;font-family:var(--mono);margin-bottom:14px}
+p{margin:10px 0}.muted{color:var(--muted)}
+.formula{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.result{border-left:3px solid var(--green);background:#0f1a15;padding:10px 14px;margin:14px 0;border-radius:0 10px 10px 0}
+.result.gold{border-left-color:var(--gold);background:#1a1610}.result.blue{border-left-color:var(--accent);background:#101725}
+pre.diagram{background:#0d1219;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55;color:#c9d3e0}
+blockquote{margin:16px 0;padding:12px 16px;border-left:3px solid var(--accent-dim);background:var(--panel-2);border-radius:0 10px 10px 0;color:#d3d9e3}
+blockquote.q{border-left-color:var(--accent);background:#101725;color:#dfe6f2}
+blockquote.q strong{color:var(--accent);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:16px 0 18px;font-size:14.5px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;background:#131a25}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:#101725;color:var(--text)}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:14px 0}
+ol.steps>li{counter-increment:st;position:relative;padding:9px 0 9px 32px;border-top:1px solid var(--border)}
+ol.steps>li:last-child{border-bottom:1px solid var(--border)}
+ol.steps>li:before{content:counter(st);position:absolute;left:2px;top:12px;font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+ol.steps ul{margin:8px 0 0;padding-left:20px;list-style:disc}
+ol.steps ul li{padding:3px 0;border:none;color:var(--muted)}
+hr.sep{border:none;border-top:1px solid var(--border);margin:26px 0}
+footer{margin-top:40px;color:var(--faint);font-size:13.5px;border-top:1px solid var(--border);padding-top:18px}
+a{color:var(--accent)}@media(max-width:640px){.wrap{padding:28px 16px 80px}h1{font-size:26px}section.card{padding:20px 18px}}
+</style>
+<link rel="stylesheet" href="study.css" />
+<link rel="stylesheet" href="lstm-diagram.css" />
+<script src="study-nav.js" defer></script>
+<script src="lstm-diagram.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="file-tag">pyq-3</div>
+<h1>Previous Final 2023 — Theory</h1>
+<p class="subtitle">All twenty-two theory questions from the 2023 final. Covers the bias–variance tradeoff and the perceptron rule, vision-task definitions and mAP, CNN architecture reasoning, the R-CNN family and one- vs two-stage detectors, GAN training dynamics, multi-head attention, the LSTM cell, and the seq2seq bottleneck that attention solves.</p>
+</header>
+<nav class="toc"><h2>Contents</h2><ol>
+<li class="grp" style="margin-top:0">Orientation</li>
+<li><a href="#paper">The paper at a glance</a></li>
+<li class="grp">Question 1</li>
+<li><a href="#q1a">1(a) Underfitting, overfitting and the bias–variance tradeoff</a></li>
+<li><a href="#q1b">1(b) The perceptron learning rule and its parameters</a></li>
+<li><a href="#q1c">1(c) What features a network learns on handwritten digits</a></li>
+<li class="grp">Question 2</li>
+<li><a href="#q2a">2(a) Classification vs object detection vs instance segmentation</a></li>
+<li><a href="#q2b">2(b) Solving overlapping detections</a></li>
+<li><a href="#q2ci">2(c)(i) How mean Average Precision is calculated</a></li>
+<li class="grp">Question 3</li>
+<li><a href="#q3a">3(a) Advantages of convolutional over fully connected layers</a></li>
+<li><a href="#q3b">3(b) Mathematical reasoning for 1×1 dimension reduction</a></li>
+<li><a href="#q3c">3(c) What adding x to F(x) achieves</a></li>
+<li><a href="#q3d">3(d) How EfficientNet balances size against accuracy</a></li>
+<li class="grp">Question 4</li>
+<li><a href="#q4a">4(a) The primary disadvantage of R-CNN</a></li>
+<li><a href="#q4b">4(b) Faster R-CNN step by step, by stage</a></li>
+<li><a href="#q4c">4(c) One-stage vs two-stage detectors</a></li>
+<li class="grp">Question 5</li>
+<li><a href="#q5a">5(a) What GANs are</a></li>
+<li><a href="#q5b">5(b) Why the generator’s cost opposes the discriminator’s</a></li>
+<li><a href="#q5c">5(c) What happens when the discriminator becomes too strong</a></li>
+<li class="grp">Question 6</li>
+<li><a href="#q6a">6(a) Why Transformers use multi-head attention</a></li>
+<li><a href="#q6b">6(b) Draw and label an LSTM network</a></li>
+<li><a href="#q6c">6(c) Purpose of each LSTM component</a></li>
+<li class="grp">Question 7</li>
+<li><a href="#q7a">7(a) How seq2seq encoder–decoder processes sequences</a></li>
+<li><a href="#q7b">7(b) The fixed-size context vector limitation</a></li>
+<li><a href="#q7c">7(c) How attention fixes the bottleneck</a></li>
+</ol></nav>
+
+<section class="card hero" id="paper">
+<h2 class="sec">The paper at a glance</h2><div class="meta">Previous Final 2023 · 22 theory questions</div>
+<p>The theory parts of the 2023 final. Note the newer topics compared with 2022: this paper adds <strong style="color:var(--text)">Transformers, seq2seq and attention</strong>, and asks for Faster R-CNN stage by stage.</p>
+<table>
+<tr><th>Part</th><th>Topic</th><th>Area</th></tr>
+<tr><td class="num">1(a)</td><td><a href="#q1a">Underfitting, overfitting and the bias–variance tradeoff</a></td><td>fundamentals</td></tr><tr><td class="num">1(b)</td><td><a href="#q1b">The perceptron learning rule and its parameters</a></td><td>perceptron</td></tr><tr><td class="num">1(c)</td><td><a href="#q1c">What features a network learns on handwritten digits</a></td><td>representation learning</td></tr><tr><td class="num">2(a)</td><td><a href="#q2a">Classification vs object detection vs instance segmentation</a></td><td>vision tasks</td></tr><tr><td class="num">2(b)</td><td><a href="#q2b">Solving overlapping detections</a></td><td>NMS</td></tr><tr><td class="num">2(c)(i)</td><td><a href="#q2ci">How mean Average Precision is calculated</a></td><td>detection metrics</td></tr><tr><td class="num">3(a)</td><td><a href="#q3a">Advantages of convolutional over fully connected layers</a></td><td>CNN design</td></tr><tr><td class="num">3(b)</td><td><a href="#q3b">Mathematical reasoning for 1×1 dimension reduction</a></td><td>Inception</td></tr><tr><td class="num">3(c)</td><td><a href="#q3c">What adding x to F(x) achieves</a></td><td>ResNet</td></tr><tr><td class="num">3(d)</td><td><a href="#q3d">How EfficientNet balances size against accuracy</a></td><td>EfficientNet</td></tr><tr><td class="num">4(a)</td><td><a href="#q4a">The primary disadvantage of R-CNN</a></td><td>detectors</td></tr><tr><td class="num">4(b)</td><td><a href="#q4b">Faster R-CNN step by step, by stage</a></td><td>two-stage detection</td></tr><tr><td class="num">4(c)</td><td><a href="#q4c">One-stage vs two-stage detectors</a></td><td>detector comparison</td></tr><tr><td class="num">5(a)</td><td><a href="#q5a">What GANs are</a></td><td>GAN</td></tr><tr><td class="num">5(b)</td><td><a href="#q5b">Why the generator’s cost opposes the discriminator’s</a></td><td>GAN</td></tr><tr><td class="num">5(c)</td><td><a href="#q5c">What happens when the discriminator becomes too strong</a></td><td>GAN training</td></tr><tr><td class="num">6(a)</td><td><a href="#q6a">Why Transformers use multi-head attention</a></td><td>Transformer</td></tr><tr><td class="num">6(b)</td><td><a href="#q6b">Draw and label an LSTM network</a></td><td>LSTM diagram</td></tr><tr><td class="num">6(c)</td><td><a href="#q6c">Purpose of each LSTM component</a></td><td>LSTM</td></tr><tr><td class="num">7(a)</td><td><a href="#q7a">How seq2seq encoder–decoder processes sequences</a></td><td>seq2seq</td></tr><tr><td class="num">7(b)</td><td><a href="#q7b">The fixed-size context vector limitation</a></td><td>seq2seq</td></tr><tr><td class="num">7(c)</td><td><a href="#q7c">How attention fixes the bottleneck</a></td><td>attention</td></tr>
+</table>
+<p class="muted">Also see <a href="pyq-1.html">pyq-1</a> and <a href="pyq-2.html">pyq-2</a> for the other theory papers.</p>
+</section>
+
+<section class="card" id="q1a">
+<h2 class="sec">1(a) Underfitting, overfitting and the bias–variance tradeoff</h2><div class="meta">fundamentals</div>
+<blockquote class="q"><strong>Question</strong>Explain underfitting, overfitting, and Bias-Variance tradeoff.</blockquote>
+<p><strong style="color:var(--text)">Underfitting</strong> occurs when a model is too simple to represent the underlying relationship. It has high bias and usually high training <em>and</em> validation error.</p>
+<p><strong style="color:var(--text)">Overfitting</strong> occurs when the model fits the training examples and their noise too closely. It has very low training error but high validation/test error, and therefore high variance.</p>
+<p>The <strong style="color:var(--text)">bias–variance tradeoff</strong> means choosing enough model complexity to capture the true pattern without fitting noise:</p>
+<div class="result">
+\[ \boxed{ \text{Too simple} \rightarrow \text{high bias} } \qquad
+\boxed{ \text{Too complex} \rightarrow \text{high variance} } \]
+</div>
+<table>
+<tr><th></th><th>Training error</th><th>Validation error</th><th>Diagnosis</th></tr>
+<tr><td>Underfitting</td><td class="num">high</td><td class="num">high</td><td>high bias</td></tr>
+<tr><td>Overfitting</td><td class="num">low</td><td class="num">high</td><td>high variance</td></tr>
+<tr class="hl"><td>Good fit</td><td class="num">low</td><td class="num">low</td><td>balanced</td></tr>
+</table>
+</section>
+
+<section class="card" id="q1b">
+<h2 class="sec">1(b) The perceptron learning rule and its parameters</h2><div class="meta">perceptron</div>
+<blockquote class="q"><strong>Question</strong>Describe the task of a perceptron learning rule. Suppose we have the following perceptron and corresponding learning algorithm. Explain the factors and parameters of the above learning (training) approach.</blockquote>
+<p>A perceptron performs binary classification by computing a weighted sum of the inputs</p>
+<div class="formula">\[ z = w^{T}x + b \]</div>
+<p>and applying a threshold function to decide the predicted class.</p>
+<p>During training an error \(e\) is computed between the target and the prediction. If the example is misclassified, the weights are updated by the perceptron learning rule:</p>
+<div class="formula">
+\[ \boxed{ w_i \leftarrow w_i + \alpha\,x_i\,e } \qquad\text{and typically}\qquad b \leftarrow b + \alpha e \]
+</div>
+<table>
+<tr><th>Symbol</th><th>Meaning</th></tr>
+<tr><td>\(x_i\)</td><td>the \(i\)-th input feature</td></tr>
+<tr><td>\(w_i\)</td><td>the weight on that input</td></tr>
+<tr><td>\(b\)</td><td>the bias, shifting the decision boundary</td></tr>
+<tr><td>\(e\)</td><td>the prediction error (target − output)</td></tr>
+<tr><td>\(\alpha\)</td><td>the learning rate, controlling step size</td></tr>
+</table>
+<p>Training repeats over multiple <strong style="color:var(--text)">epochs</strong> until the errors disappear or a stopping condition is reached.</p>
+<p class="muted">Note the structure of the rule: the update is proportional to both the input and the error, so a large input with a large error produces a large correction, while a correctly classified example (\(e=0\)) produces no change at all.</p>
+</section>
+
+<section class="card" id="q1c">
+<h2 class="sec">1(c) What features a network learns on handwritten digits</h2><div class="meta">representation learning</div>
+<blockquote class="q"><strong>Question</strong>The figure shows examples of handwritten digits. What features might you expect a good NN to learn when trained with data like this? Explain the process in neural networks of how features are fed in the input layer and how the hidden layer performs the intermediate operation.</blockquote>
+<p>A neural network would first learn simple features such as <strong style="color:var(--text)">horizontal and vertical strokes, edges, curves, corners and loops</strong>. Deeper hidden layers combine these into digit-specific structures — closed loops in \(0,6,8,9\), a single vertical stroke in \(1\), intersections and curves elsewhere.</p>
+<h3>How the information flows</h3>
+<p>The input layer receives <strong style="color:var(--text)">pixel intensities</strong>. Each hidden neuron computes</p>
+<div class="formula">\[ z = w^{T}x + b \]</div>
+<p>followed by a nonlinear activation. Successive layers combine lower-level patterns into increasingly abstract features, until the output layer produces probabilities over the digit classes.</p>
+<pre class="diagram">  pixels ──► strokes / edges ──► curves, loops, junctions ──► digit shapes ──► class
+   input        hidden 1              hidden 2                 hidden 3      output
+
+  each neuron:   z = wᵀx + b   then   a = g(z)</pre>
+<p class="muted">The nonlinearity is essential: without \(g(\cdot)\), stacked layers would collapse into a single linear map and the network could never build the hierarchy described above.</p>
+</section>
+
+<section class="card" id="q2a">
+<h2 class="sec">2(a) Classification vs object detection vs instance segmentation</h2><div class="meta">vision tasks</div>
+<blockquote class="q"><strong>Question</strong>Differentiate among classification, object detection, and instance segmentation.</blockquote>
+<table>
+<tr><th>Task</th><th>Output</th><th>Separates instances?</th></tr>
+<tr><td><strong>Classification</strong></td><td>one class label for the whole image</td><td>—</td></tr>
+<tr><td><strong>Object detection</strong></td><td>class labels + bounding boxes</td><td>yes, by box</td></tr>
+<tr><td><strong>Instance segmentation</strong></td><td>a pixel-level mask per individual object</td><td>yes, by mask</td></tr>
+</table>
+<p><strong style="color:var(--text)">Classification</strong> assigns a single label to the entire image. <strong style="color:var(--text)">Object detection</strong> identifies individual objects and predicts both their class and their bounding box. <strong style="color:var(--text)">Instance segmentation</strong> performs detection together with a pixel-level mask for every object, so separate instances of the same class can be distinguished.</p>
+</section>
+
+<section class="card" id="q2b">
+<h2 class="sec">2(b) Solving overlapping detections</h2><div class="meta">NMS</div>
+<blockquote class="q"><strong>Question</strong>Which approach is used by object detectors to solve overlapping detections?</blockquote>
+<p>Object detectors commonly use <strong style="color:var(--text)">Non-Max Suppression (NMS)</strong>.</p>
+<p>The highest-confidence box is selected first and kept. Other boxes whose IoU overlap with that box exceeds a threshold are suppressed. The process repeats until only the strongest non-redundant detections remain.</p>
+<div class="formula">\[ \text{suppress if } \; IoU \ge T_{NMS} \]</div>
+<p class="muted">With multiple classes, NMS runs <strong style="color:var(--text)">independently per class</strong> — a car box should not suppress an overlapping person box.</p>
+</section>
+
+<section class="card" id="q2ci">
+<h2 class="sec">2(c)(i) How mean Average Precision is calculated</h2><div class="meta">detection metrics</div>
+<blockquote class="q"><strong>Question</strong>Explain how the Mean Average Precision (mAP) is calculated.</blockquote>
+<ol class="steps">
+<li>For each object class, sort the predicted detections by <strong>confidence</strong>.</li>
+<li>Using an IoU threshold, label each prediction a <strong>true positive</strong> or <strong>false positive</strong>.</li>
+<li>Compute precision and recall across confidence thresholds to build the <strong>precision–recall curve</strong>.</li>
+<li>The <strong>area under that curve</strong> gives the Average Precision (AP) for that class.</li>
+<li>Average the AP over all classes.</li>
+</ol>
+<div class="formula">\[ \boxed{ mAP = \frac{1}{C}\sum_{c=1}^{C} AP_c } \]</div>
+<p>where \(C\) is the number of classes. Results are often reported at a single IoU threshold (e.g. mAP@0.5) or averaged over several thresholds.</p>
+</section>
+
+<section class="card" id="q3a">
+<h2 class="sec">3(a) Advantages of convolutional over fully connected layers</h2><div class="meta">CNN design</div>
+<blockquote class="q"><strong>Question</strong>What are the advantages of using convolutional layers instead of fully connected ones for visual tasks?</blockquote>
+<p>Convolutional layers exploit <strong style="color:var(--text)">local spatial relationships</strong> in images through small receptive fields, and reuse the same filters across all locations through <strong style="color:var(--text)">weight sharing</strong>.</p>
+<p>This gives far fewer parameters than fully connected layers, improved computational efficiency, reduced overfitting, and the ability to learn hierarchical visual features — edges, then textures, then parts, then objects.</p>
+<table>
+<tr><th>Property</th><th>Fully connected</th><th>Convolutional</th></tr>
+<tr><td>Connectivity</td><td>every input to every neuron</td><td>local receptive field</td></tr>
+<tr><td>Weights</td><td>unique per connection</td><td>shared across positions</td></tr>
+<tr><td>Parameter count</td><td>very large</td><td>small</td></tr>
+<tr><td>Spatial structure</td><td>destroyed by flattening</td><td>preserved</td></tr>
+</table>
+</section>
+
+<section class="card" id="q3b">
+<h2 class="sec">3(b) Mathematical reasoning for 1×1 dimension reduction</h2><div class="meta">Inception</div>
+<blockquote class="q"><strong>Question</strong>What is the mathematical reasoning behind using \(1\times1\) convolutions as dimension reduction layers before larger convolutions (\(3\times3,5\times5\)) in the Inception module, and how does this affect the computational complexity?</blockquote>
+<p>Suppose a feature map has \(C_{in}\) channels and a large \(K\times K\) convolution produces \(C_{out}\) channels. Its approximate cost is</p>
+<div class="formula">\[ HW\,C_{in}C_{out}K^{2} \]</div>
+<p>If a \(1\times1\) convolution first reduces the channels from \(C_{in}\) to \(C_r\), the total cost becomes</p>
+<div class="formula">\[ HW\big(C_{in}C_r\big) \;+\; HW\big(K^{2}C_rC_{out}\big) \]</div>
+<p>Since \(C_r \ll C_{in}\), the expensive \(K\times K\) convolution now operates on far fewer channels. The \(1\times1\) layer therefore acts as an inexpensive <strong style="color:var(--text)">bottleneck</strong>, substantially reducing both computation and parameters.</p>
+<hr class="sep" />
+<h3>Worked numbers</h3>
+<p class="muted">With \(H=W=28\), \(C_{in}=192\), \(C_r=16\), \(C_{out}=32\), \(K=5\):</p>
+<table>
+<tr><th>Path</th><th>MACs</th></tr>
+<tr><td>Direct \(5\times5\), \(192\rightarrow32\)</td><td class="num">120,422,400</td></tr>
+<tr><td>\(1\times1\), \(192\rightarrow16\)</td><td class="num">2,408,448</td></tr>
+<tr><td>then \(5\times5\), \(16\rightarrow32\)</td><td class="num">10,035,200</td></tr>
+<tr class="hl"><td>Bottleneck total</td><td class="num">12,443,648</td></tr>
+</table>
+<div class="result">\[ \approx \boxed{9.7\times \text{ cheaper}} \]</div>
+<p class="muted">The saving comes from the \(K^{2}C_{in}\) term: the \(5\times5\) kernel now spans 16 channels instead of 192.</p>
+</section>
+
+<section class="card" id="q3c">
+<h2 class="sec">3(c) What adding x to F(x) achieves</h2><div class="meta">ResNet</div>
+<blockquote class="q"><strong>Question</strong>What happens when we add the input \(x\) directly to the output of convolution layers \((F(x)+x)\), and why is this better than just stacking layers?</blockquote>
+<p>This forms a <strong style="color:var(--text)">residual (skip) connection</strong>:</p>
+<div class="formula">\[ \boxed{ y = F(x) + x } \]</div>
+<p>Instead of learning the full mapping, the convolutional block only needs to learn the <strong style="color:var(--text)">residual correction</strong> \(F(x)\).</p>
+<pre class="diagram">          ┌──────────── identity shortcut ────────────┐
+          │                                           ▼
+   x ─────┴──► [ conv → ReLU → conv ] ──► F(x) ──►   (+)  ──► y = F(x) + x</pre>
+<p>The shortcut lets information and gradients flow directly across the block, making very deep networks easier to optimise. If the additional layers are unnecessary, the block can learn \(F(x)\approx0\), giving approximately the identity mapping \(y\approx x\) — which a stack of plain nonlinear layers finds surprisingly hard to reproduce. This is the central idea of ResNet.</p>
+</section>
+
+<section class="card" id="q3d">
+<h2 class="sec">3(d) How EfficientNet balances size against accuracy</h2><div class="meta">EfficientNet</div>
+<blockquote class="q"><strong>Question</strong>How does EfficientNet balance the tradeoff between model size and accuracy?</blockquote>
+<p>EfficientNet uses <strong style="color:var(--text)">compound scaling</strong>. Instead of scaling only depth, only width or only image resolution, it increases all three in a coordinated way:</p>
+<div class="formula">\[ \boxed{ \text{Depth} + \text{Width} + \text{Resolution} } \]</div>
+<p>scaled together according to a fixed computational budget. This gives a better accuracy–efficiency balance than arbitrarily making a network only deeper or only wider.</p>
+<table>
+<tr><th>Scale only…</th><th>Becomes the bottleneck</th></tr>
+<tr><td>Depth</td><td>too little detail and too few feature types to work with</td></tr>
+<tr><td>Width</td><td>too shallow to combine features into high-level structure</td></tr>
+<tr><td>Resolution</td><td>receptive field too small to cover the larger image</td></tr>
+</table>
+</section>
+
+<section class="card" id="q4a">
+<h2 class="sec">4(a) The primary disadvantage of R-CNN</h2><div class="meta">detectors</div>
+<blockquote class="q"><strong>Question</strong>What is the primary disadvantage of the Region-based CNN (R-CNN)?</blockquote>
+<p>R-CNN is <strong style="color:var(--text)">computationally expensive</strong>. It first generates many region proposals, then runs the CNN <em>separately on each proposal</em>.</p>
+<p>Because proposals overlap heavily, the same image regions are processed repeatedly, making both training and inference slow. It also uses a <strong style="color:var(--text)">multi-stage pipeline</strong> — proposals, CNN features, SVM classification, box regression — rather than a single end-to-end trainable detector.</p>
+</section>
+
+<section class="card" id="q4b">
+<h2 class="sec">4(b) Faster R-CNN step by step, by stage</h2><div class="meta">two-stage detection</div>
+<blockquote class="q"><strong>Question</strong>Describe step-by-step how Faster R-CNN processes an input image to produce final object detections. In your explanation, identify which steps belong to the first stage and which belong to the second stage.</blockquote>
+<h3>Shared backbone</h3>
+<p>The input image is passed through a CNN backbone to obtain a convolutional feature map, which <strong style="color:var(--text)">both stages share</strong>.</p>
+<h3>Stage 1 — Region Proposal Network (RPN)</h3>
+<ol class="steps">
+<li>The RPN slides over the shared feature map.</li>
+<li>It predicts <strong>objectness scores</strong> and bounding-box offsets for a set of anchors.</li>
+<li>High-quality proposals are retained, usually after an NMS step.</li>
+</ol>
+<h3>Stage 2 — Detection head</h3>
+<ol class="steps">
+<li>Features for each proposal are extracted from the shared map using ROI pooling / ROI align.</li>
+<li>The detection head predicts the final <strong>object class</strong>.</li>
+<li>It further <strong>refines the bounding-box</strong> coordinates.</li>
+<li>A final NMS produces the output detections.</li>
+</ol>
+<pre class="diagram">   image ──► CNN backbone ──► shared feature map
+                                    │
+                    ┌───────────────┴───────────────┐
+              STAGE 1: RPN                    STAGE 2: head
+          anchors → objectness            ROI pool → class
+          + box offsets → proposals       + box refinement
+                    └───────────────┬───────────────┘
+                                    ▼
+                              NMS ──► final detections</pre>
+<div class="result">\[ \boxed{ \text{Faster R-CNN is a two-stage detector: propose, then classify and refine.} } \]</div>
+</section>
+
+<section class="card" id="q4c">
+<h2 class="sec">4(c) One-stage vs two-stage detectors</h2><div class="meta">detector comparison</div>
+<blockquote class="q"><strong>Question</strong>Compare and contrast one-stage and two-stage detectors in terms of: (i) speed vs accuracy trade-offs, (ii) use cases where each might be preferred, and (iii) key architectural differences.</blockquote>
+<table>
+<tr><th>Aspect</th><th>One-stage detector</th><th>Two-stage detector</th></tr>
+<tr><td>Architecture</td><td>directly predicts classes and boxes</td><td>first proposals, then classifies / refines them</td></tr>
+<tr><td>Speed</td><td>generally faster</td><td>generally slower</td></tr>
+<tr><td>Accuracy / localisation</td><td>traditionally somewhat lower, especially on difficult or small objects</td><td>traditionally stronger localisation and accuracy</td></tr>
+<tr><td>Examples</td><td>YOLO, SSD</td><td>Faster R-CNN</td></tr>
+<tr><td>Preferred use</td><td>real-time robotics, video, embedded systems</td><td>applications where detection quality matters more than latency</td></tr>
+</table>
+<p>The fundamental difference is that <strong style="color:var(--text)">one-stage detectors perform detection directly in a single prediction pipeline</strong>, whereas <strong style="color:var(--text)">two-stage detectors first generate candidate regions</strong> and then perform detailed classification and regression on those regions.</p>
+<p class="muted">The extra stage is exactly where the accuracy comes from and exactly where the time goes — which is why the trade-off is so consistent.</p>
+</section>
+
+<section class="card" id="q5a">
+<h2 class="sec">5(a) What GANs are</h2><div class="meta">GAN</div>
+<blockquote class="q"><strong>Question</strong>What are Generative Adversarial Networks (GANs)?</blockquote>
+<p>A GAN is a generative framework containing two neural networks trained against each other:</p>
+<table>
+<tr><th>Network</th><th>Role</th></tr>
+<tr><td><strong>Generator \(G\)</strong></td><td>transforms random noise into synthetic samples</td></tr>
+<tr><td><strong>Discriminator \(D\)</strong></td><td>tries to determine whether a sample is real or generated</td></tr>
+</table>
+<p>The two are trained <strong style="color:var(--text)">adversarially</strong>: the generator becomes better at producing realistic samples while the discriminator becomes better at distinguishing them. Neither improves in isolation — each one's progress creates the training signal for the other.</p>
+</section>
+
+<section class="card" id="q5b">
+<h2 class="sec">5(b) Why the generator’s cost opposes the discriminator’s</h2><div class="meta">GAN</div>
+<blockquote class="q"><strong>Question</strong>Explain why the cost function of the generator is the opposite of the discriminator.</blockquote>
+<p>The two networks have <strong style="color:var(--text)">directly opposing objectives</strong>. The discriminator tries to correctly distinguish real from fake samples; the generator tries to make fake samples indistinguishable from real ones.</p>
+<p>So if the discriminator minimises its classification error on generated samples, the generator must move its parameters in the <em>opposite</em> direction — it succeeds precisely when the discriminator fails. This adversarial relationship is expressed by the minimax objective:</p>
+<div class="formula">\[ \boxed{ \min_G \max_D V(D,G) } \]</div>
+<p class="muted">Note the single shared value function \(V\): one network maximises it while the other minimises it, which is what makes the two costs exact opposites rather than merely different.</p>
+</section>
+
+<section class="card" id="q5c">
+<h2 class="sec">5(c) What happens when the discriminator becomes too strong</h2><div class="meta">GAN training</div>
+<blockquote class="q"><strong>Question</strong>What happens when the discriminator becomes too strong during GAN training?</blockquote>
+<p>If the discriminator becomes nearly perfect very early, it can trivially separate fake samples from real ones.</p>
+<p>The generator then receives <strong style="color:var(--text)">extremely weak or uninformative gradients</strong> — when \(D(G(z))\approx0\), the term \(\log(1-D(G(z)))\) is flat, so there is almost no signal telling the generator <em>how</em> to improve. Training becomes unstable or stalls entirely.</p>
+<div class="result gold">\[ \boxed{ \text{GAN training requires a balance between } G \text{ and } D \text{ learning.} } \]</div>
+<p class="muted">This is the vanishing-gradient problem in a different costume: the loss saturates, and a saturated loss carries no information.</p>
+</section>
+
+<section class="card" id="q6a">
+<h2 class="sec">6(a) Why Transformers use multi-head attention</h2><div class="meta">Transformer</div>
+<blockquote class="q"><strong>Question</strong>Why does the Transformer use Multi-Head Attention instead of single-head attention, and how does this help capture different types of relationships in the data?</blockquote>
+<p>A single attention head learns <strong style="color:var(--text)">one</strong> set of query–key–value relationships. <strong style="color:var(--text)">Multi-head attention</strong> runs several in parallel:</p>
+<div class="formula">\[ head_i = \text{Attention}\big(QW_i^{Q},\,KW_i^{K},\,VW_i^{V}\big) \]</div>
+<p>Different heads can attend to different relationships at the same time — local dependencies, long-range relationships, syntactic structure, or distinct semantic patterns. Their outputs are concatenated and projected:</p>
+<div class="formula">\[ \boxed{ \text{MultiHead}(Q,K,V) = \text{Concat}(head_1,\ldots,head_h)\,W^{O} } \]</div>
+<p>Multi-head attention therefore gives the model <strong style="color:var(--text)">several complementary representation subspaces</strong>, rather than forcing one attention mechanism to capture every kind of relationship at once.</p>
+</section>
+
+<section class="card" id="q6b">
+<h2 class="sec">6(b) Draw and label an LSTM network</h2><div class="meta">LSTM diagram</div>
+<blockquote class="q"><strong>Question</strong>Draw an LSTM network and label all components including cell state, three gates (forget, input, output), activation functions, and input/output connections. The diagram should clearly show how information flows through the network.</blockquote>
+<p>The full cell, with every component labelled:</p>
+<div class="lstm-visual" data-stage="all" data-label="The complete LSTM cell"></div>
+<p>A hand-drawable version for the exam script:</p>
+<pre class="diagram">                 ┌──────── f_t ────────┐
+C_(t-1) ─────────────── × ─────────────┐
+                                       │
+                                       + ─────── C_t ── tanh ── × ── h_t
+                                       │                    ↑
+                 ┌──── i_t ──┐         │                    │
+h_(t-1), x_t ────┤            ×────────┘                   o_t
+                 └─ C~_t ────┘</pre>
+<p>The three gates are</p>
+<div class="formula">
+\[ f_t=\sigma(\cdots), \qquad i_t=\sigma(\cdots), \qquad o_t=\sigma(\cdots) \]
+</div>
+<p>and the candidate memory uses <strong style="color:var(--text)">tanh</strong>. Inputs are \(x_t,\ h_{t-1},\ C_{t-1}\); outputs are \(h_t\) and \(C_t\).</p>
+<p class="muted">Marks here go to the four labelled boxes, the two lines they sit between (memory along the top, inputs along the bottom), and showing that only \(C_t\) and \(h_t\) leave the cell. Worked numerically on <a href="lstm-1.html">lstm-1</a>.</p>
+</section>
+
+<section class="card" id="q6c">
+<h2 class="sec">6(c) Purpose of each LSTM component</h2><div class="meta">LSTM</div>
+<blockquote class="q"><strong>Question</strong>For each component you drew in part (b), explain its purpose and how it processes information.</blockquote>
+<p>The <strong style="color:var(--text)">forget gate</strong> determines how much of the previous memory \(C_{t-1}\) is retained:</p>
+<div class="formula">\[ f_t = \sigma(\cdots) \]</div>
+<p>The <strong style="color:var(--text)">input gate</strong> determines how much new candidate information is written, and the <strong style="color:var(--text)">candidate</strong> supplies the content itself:</p>
+<div class="formula">\[ i_t = \sigma(\cdots), \qquad \tilde C_t = \tanh(\cdots) \]</div>
+<p>The cell state is then updated by</p>
+<div class="formula">\[ \boxed{ C_t = f_t\odot C_{t-1} + i_t\odot\tilde C_t } \]</div>
+<p>The <strong style="color:var(--text)">output gate</strong> \(o_t=\sigma(\cdots)\) determines how much of the current memory is exposed as the hidden state:</p>
+<div class="formula">\[ \boxed{ h_t = o_t\odot\tanh(C_t) } \]</div>
+<table>
+<tr><th>Component</th><th>Activation</th><th>Range</th><th>Role</th></tr>
+<tr><td>Forget gate \(f_t\)</td><td class="num">\(\sigma\)</td><td class="num">(0,1)</td><td>how much old memory survives</td></tr>
+<tr><td>Input gate \(i_t\)</td><td class="num">\(\sigma\)</td><td class="num">(0,1)</td><td>how much new content is written</td></tr>
+<tr><td>Candidate \(\tilde C_t\)</td><td class="num">\(\tanh\)</td><td class="num">(−1,1)</td><td>what the new content is</td></tr>
+<tr><td>Output gate \(o_t\)</td><td class="num">\(\sigma\)</td><td class="num">(0,1)</td><td>how much memory is exposed</td></tr>
+</table>
+<p>Sigmoid gates produce values between 0 and 1 and therefore behave like <strong style="color:var(--text)">soft switches</strong>, while tanh produces candidate values between \(-1\) and \(1\) — content that can be positive or negative.</p>
+</section>
+
+<section class="card" id="q7a">
+<h2 class="sec">7(a) How seq2seq encoder–decoder processes sequences</h2><div class="meta">seq2seq</div>
+<blockquote class="q"><strong>Question</strong>In basic sequence-to-sequence (seq2seq) models with RNNs, explain how the encoder-decoder architecture processes the input sequence and generates the output sequence.</blockquote>
+<p>The <strong style="color:var(--text)">encoder RNN</strong> reads the input sequence \(x_1,x_2,\ldots,x_T\) one element at a time, continually updating its hidden state. In the basic architecture, the encoder's <strong style="color:var(--text)">final hidden state</strong> is used as a fixed-size <strong style="color:var(--text)">context vector</strong> representing the entire input.</p>
+<p>The <strong style="color:var(--text)">decoder RNN</strong> receives this context vector and generates output tokens sequentially, \(y_1,y_2,\ldots,y_{T'}\). Each generated token and the decoder's previous hidden state influence the next output.</p>
+<pre class="diagram">   x₁ → x₂ → x₃ → ... → x_T
+    │    │    │          │
+   [encoder RNN]─────────► c  (final hidden state = context vector)
+                          │
+                          ▼
+                    [decoder RNN] → y₁ → y₂ → ... → y_T'</pre>
+</section>
+
+<section class="card" id="q7b">
+<h2 class="sec">7(b) The fixed-size context vector limitation</h2><div class="meta">seq2seq</div>
+<blockquote class="q"><strong>Question</strong>Identify the key limitation when using a fixed-size context vector for long sequences in a seq2seq model with RNNs.</blockquote>
+<p>The entire input sequence must be compressed into <strong style="color:var(--text)">one fixed-size vector</strong>, creating an <strong style="color:var(--text)">information bottleneck</strong>.</p>
+<p>For long sequences the context vector cannot preserve all the important information, and what is lost first tends to be information from <strong style="color:var(--text)">early input positions</strong> — those have been overwritten by many subsequent updates. Decoder performance therefore deteriorates as sequence length increases.</p>
+<pre class="diagram">   x₁ x₂ x₃ x₄ ... x₅₀  ──────► [ c ]  ← one vector, fixed size
+   ↑                                      regardless of whether T = 5 or 500
+   this end fades first</pre>
+</section>
+
+<section class="card" id="q7c">
+<h2 class="sec">7(c) How attention fixes the bottleneck</h2><div class="meta">attention</div>
+<blockquote class="q"><strong>Question</strong>How does the attention mechanism address these limitations? (i) Describe how attention modifies the basic seq2seq architecture. (ii) Explain how the context vector is computed differently with attention.</blockquote>
+<h3>(i) The architectural change</h3>
+<p>With attention, the encoder <strong style="color:var(--text)">retains the hidden state at every input position</strong> \(h_1,h_2,\ldots,h_T\), instead of forcing all information into only the final hidden state.</p>
+<h3>(ii) How the context vector is computed</h3>
+<p>At decoder step \(t\), an attention score \(e_{t,i}\) is calculated between the decoder state and every encoder hidden state. The scores are normalised by softmax:</p>
+<div class="formula">\[ \alpha_{t,i} = \frac{e^{e_{t,i}}}{\sum_j e^{e_{t,j}}} \]</div>
+<p>and the context vector becomes a weighted sum of <em>all</em> encoder states:</p>
+<div class="formula">\[ \boxed{ c_t = \sum_i \alpha_{t,i}\,h_i } \]</div>
+<pre class="diagram">   h₁   h₂   h₃   h₄   ...   h_T        encoder states, all kept
+    │    │    │    │          │
+   α₁   α₂   α₃   α₄   ...   α_T        weights, recomputed each step
+    └────┴────┴────┴──────────┘
+                 ▼
+                c_t  ──► decoder step t</pre>
+<p>The crucial difference: the context vector is <strong style="color:var(--text)">different at every decoder step</strong>. The decoder can dynamically focus on whichever input positions are most relevant to the token currently being generated, largely eliminating the fixed-vector bottleneck.</p>
+<div class="result blue">
+\[ \text{basic seq2seq: one } c \text{ for the whole output} \qquad
+\text{with attention: a new } c_t \text{ per output token} \]
+</div>
+</section>
+
+<footer>pyq-3 · previous final 2023 · dark minimal notes</footer>
+</div>
+</body>
+</html>
